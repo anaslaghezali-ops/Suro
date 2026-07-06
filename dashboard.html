@@ -1,0 +1,27 @@
+<section id="dashboard" class="page" style="padding:4rem 2rem;display:none;">
+    <div style="max-width:1200px;margin:0 auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3rem;">
+            <h1 style="font-size:40px;">Mon Espace SURO</h1>
+            <button onclick="app.logout()" class="btn btn-secondary">Déconnexion</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:2rem;">
+            <div style="padding:2rem;background:white;border:1px solid #e5e7eb;border-radius:12px;">
+                <h3>Mes contrats</h3>
+                <p style="color:#6b7280;">Aucun contrat pour le moment</p>
+            </div>
+            <div style="padding:2rem;background:white;border:1px solid #e5e7eb;border-radius:12px;">
+                <h3>Mes sinistres</h3>
+                <p style="color:#6b7280;">Aucun sinistre déclaré</p>
+            </div>
+            <div style="padding:2rem;background:white;border:1px solid #e5e7eb;border-radius:12px;">
+                <h3>Actions</h3>
+                <button onclick="app.showPage('subscribe')" style="display:block;width:100%;padding:12px;margin-bottom:0.75rem;background:white;border:2px solid #e5e7eb;border-radius:8px;cursor:pointer;font-weight:500;">
+                    ➕ Assurance
+                </button>
+                <button onclick="app.showPage('claim')" style="display:block;width:100%;padding:12px;background:white;border:2px solid #e5e7eb;border-radius:8px;cursor:pointer;font-weight:500;">
+                    📋 Sinistre
+                </button>
+            </div>
+        </div>
+    </div>
+</section>

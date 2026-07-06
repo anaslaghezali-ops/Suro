@@ -1,0 +1,21 @@
+<section id="auth" class="page" style="padding:4rem 2rem;display:none;">
+    <div style="max-width:400px;margin:4rem auto;padding:3rem;background:white;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.08);">
+        <h2 style="margin-bottom:2rem;text-align:center;">Connexion</h2>
+        <form onsubmit="handleLogin(event)" style="display:grid;gap:1rem;">
+            <input type="email" id="loginEmail" placeholder="Email" required style="padding:12px;border:1px solid #e5e7eb;border-radius:8px;">
+            <input type="password" id="loginPassword" placeholder="Mot de passe" required style="padding:12px;border:1px solid #e5e7eb;border-radius:8px;">
+            <button type="submit" class="btn btn-primary btn-large" style="width:100%;">Se connecter</button>
+        </form>
+        <p style="text-align:center;margin-top:1rem;"><a href="#" onclick="switchToSignup()" style="color:#3b82f6;">S'inscrire</a></p>
+    </div>
+</section>
+<script>
+function handleLogin(event) {
+    event.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    app.login(email, 'password');
+}
+function switchToSignup() {
+    alert('Signup page (à développer)');
+}
+</script>

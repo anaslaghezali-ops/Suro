@@ -1,0 +1,26 @@
+<section id="claim" class="page" style="padding:4rem 2rem;display:none;">
+    <div style="max-width:900px;margin:0 auto;">
+        <h1 style="font-size:40px;margin-bottom:3rem;">📋 Déclarer un Sinistre</h1>
+        <form id="claimForm" onsubmit="handleClaim(event)" style="background:white;border-radius:12px;padding:2rem;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+            <h3>Type de sinistre</h3>
+            <label style="display:block;margin-bottom:0.5rem;"><input type="radio" name="claimType" value="accident"> 🚗 Accident</label>
+            <label style="display:block;margin-bottom:0.5rem;"><input type="radio" name="claimType" value="vol"> 🚨 Vol</label>
+            <label style="display:block;margin-bottom:0.5rem;"><input type="radio" name="claimType" value="vandalisme"> ⚠️ Vandalisme</label>
+            <label style="display:block;margin-bottom:2rem;"><input type="radio" name="claimType" value="incendie"> 🔥 Incendie</label>
+            
+            <h3>Détails</h3>
+            <input type="date" required style="width:100%;padding:12px;margin-bottom:1rem;border:1px solid #e5e7eb;border-radius:8px;">
+            <input type="text" placeholder="Lieu du sinistre" required style="width:100%;padding:12px;margin-bottom:1rem;border:1px solid #e5e7eb;border-radius:8px;">
+            <textarea placeholder="Description..." rows="5" required style="width:100%;padding:12px;margin-bottom:1rem;border:1px solid #e5e7eb;border-radius:8px;font-family:inherit;"></textarea>
+            
+            <button type="submit" class="btn btn-primary btn-large" style="width:100%;">✓ Soumettre</button>
+        </form>
+    </div>
+</section>
+<script>
+function handleClaim(event) {
+    event.preventDefault();
+    alert('✓ Sinistre déclaré!');
+    app.showPage('dashboard');
+}
+</script>

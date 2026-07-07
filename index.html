@@ -205,6 +205,74 @@
             </div>
         </section>
 
+        <!-- SUBSCRIPTION MODULE -->
+        <section id="subscription" class="page subscription-page" style="display:none;">
+          <div class="subscription-container">
+            <!-- Product Selection Screen -->
+            <div id="productSelector" class="subscription-screen active">
+              <div class="subscription-header">
+                <h1>Choisissez votre type d'assurance</h1>
+                <p>Sélectionnez le produit qui vous convient le mieux</p>
+              </div>
+              <div id="productGrid" class="products-grid">
+                <!-- Products will be loaded here by JS -->
+              </div>
+            </div>
+
+            <!-- Multi-Step Form Screen -->
+            <div id="formScreen" class="subscription-screen">
+              <div class="subscription-header">
+                <button class="btn-back" id="backBtn">← Retour</button>
+                <h2 id="productTitle"></h2>
+                <div class="progress-bar">
+                  <div class="progress-fill" id="progressFill"></div>
+                  <span id="stepCounter" class="step-counter">Étape 1</span>
+                </div>
+              </div>
+
+              <form id="stepForm" class="step-form">
+                <div id="formFields" class="form-fields">
+                  <!-- Form fields will be loaded dynamically -->
+                </div>
+                <div class="form-actions">
+                  <button type="button" class="btn btn-secondary" id="prevBtn" style="display:none;">← Précédent</button>
+                  <button type="button" class="btn btn-primary" id="nextBtn">Suivant →</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Summary Screen -->
+            <div id="summaryScreen" class="subscription-screen">
+              <div class="subscription-header">
+                <button class="btn-back" id="backFromSummaryBtn">← Retour</button>
+                <h2>Résumé de votre demande</h2>
+              </div>
+              <div class="summary-content">
+                <div id="summaryFields" class="summary-fields">
+                  <!-- Summary will be displayed here -->
+                </div>
+                <div class="summary-actions">
+                  <button type="button" class="btn btn-secondary" id="editBtn">Modifier</button>
+                  <button type="button" class="btn btn-primary btn-large" id="submitBtn">Confirmer et envoyer</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Confirmation Screen -->
+            <div id="confirmationScreen" class="subscription-screen">
+              <div class="subscription-header">
+                <h2>✓ Demande envoyée avec succès</h2>
+              </div>
+              <div class="confirmation-content">
+                <p>Votre demande d'assurance a été reçue avec succès.</p>
+                <p>Numéro de demande: <strong id="applicationNumber"></strong></p>
+                <p>Vous recevrez un email de confirmation sous peu.</p>
+                <button type="button" class="btn btn-primary" id="homeBtn">Retour à l'accueil</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- SUBSCRIBE PAGE -->
         <section id="subscribe">
             <div class="subscribe-container">
@@ -271,6 +339,12 @@
     <footer>
         <p>&copy; 2026 SURO - Assurance Auto Digitalisée | Partenaire: Sanlam Maroc</p>
     </footer>
+
+    <!-- Subscription Module -->
+    <link rel="stylesheet" href="css/subscription.css">
+    <script src="js/formConfig.js"></script>
+    <script src="js/subscriptionService.js"></script>
+    <script src="js/subscription.js"></script>
 
     <script src="app.js"></script>
 </body>

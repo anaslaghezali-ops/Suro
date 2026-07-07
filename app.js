@@ -42,14 +42,11 @@ class SuroApp {
 
             const text = target.textContent.trim();
 
-            // Souscrire
-            if (text.includes('Souscrire') || text.includes('Choisir')) {
+            // Souscrire / Commencer
+            if (text.includes('Commencer') || text.includes('Souscrire') || text.includes('Choisir')) {
                 e.preventDefault();
-                if (!this.user) {
-                    this.showPage('auth');
-                } else {
-                    this.showPage('subscribe');
-                }
+                // Route to new subscription module
+                this.showPage('subscription');
             }
 
             // Voir offres

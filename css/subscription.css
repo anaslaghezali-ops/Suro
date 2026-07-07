@@ -3,6 +3,11 @@
 .subscription-page {
   padding: 2rem;
   min-height: 100vh;
+  display: none !important;
+}
+
+#subscription.active {
+  display: block !important;
 }
 
 .subscription-container {

@@ -1,351 +1,274 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SURO - Assurance Auto Digitalisée</title>
-    <link rel="stylesheet" href="css/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SURO — Assurance Protection</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/tunnel.css">
+  <link rel="stylesheet" href="css/subscription.css">
 </head>
 <body>
-    <!-- HEADER -->
-    <header class="header">
-        <div class="header-container">
-            <a href="#" class="logo">
-                <svg viewBox="0 0 40 40">
-                    <rect width="40" height="40" rx="8" fill="#3b82f6"/>
-                    <circle cx="20" cy="16" r="4" fill="white"/>
-                    <path d="M12 24c0-4 3-7 8-7s8 3 8 7" stroke="white" stroke-width="2" fill="none"/>
-                </svg>
-                <span>SURO</span>
-            </a>
-            <nav class="nav">
-                <a href="#" data-page="home">Accueil</a>
-                <a href="#" data-page="offers">Offres</a>
-                <a href="#" data-page="faq">FAQ</a>
-                <a href="#" data-page="contact">Contact</a>
-            </nav>
-            <button class="btn btn-primary" data-page="dashboard">Espace Client</button>
-        </div>
-    </header>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-container">
+      <div class="logo">
+        <div class="logo-mark">S</div>
+        <span>SURO</span>
+      </div>
+      <nav class="nav">
+        <a href="#auto" class="nav-link active" data-section="auto">Auto</a>
+        <a href="#habitation" class="nav-link" data-section="habitation">Habitation</a>
+        <a href="#voyage" class="nav-link" data-section="voyage">Voyage</a>
+        <a href="#sante" class="nav-link" data-section="sante">Santé</a>
+      </nav>
+      <div class="auth-buttons">
+        <button class="btn ghost">Se connecter</button>
+        <button class="btn primary">Souscrire</button>
+      </div>
+    </div>
+  </header>
 
-    <main>
-        <!-- HOME PAGE -->
-        <section id="home" class="active">
-            <div class="hero">
-                <div class="container">
-                    <h1>Assurance Auto <strong>Sans Compromis</strong></h1>
-                    <p>Souscrivez en 5 minutes, payez moins cher, soyez mieux couvert. La révolution de l'assurance auto est là.</p>
-                    <div class="hero-buttons">
-                        <button class="btn btn-primary btn-large">💳 Commencer (5 min)</button>
-                        <button class="btn btn-large" style="background:white;color:#0066ff;border:2px solid white;">Voir les offres</button>
-                    </div>
-                    <div class="hero-features">
-                        <div>⚡ 5 minutes seulement</div>
-                        <div>💰 jusqu'à 40% moins cher</div>
-                        <div>🛡️ Couverture complète</div>
-                    </div>
-                </div>
+  <!-- MAIN CONTENT -->
+  <main>
+    <!-- HERO: SURO AUTO -->
+    <section class="hero" id="hero-auto" data-section-target="auto">
+      <div class="wrap">
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; align-items: center; padding: 84px 0 60px;">
+          <div>
+            <div class="eyebrow">
+              <span>🚗</span>
+              <span>Protection Routière</span>
             </div>
-
-            <!-- STATS / SOCIAL PROOF -->
-            <section class="stats" style="background: linear-gradient(135deg, #f8f9fa 0%, #f0f7ff 100%);padding: 5rem 2rem;">
-                <div class="stats-grid">
-                    <div class="stat">
-                        <div class="stat-number">50K+</div>
-                        <p class="stat-label">Clients Satisfaits</p>
-                        <p style="font-size: 12px; color: #999;">Et ça grandit chaque jour</p>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number">€45M</div>
-                        <p class="stat-label">Sinistres Versés</p>
-                        <p style="font-size: 12px; color: #999;">Sans complications</p>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number">4.9/5</div>
-                        <p class="stat-label">Note Google</p>
-                        <p style="font-size: 12px; color: #999;">2,340 avis vérifiés</p>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number">24/7</div>
-                        <p class="stat-label">Support Client</p>
-                        <p style="font-size: 12px; color: #999;">Chat, téléphone, email</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- FEATURES -->
-            <section class="features">
-                <h2 style="margin-bottom: 1rem;">Pourquoi nos clients nous choisissent ?</h2>
-                <p style="text-align: center; color: #666; margin-bottom: 3rem; font-size: 18px;">Plus rapide. Plus transparent. Plus économique.</p>
-                <div class="features-grid">
-                    <div class="feature" style="border-radius: 12px; border: 1px solid #e5e7eb; padding: 2rem; transition: all 0.3s ease; cursor: pointer;">
-                        <div class="feature-icon">⚡</div>
-                        <h3>5 minutes seulement</h3>
-                        <p class="text-muted">Fini les dossiers à remplir. Notre processus est ultra-simplifié pour vous faire gagner du temps.</p>
-                    </div>
-                    <div class="feature" style="border-radius: 12px; border: 1px solid #e5e7eb; padding: 2rem; transition: all 0.3s ease; cursor: pointer;">
-                        <div class="feature-icon">💰</div>
-                        <h3>Économies garanties</h3>
-                        <p class="text-muted">Jusqu'à 40% moins cher que la concurrence. Pas de frais cachés, pricing transparent.</p>
-                    </div>
-                    <div class="feature" style="border-radius: 12px; border: 1px solid #e5e7eb; padding: 2rem; transition: all 0.3s ease; cursor: pointer;">
-                        <div class="feature-icon">📱</div>
-                        <h3>100% Digital</h3>
-                        <p class="text-muted">Souscrivez, gérez et modifiez votre assurance depuis votre téléphone. Partout, tout le temps.</p>
-                    </div>
-                    <div class="feature" style="border-radius: 12px; border: 1px solid #e5e7eb; padding: 2rem; transition: all 0.3s ease; cursor: pointer;">
-                        <div class="feature-icon">🛡️</div>
-                        <h3>Partenaire Sanlam</h3>
-                        <p class="text-muted">Couverture fiable avec Sanlam, assureur de référence en Afrique depuis 150 ans.</p>
-                    </div>
-                    <div class="feature" style="border-radius: 12px; border: 1px solid #e5e7eb; padding: 2rem; transition: all 0.3s ease; cursor: pointer;">
-                        <div class="feature-icon">🚀</div>
-                        <h3>Sinistres en 24h</h3>
-                        <p class="text-muted">Déclarez un sinistre et recevez votre indemnisation en 24 heures maximum.</p>
-                    </div>
-                    <div class="feature" style="border-radius: 12px; border: 1px solid #e5e7eb; padding: 2rem; transition: all 0.3s ease; cursor: pointer;">
-                        <div class="feature-icon">👥</div>
-                        <h3>Support 24/7</h3>
-                        <p class="text-muted">Notre équipe est là pour vous, 24 heures sur 24, 7 jours sur 7. Chat, téléphone, email.</p>
-                    </div>
-                </div>
-            </section>
-        </section>
-
-        <!-- OFFERS PAGE -->
-        <section id="offers" class="offers" style="background: #f8f9fa;">
-            <h2 style="margin-bottom: 0.5rem;">Choisissez votre couverture</h2>
-            <p style="text-align: center; color: #666; margin-bottom: 3rem; font-size: 16px;">Toutes nos offres incluent l'assistance 24/7 et les sinistres en 24h</p>
-            <div class="offers-grid">
-                <div class="offer-card">
-                    <h3 style="font-size: 24px;">🚗 RC Obligatoire</h3>
-                    <p class="offer-price" style="color: #0066ff;">1 200 DH<span style="font-size: 12px; color: #999;">/an</span></p>
-                    <p style="color: #666; margin: 1rem 0; font-size: 13px;">✓ Responsabilité civile<br>✓ Protection légale<br>✓ Assistance remorquage</p>
-                    <button class="btn btn-primary" style="width:100%;">Choisir cette offre</button>
-                </div>
-                <div class="offer-card recommended">
-                    <h3 style="font-size: 24px;">⭐ Tiers+ (Recommandé)</h3>
-                    <p class="offer-price" style="color: #0066ff;">3 500 DH<span style="font-size: 12px; color: #999;">/an</span></p>
-                    <p style="color: #666; margin: 1rem 0; font-size: 13px; height: 60px;">✓ RC + Vol & Incendie<br>✓ Dommages partiels<br>✓ Assistance 24/7</p>
-                    <button class="btn btn-primary" style="width:100%;">🎯 Recommandé</button>
-                    <p style="margin-top: 1rem; font-size: 12px; color: #10b981;">Le meilleur rapport couverture/prix</p>
-                </div>
-                <div class="offer-card">
-                    <h3 style="font-size: 24px;">🛡️ Tous Risques</h3>
-                    <p class="offer-price" style="color: #0066ff;">5 500 DH<span style="font-size: 12px; color: #999;">/an</span></p>
-                    <p style="color: #666; margin: 1rem 0; font-size: 13px;">✓ Couverture maximale<br>✓ Dommages collision<br>✓ Franchise réduite</p>
-                    <button class="btn btn-primary" style="width:100%;">Choisir cette offre</button>
-                </div>
+            <h1>SURO Auto<br><span style="color: var(--jade);">Protection Intégrale</span></h1>
+            <p class="lede" style="font-size: 17px; color: var(--ink-soft); margin-top: 20px; max-width: 42ch;">
+              Couvrez-vous en 3 moments. Immatriculation, profil, prix. Zéro surprise, 100% transparent.
+            </p>
+            <div class="hero-cta" style="margin-top: 32px; gap: 16px;">
+              <button class="btn lg primary" onclick="document.querySelector('.tunnel-container').tunnelInstance?.open('automobile')">
+                Commencer la souscription
+              </button>
+              <button class="btn lg ghost">Voir les garanties</button>
             </div>
-        </section>
-
-        <!-- FAQ PAGE -->
-        <section id="faq" class="faq">
-            <h2>FAQ</h2>
-            <div class="faq-container">
-                <details class="faq-item">
-                    <summary>Combien de temps pour souscrire?</summary>
-                    <p>La souscription prend environ 5 minutes en moyenne. C'est rapide et simple!</p>
-                </details>
-                <details class="faq-item">
-                    <summary>Quels documents me faut-il?</summary>
-                    <p>Vous avez besoin de votre immatriculation et vos documents d'identité.</p>
-                </details>
-                <details class="faq-item">
-                    <summary>Puis-je modifier mon contrat?</summary>
-                    <p>Oui, vous pouvez modifier votre couverture à tout moment dans votre espace client.</p>
-                </details>
-                <details class="faq-item">
-                    <summary>Comment faire un sinistre?</summary>
-                    <p>Connectez-vous à votre espace client et cliquez sur "Déclarer un sinistre".</p>
-                </details>
-            </div>
-        </section>
-
-        <!-- CONTACT PAGE -->
-        <section id="contact" class="contact">
-            <h2>Nous Contacter</h2>
-            <div class="contact-container">
-                <div class="contact-info">
-                    <strong>Email:</strong> <a href="mailto:support@suro.ma">support@suro.ma</a>
-                </div>
-                <div class="contact-info">
-                    <strong>Tél:</strong> <a href="tel:+212522123456">+212 5 22 12 34 56</a>
-                </div>
-                <div class="contact-info">
-                    <strong>Adresse:</strong> Casablanca, Maroc
-                </div>
-            </div>
-        </section>
-
-        <!-- AUTH PAGE -->
-        <section id="auth">
-            <div class="auth-container">
-                <h2>Connexion</h2>
-                <form id="loginForm" class="form-group">
-                    <input type="email" id="loginEmail" class="form-input" placeholder="Email" required>
-                    <input type="password" id="loginPassword" class="form-input" placeholder="Mot de passe" required>
-                    <button type="submit" class="btn btn-primary btn-large" style="width:100%;">Se connecter</button>
-                </form>
-                <div class="auth-switch">
-                    <p>Pas encore inscrit? <a onclick="document.getElementById('loginForm').style.display='none'; document.getElementById('signupForm').style.display='grid';">S'inscrire</a></p>
-                </div>
-
-                <form id="signupForm" class="form-group" style="display:none;">
-                    <input type="text" name="first_name" class="form-input" placeholder="Prénom" required>
-                    <input type="text" name="last_name" class="form-input" placeholder="Nom" required>
-                    <input type="email" name="email" class="form-input" placeholder="Email" required>
-                    <input type="tel" name="phone" class="form-input" placeholder="Téléphone">
-                    <input type="password" name="password" class="form-input" placeholder="Mot de passe" required>
-                    <button type="submit" class="btn btn-primary btn-large" style="width:100%;">S'inscrire</button>
-                </form>
-                <div class="auth-switch" id="switchToLogin" style="display:none;">
-                    <p>Déjà inscrit? <a onclick="document.getElementById('signupForm').style.display='none'; document.getElementById('loginForm').style.display='grid'; document.getElementById('switchToLogin').style.display='none';">Se connecter</a></p>
-                </div>
-            </div>
-        </section>
-
-        <!-- SUBSCRIPTION MODULE -->
-        <section id="subscription" class="page subscription-page">
-          <div class="subscription-container">
-            <!-- Product Selection Screen -->
-            <div id="productSelector" class="subscription-screen active">
-              <div class="subscription-header">
-                <h1>Choisissez votre type d'assurance</h1>
-                <p>Sélectionnez le produit qui vous convient le mieux</p>
-              </div>
-              <div id="productGrid" class="products-grid">
-                <!-- Products will be loaded here by JS -->
-              </div>
-            </div>
-
-            <!-- Multi-Step Form Screen -->
-            <div id="formScreen" class="subscription-screen">
-              <div class="subscription-header">
-                <button class="btn-back" id="backBtn">← Retour</button>
-                <h2 id="productTitle"></h2>
-                <div class="progress-bar">
-                  <div class="progress-fill" id="progressFill"></div>
-                  <span id="stepCounter" class="step-counter">Étape 1</span>
-                </div>
-              </div>
-
-              <form id="stepForm" class="step-form">
-                <div id="formFields" class="form-fields">
-                  <!-- Form fields will be loaded dynamically -->
-                </div>
-                <div class="form-actions">
-                  <button type="button" class="btn btn-secondary" id="prevBtn" style="display:none;">← Précédent</button>
-                  <button type="button" class="btn btn-primary" id="nextBtn">Suivant →</button>
-                </div>
-              </form>
-            </div>
-
-            <!-- Summary Screen -->
-            <div id="summaryScreen" class="subscription-screen">
-              <div class="subscription-header">
-                <button class="btn-back" id="backFromSummaryBtn">← Retour</button>
-                <h2>Résumé de votre demande</h2>
-              </div>
-              <div class="summary-content">
-                <div id="summaryFields" class="summary-fields">
-                  <!-- Summary will be displayed here -->
-                </div>
-                <div class="summary-actions">
-                  <button type="button" class="btn btn-secondary" id="editBtn">Modifier</button>
-                  <button type="button" class="btn btn-primary btn-large" id="submitBtn">Confirmer et envoyer</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Confirmation Screen -->
-            <div id="confirmationScreen" class="subscription-screen">
-              <div class="subscription-header">
-                <h2>✓ Demande envoyée avec succès</h2>
-              </div>
-              <div class="confirmation-content">
-                <p>Votre demande d'assurance a été reçue avec succès.</p>
-                <p>Numéro de demande: <strong id="applicationNumber"></strong></p>
-                <p>Vous recevrez un email de confirmation sous peu.</p>
-                <button type="button" class="btn btn-primary" id="homeBtn">Retour à l'accueil</button>
-              </div>
+            <div class="trust" style="margin-top: 32px;">
+              <span><b>4.8★</b> 12k avis</span>
+              <span><b>✓</b> Agréée ACAPS</span>
+              <span><b>⚡</b> Traitement immédiat</span>
             </div>
           </div>
-        </section>
-
-        <!-- SUBSCRIBE PAGE -->
-        <section id="subscribe">
-            <div class="subscribe-container">
-                <h1>Souscrire une Assurance</h1>
-                <form id="subscribeForm" class="subscribe-form">
-                    <div class="form-section">
-                        <h3>Véhicule</h3>
-                        <input type="text" name="registration_number" class="form-input" placeholder="Immatriculation" required>
-                        <input type="text" name="make" class="form-input" placeholder="Marque" required>
-                        <input type="text" name="model" class="form-input" placeholder="Modèle" required>
-                        <input type="number" name="year" class="form-input" placeholder="Année" required>
-                    </div>
-
-                    <div class="form-section">
-                        <h3>Plan d'assurance</h3>
-                        <div class="plan-options">
-                            <label class="plan-option">
-                                <input type="radio" name="plan_id" value="rc" required>
-                                <span>RC Obligatoire - 1 200 DH/an</span>
-                            </label>
-                            <label class="plan-option">
-                                <input type="radio" name="plan_id" value="tiers" checked>
-                                <span>Tiers - 3 500 DH/an</span>
-                            </label>
-                            <label class="plan-option">
-                                <input type="radio" name="plan_id" value="tous-risques">
-                                <span>Tous Risques - 5 500 DH/an</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-large" style="width:100%;">Souscrire</button>
-                </form>
+          <div class="hcard">
+            <div class="row1">
+              <div class="pname">
+                <div class="i">🚗</div>
+                <span>SURO Auto</span>
+              </div>
+              <div class="badge">Tous risques</div>
             </div>
-        </section>
-
-        <!-- DASHBOARD PAGE -->
-        <section id="dashboard">
-            <div class="dashboard-container">
-                <div class="dashboard-header">
-                    <h1>Mon Espace SURO</h1>
-                    <button class="btn btn-secondary" onclick="app.logout()">Déconnexion</button>
-                </div>
-                <div class="dashboard-grid">
-                    <div class="dashboard-card">
-                        <h3>📋 Mes contrats</h3>
-                        <div data-section="contracts" class="no-data">Chargement...</div>
-                    </div>
-                    <div class="dashboard-card">
-                        <h3>🛟 Mes sinistres</h3>
-                        <div data-section="claims" class="no-data">Chargement...</div>
-                    </div>
-                    <div class="dashboard-card">
-                        <h3>⚙️ Actions</h3>
-                        <button class="btn btn-primary" data-page="subscribe" style="width:100%;margin-bottom:0.75rem;">➕ Nouvelle assurance</button>
-                        <button class="btn btn-secondary" style="width:100%;">📋 Déclarer sinistre</button>
-                    </div>
-                </div>
+            <div class="price">
+              <b style="font-variant-numeric: tabular-nums;">120</b>
+              <span>DH/mois</span>
             </div>
-        </section>
-    </main>
+            <p style="font-size: 13px; color: var(--muted); margin-top: 4px; margin-bottom: 0;">Première quittance prélevée immédiatement</p>
+            <ul>
+              <li>Vol & Incendie</li>
+              <li>Responsabilité Civile</li>
+              <li>Assistance 24/7</li>
+              <li>Franchise adaptée</li>
+            </ul>
+            <button class="btn primary block" onclick="document.querySelector('.tunnel-container').tunnelInstance?.open('automobile')">
+              Commencer
+            </button>
+            <p class="fine">Durée: 12 mois | Tacite reconduction</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <!-- FOOTER -->
-    <footer>
-        <p>&copy; 2026 SURO - Assurance Auto Digitalisée | Partenaire: Sanlam Maroc</p>
-    </footer>
+    <!-- PRODUCTS GRID -->
+    <section class="prot">
+      <div class="wrap">
+        <div class="shead">
+          <div class="kick">Couvertures SURO</div>
+          <h2>Protégez ce qui compte</h2>
+          <p>De votre maison à votre santé, SURO s'engage pour votre tranquillité d'esprit.</p>
+        </div>
+        <div class="prot-grid" style="margin-top: 48px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+          <div class="pcard live" data-product="automobile">
+            <div class="tagl">Live</div>
+            <div class="i">🚗</div>
+            <h3>Auto</h3>
+            <p>Couverture routière complète, tous types de véhicules.</p>
+            <div class="from">À partir de <b>120 DH</b>/mois</div>
+          </div>
+          <div class="pcard" data-product="habitation">
+            <div class="soon">Bientôt</div>
+            <div class="i">🏠</div>
+            <h3>Habitation</h3>
+            <p>Protégez votre bien immobilier contre les risques majeurs.</p>
+            <div class="from">À partir de <b>180 DH</b>/mois</div>
+          </div>
+          <div class="pcard" data-product="voyage">
+            <div class="soon">Bientôt</div>
+            <div class="i">✈️</div>
+            <h3>Voyage</h3>
+            <p>Couverture globale pour vos déplacements nationaux et internationaux.</p>
+            <div class="from">À partir de <b>45 DH</b>/jour</div>
+          </div>
+          <div class="pcard" data-product="sante">
+            <div class="soon">Bientôt</div>
+            <div class="i">🏥</div>
+            <h3>Santé</h3>
+            <p>Couverture médicale adaptée à vous et votre famille.</p>
+            <div class="from">À partir de <b>200 DH</b>/mois</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <!-- Subscription Module -->
-    <link rel="stylesheet" href="css/subscription.css">
-    <script src="js/formConfig.js"></script>
-    <script src="js/subscriptionService.js"></script>
-    <script src="js/subscription.js"></script>
+    <!-- HOW IT WORKS -->
+    <section style="padding: 76px 0;">
+      <div class="wrap">
+        <div class="shead">
+          <div class="kick">Processus simplifié</div>
+          <h2>SURO en 3 moments</h2>
+          <p>Du scan à la couverture active, tout se fait en ligne.</p>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 32px; margin-top: 48px;">
+          <div style="text-align: center;">
+            <div style="width: 64px; height: 64px; border-radius: 16px; background: color-mix(in srgb, var(--jade) 15%, transparent); border: 2px solid var(--jade); display: grid; place-items: center; font-size: 32px; margin: 0 auto 16px;">1️⃣</div>
+            <h3 style="margin-top: 0;">Immatriculation</h3>
+            <p>Entrez votre numéro d'immatriculation pour la reconnaissance immédiate de votre véhicule.</p>
+          </div>
+          <div style="text-align: center;">
+            <div style="width: 64px; height: 64px; border-radius: 16px; background: color-mix(in srgb, var(--jade) 15%, transparent); border: 2px solid var(--jade); display: grid; place-items: center; font-size: 32px; margin: 0 auto 16px;">2️⃣</div>
+            <h3 style="margin-top: 0;">Profil</h3>
+            <p>Vérifiez vos informations pré-remplies automatiquement. Pas de formulaire long et fastidieux.</p>
+          </div>
+          <div style="text-align: center;">
+            <div style="width: 64px; height: 64px; border-radius: 16px; background: color-mix(in srgb, var(--jade) 15%, transparent); border: 2px solid var(--jade); display: grid; place-items: center; font-size: 32px; margin: 0 auto 16px;">3️⃣</div>
+            <h3 style="margin-top: 0;">Paiement</h3>
+            <p>Confirmez votre prix fixe et payez immédiatement. Contrat actif en 5 minutes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <script src="app.js"></script>
+    <!-- SURO AUTO DETAIL -->
+    <section id="suro-auto-detail" style="padding: 76px 0; display: none;" data-section-target="auto-detail">
+      <div class="wrap">
+        <h2 style="text-align: center; margin-bottom: 48px;">SURO Auto — Couvertures Incluses</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 48px;">
+          <div class="card">
+            <h3 style="color: var(--pos); margin-top: 0;">Responsabilité Civile</h3>
+            <p>Couverture légale obligatoire pour les dommages causés à tiers. Limite adaptée à vos besoins.</p>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--pos); margin-top: 0;">Vol et Incendie</h3>
+            <p>Protection complète contre le vol, l'incendie et les catastrophes naturelles. Couverture 24/7.</p>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--pos); margin-top: 0;">Assistance Routière</h3>
+            <p>Dépannage, remorquage et remplacement de véhicule inclus. Service national disponible.</p>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--pos); margin-top: 0;">Protection Juridique</h3>
+            <p>Accompagnement légal en cas de sinistre. Avis juridiques disponibles 24/7.</p>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--pos); margin-top: 0;">Tous Risques</h3>
+            <p>Couverture des dommages au véhicule suite à accident, collision ou choc. Franchise flexible.</p>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--pos); margin-top: 0;">Franchise Adaptée</h3>
+            <p>Choisissez votre franchise. Plus basse = prime plus élevée. À vous de décider.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- SUBSCRIPTION TUNNEL -->
+  <div class="tunnel-container">
+    <!-- Contenu généré par tunnel.js -->
+  </div>
+
+  <!-- FOOTER -->
+  <footer style="background: var(--surface-2); border-top: 1px solid var(--line); padding: 48px 0; color: var(--muted); font-size: 13px; margin-top: 80px;">
+    <div class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; margin-bottom: 32px;">
+      <div>
+        <h4 style="color: var(--ink); margin-bottom: 16px; font-size: 14px; font-weight: 600;">SURO</h4>
+        <p style="margin: 0 0 12px; font-size: 13px;">Plateforme d'assurance digitalisée pour une protection claire et accessible.</p>
+        <p style="margin: 0; font-size: 12px;">Courtier en assurance agréé | ACAPS n° 2024-XXXXX</p>
+      </div>
+      <div>
+        <h4 style="color: var(--ink); margin-bottom: 16px; font-size: 14px; font-weight: 600;">Produits</h4>
+        <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 8px;">
+          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">SURO Auto</a></li>
+          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">SURO Habitation</a></li>
+          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">SURO Voyage</a></li>
+          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">SURO Santé</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color: var(--ink); margin-bottom: 16px; font-size: 14px; font-weight: 600;">Compagnie</h4>
+        <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 8px;">
+          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">À propos</a></li>
+          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">Blog</a></li>
+          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">FAQ</a></li>
+          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color: var(--ink); margin-bottom: 16px; font-size: 14px; font-weight: 600;">Légal</h4>
+        <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 8px;">
+          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">Conditions d'utilisation</a></li>
+          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">Politique de confidentialité</a></li>
+          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">Cookies</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="wrap" style="border-top: 1px solid var(--line); padding-top: 24px; display: flex; justify-content: space-between; align-items: center;">
+      <p style="margin: 0; font-size: 12px;">© 2024 SURO. Tous droits réservés.</p>
+      <div style="display: flex; gap: 16px;">
+        <a href="#" style="color: var(--muted); transition: color 0.2s;">Twitter</a>
+        <a href="#" style="color: var(--muted); transition: color 0.2s;">LinkedIn</a>
+        <a href="#" style="color: var(--muted); transition: color 0.2s;">Instagram</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/components/tunnel.js"></script>
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize tunnel
+      const tunnelContainer = document.querySelector('.tunnel-container');
+      window.tunnel = new SubscriptionTunnel(tunnelContainer);
+
+      // Navigation
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+          link.classList.add('active');
+        });
+      });
+
+      // Product cards click to open tunnel
+      document.querySelectorAll('.pcard.live').forEach(card => {
+        card.addEventListener('click', () => {
+          const product = card.dataset.product;
+          window.tunnel.open(product);
+        });
+      });
+
+      // CTA buttons click to open tunnel
+      document.querySelectorAll('[onclick*="tunnel"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+        });
+      });
+    });
+  </script>
 </body>
 </html>

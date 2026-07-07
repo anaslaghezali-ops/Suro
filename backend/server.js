@@ -4,25 +4,43 @@ require('dotenv').config();
 
 const app = express();
 
+// Import routes
+const authRoutes = require('./routes/auth');
+const contractsRoutes = require('./routes/contracts');
+const claimsRoutes = require('./routes/claims');
+const contactRoutes = require('./routes/contact');
+
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static('../frontend'));
 
 // Routes
-app.post('/api/auth/signup', require('./routes/auth'));
-app.post('/api/auth/login', require('./routes/auth'));
-app.post('/api/subscribe', require('./routes/subscribe'));
-app.post('/api/claims', require('./routes/claims'));
-app.get('/api/contracts/:userId', require('./routes/contracts'));
-app.get('/api/claims/:userId', require('./routes/claims'));
-app.post('/api/contact', require('./routes/contact'));
+app.use('/api/auth', authRoutes);
+app.use('/api/contracts', contractsRoutes);
+app.use('/api/claims', claimsRoutes);
+app.use('/api/contact', contactRoutes);
 
-// Error handling
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'SURO API is running' });
+});
+
+// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.status || 500).json({ error: err.message });
+  console.error('[ERROR]', err);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal server error'
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`[SURO] Server running on port ${PORT}`);
+  console.log(`[SURO] API available at http://localhost:${PORT}/api`);
+});

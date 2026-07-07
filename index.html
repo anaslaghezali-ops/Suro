@@ -3,151 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SURO - Assurance Auto</title>
+    <title>SURO - Assurance Auto Digitalisée</title>
     <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
+    <!-- HEADER -->
     <header class="header">
         <div class="header-container">
             <a href="#" class="logo">
-                <svg viewBox="0 0 40 40" style="width:40px;height:40px;">
+                <svg viewBox="0 0 40 40">
                     <rect width="40" height="40" rx="8" fill="#3b82f6"/>
                     <circle cx="20" cy="16" r="4" fill="white"/>
                     <path d="M12 24c0-4 3-7 8-7s8 3 8 7" stroke="white" stroke-width="2" fill="none"/>
                 </svg>
-                <span style="margin-left:0.75rem;font-size:24px;font-weight:700;">SURO</span>
+                <span>SURO</span>
             </a>
             <nav class="nav">
-                <a href="#home">Accueil</a>
-                <a href="#offers">Offres</a>
-                <a href="#faq">FAQ</a>
-                <a href="#contact">Contact</a>
+                <a href="#" data-page="home">Accueil</a>
+                <a href="#" data-page="offers">Offres</a>
+                <a href="#" data-page="faq">FAQ</a>
+                <a href="#" data-page="contact">Contact</a>
             </nav>
-            <button class="btn btn-primary">Espace Client</button>
+            <button class="btn btn-primary" data-page="dashboard">Espace Client</button>
         </div>
     </header>
 
     <main>
         <!-- HOME PAGE -->
-        <section class="hero">
-            <div class="container">
-                <h1>Assurance Auto en 5 Minutes</h1>
-                <p style="font-size:20px;margin-bottom:2rem;">100% digitalisée, sans agence, sans attente</p>
-                <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem;">
-                    <button class="btn btn-primary btn-large">Souscrire</button>
-                    <button class="btn btn-large" style="background:white;color:#3b82f6;border:2px solid #3b82f6;">Voir offres</button>
-                </div>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:2rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.2);">
-                    <div>✓ 5 minutes</div>
-                    <div>✓ Sans agence</div>
-                    <div>✓ 24/7</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- STATS -->
-        <section class="stats">
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;">
-                <div class="stat">
-                    <div style="font-size:36px;font-weight:700;color:#3b82f6;margin-bottom:0.5rem;">50K+</div>
-                    <p>Clients</p>
-                </div>
-                <div class="stat">
-                    <div style="font-size:36px;font-weight:700;color:#3b82f6;margin-bottom:0.5rem;">2K+</div>
-                    <p>Sinistres</p>
-                </div>
-                <div class="stat">
-                    <div style="font-size:36px;font-weight:700;color:#3b82f6;margin-bottom:0.5rem;">4.8/5</div>
-                    <p>Note</p>
-                </div>
-                <div class="stat">
-                    <div style="font-size:36px;font-weight:700;color:#3b82f6;margin-bottom:0.5rem;">24/7</div>
-                    <p>Support</p>
+        <section id="home" class="active">
+            <div class="hero">
+                <div class="container">
+                    <h1>Assurance Auto en 5 Minutes</h1>
+                    <p style="font-size:20px;margin-bottom:2rem;">100% digitalisée, sans agence, sans attente</p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-primary btn-large">Souscrire</button>
+                        <button class="btn btn-large" style="background:white;color:#3b82f6;border:2px solid #3b82f6;">Voir offres</button>
+                    </div>
+                    <div class="hero-features">
+                        <div>✓ 5 minutes</div>
+                        <div>✓ Sans agence</div>
+                        <div>✓ 24/7</div>
+                    </div>
                 </div>
             </div>
+
+            <!-- STATS -->
+            <section class="stats">
+                <div class="stats-grid">
+                    <div class="stat">
+                        <div class="stat-number">50K+</div>
+                        <p class="stat-label">Clients</p>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">2K+</div>
+                        <p class="stat-label">Sinistres</p>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">4.8/5</div>
+                        <p class="stat-label">Note</p>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">24/7</div>
+                        <p class="stat-label">Support</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FEATURES -->
+            <section class="features">
+                <h2>Pourquoi SURO?</h2>
+                <div class="features-grid">
+                    <div class="feature">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Rapide</h3>
+                        <p class="text-muted">Souscrivez en 5 minutes</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">💰</div>
+                        <h3>Transparent</h3>
+                        <p class="text-muted">Pas de frais cachés</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">📱</div>
+                        <h3>Digital</h3>
+                        <p class="text-muted">100% en ligne</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🛡️</div>
+                        <h3>Sécurisé</h3>
+                        <p class="text-muted">Partenaire Sanlam</p>
+                    </div>
+                </div>
+            </section>
         </section>
 
-        <!-- FEATURES -->
-        <section style="padding:4rem 2rem;">
-            <h2 style="font-size:40px;text-align:center;margin-bottom:3rem;">Pourquoi SURO?</h2>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:2rem;max-width:1200px;margin:0 auto;">
-                <div class="feature">
-                    <div style="font-size:48px;margin-bottom:1rem;">⚡</div>
-                    <h3>Rapide</h3>
-                    <p style="color:#6b7280;">Souscrivez en 5 minutes</p>
-                </div>
-                <div class="feature">
-                    <div style="font-size:48px;margin-bottom:1rem;">💰</div>
-                    <h3>Transparent</h3>
-                    <p style="color:#6b7280;">Pas de frais cachés</p>
-                </div>
-                <div class="feature">
-                    <div style="font-size:48px;margin-bottom:1rem;">📱</div>
-                    <h3>Digital</h3>
-                    <p style="color:#6b7280;">100% en ligne</p>
-                </div>
-                <div class="feature">
-                    <div style="font-size:48px;margin-bottom:1rem;">🛡️</div>
-                    <h3>Sécurisé</h3>
-                    <p style="color:#6b7280;">Partenaire Sanlam</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- OFFERS -->
-        <section id="offers" style="padding:4rem 2rem;background:#f9fafb;">
-            <h2 style="font-size:40px;text-align:center;margin-bottom:3rem;">Nos Offres</h2>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2rem;max-width:1200px;margin:0 auto;">
-                <div style="padding:2rem;background:white;border:2px solid #e5e7eb;border-radius:12px;text-align:center;">
+        <!-- OFFERS PAGE -->
+        <section id="offers" class="offers">
+            <h2>Nos Offres</h2>
+            <div class="offers-grid">
+                <div class="offer-card">
                     <h3>RC</h3>
-                    <p style="font-size:36px;font-weight:700;color:#3b82f6;margin:1rem 0;">1 200 DH</p>
-                    <button class="btn btn-primary" style="width:100%;">Choisir</button>
+                    <p class="offer-price">1 200 DH</p>
+                    <button class="btn btn-primary">Choisir</button>
                 </div>
-                <div style="padding:2rem;background:white;border:2px solid #3b82f6;border-radius:12px;text-align:center;transform:scale(1.05);">
-                    <span style="background:#3b82f6;color:white;padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;display:inline-block;margin-bottom:1rem;">Recommandé</span>
+                <div class="offer-card recommended">
+                    <div class="offer-badge">Recommandé</div>
                     <h3>Tiers</h3>
-                    <p style="font-size:36px;font-weight:700;color:#3b82f6;margin:1rem 0;">3 500 DH</p>
-                    <button class="btn btn-primary" style="width:100%;">Choisir</button>
+                    <p class="offer-price">3 500 DH</p>
+                    <button class="btn btn-primary">Choisir</button>
                 </div>
-                <div style="padding:2rem;background:white;border:2px solid #e5e7eb;border-radius:12px;text-align:center;">
+                <div class="offer-card">
                     <h3>Tous risques</h3>
-                    <p style="font-size:36px;font-weight:700;color:#3b82f6;margin:1rem 0;">5 500 DH</p>
-                    <button class="btn btn-primary" style="width:100%;">Choisir</button>
+                    <p class="offer-price">5 500 DH</p>
+                    <button class="btn btn-primary">Choisir</button>
                 </div>
             </div>
         </section>
 
-        <!-- FAQ -->
-        <section id="faq" style="padding:4rem 2rem;">
-            <h2 style="font-size:40px;text-align:center;margin-bottom:3rem;">FAQ</h2>
-            <div style="max-width:800px;margin:0 auto;">
-                <details style="background:white;border:1px solid #e5e7eb;border-radius:8px;padding:1.5rem;margin-bottom:1rem;cursor:pointer;">
-                    <summary style="font-weight:600;">Combien de temps pour souscrire?</summary>
-                    <p style="margin-top:1rem;color:#6b7280;">La souscription prend environ 5 minutes en moyenne.</p>
+        <!-- FAQ PAGE -->
+        <section id="faq" class="faq">
+            <h2>FAQ</h2>
+            <div class="faq-container">
+                <details class="faq-item">
+                    <summary>Combien de temps pour souscrire?</summary>
+                    <p>La souscription prend environ 5 minutes en moyenne. C'est rapide et simple!</p>
                 </details>
-                <details style="background:white;border:1px solid #e5e7eb;border-radius:8px;padding:1.5rem;margin-bottom:1rem;cursor:pointer;">
-                    <summary style="font-weight:600;">Quels documents me faut-il?</summary>
-                    <p style="margin-top:1rem;color:#6b7280;">Vous avez besoin de votre immatriculation et vos documents d'identité.</p>
+                <details class="faq-item">
+                    <summary>Quels documents me faut-il?</summary>
+                    <p>Vous avez besoin de votre immatriculation et vos documents d'identité.</p>
                 </details>
-                <details style="background:white;border:1px solid #e5e7eb;border-radius:8px;padding:1.5rem;margin-bottom:1rem;cursor:pointer;">
-                    <summary style="font-weight:600;">Puis-je modifier mon contrat?</summary>
-                    <p style="margin-top:1rem;color:#6b7280;">Oui, vous pouvez modifier votre couverture à tout moment.</p>
+                <details class="faq-item">
+                    <summary>Puis-je modifier mon contrat?</summary>
+                    <p>Oui, vous pouvez modifier votre couverture à tout moment dans votre espace client.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Comment faire un sinistre?</summary>
+                    <p>Connectez-vous à votre espace client et cliquez sur "Déclarer un sinistre".</p>
                 </details>
             </div>
         </section>
 
-        <!-- CONTACT -->
-        <section id="contact" style="padding:4rem 2rem;background:#f9fafb;">
-            <h2 style="font-size:40px;text-align:center;margin-bottom:3rem;">Nous Contacter</h2>
-            <div style="max-width:600px;margin:0 auto;text-align:center;">
-                <p style="margin-bottom:1rem;"><strong>Email:</strong> <a href="mailto:support@suro.ma" style="color:#3b82f6;">support@suro.ma</a></p>
-                <p style="margin-bottom:1rem;"><strong>Tél:</strong> <a href="tel:+212522123456" style="color:#3b82f6;">+212 5 22 12 34 56</a></p>
-                <p><strong>Adresse:</strong> Casablanca, Maroc</p>
+        <!-- CONTACT PAGE -->
+        <section id="contact" class="contact">
+            <h2>Nous Contacter</h2>
+            <div class="contact-container">
+                <div class="contact-info">
+                    <strong>Email:</strong> <a href="mailto:support@suro.ma">support@suro.ma</a>
+                </div>
+                <div class="contact-info">
+                    <strong>Tél:</strong> <a href="tel:+212522123456">+212 5 22 12 34 56</a>
+                </div>
+                <div class="contact-info">
+                    <strong>Adresse:</strong> Casablanca, Maroc
+                </div>
+            </div>
+        </section>
+
+        <!-- AUTH PAGE -->
+        <section id="auth">
+            <div class="auth-container">
+                <h2>Connexion</h2>
+                <form id="loginForm" class="form-group">
+                    <input type="email" id="loginEmail" class="form-input" placeholder="Email" required>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="Mot de passe" required>
+                    <button type="submit" class="btn btn-primary btn-large" style="width:100%;">Se connecter</button>
+                </form>
+                <div class="auth-switch">
+                    <p>Pas encore inscrit? <a onclick="document.getElementById('loginForm').style.display='none'; document.getElementById('signupForm').style.display='grid';">S'inscrire</a></p>
+                </div>
+
+                <form id="signupForm" class="form-group" style="display:none;">
+                    <input type="text" name="first_name" class="form-input" placeholder="Prénom" required>
+                    <input type="text" name="last_name" class="form-input" placeholder="Nom" required>
+                    <input type="email" name="email" class="form-input" placeholder="Email" required>
+                    <input type="tel" name="phone" class="form-input" placeholder="Téléphone">
+                    <input type="password" name="password" class="form-input" placeholder="Mot de passe" required>
+                    <button type="submit" class="btn btn-primary btn-large" style="width:100%;">S'inscrire</button>
+                </form>
+                <div class="auth-switch" id="switchToLogin" style="display:none;">
+                    <p>Déjà inscrit? <a onclick="document.getElementById('signupForm').style.display='none'; document.getElementById('loginForm').style.display='grid'; document.getElementById('switchToLogin').style.display='none';">Se connecter</a></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SUBSCRIBE PAGE -->
+        <section id="subscribe">
+            <div class="subscribe-container">
+                <h1>Souscrire une Assurance</h1>
+                <form id="subscribeForm" class="subscribe-form">
+                    <div class="form-section">
+                        <h3>Véhicule</h3>
+                        <input type="text" name="registration_number" class="form-input" placeholder="Immatriculation" required>
+                        <input type="text" name="make" class="form-input" placeholder="Marque" required>
+                        <input type="text" name="model" class="form-input" placeholder="Modèle" required>
+                        <input type="number" name="year" class="form-input" placeholder="Année" required>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Plan d'assurance</h3>
+                        <div class="plan-options">
+                            <label class="plan-option">
+                                <input type="radio" name="plan_id" value="rc" required>
+                                <span>RC Obligatoire - 1 200 DH/an</span>
+                            </label>
+                            <label class="plan-option">
+                                <input type="radio" name="plan_id" value="tiers" checked>
+                                <span>Tiers - 3 500 DH/an</span>
+                            </label>
+                            <label class="plan-option">
+                                <input type="radio" name="plan_id" value="tous-risques">
+                                <span>Tous Risques - 5 500 DH/an</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-large" style="width:100%;">Souscrire</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- DASHBOARD PAGE -->
+        <section id="dashboard">
+            <div class="dashboard-container">
+                <div class="dashboard-header">
+                    <h1>Mon Espace SURO</h1>
+                    <button class="btn btn-secondary" onclick="app.logout()">Déconnexion</button>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <h3>📋 Mes contrats</h3>
+                        <div data-section="contracts" class="no-data">Chargement...</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>🛟 Mes sinistres</h3>
+                        <div data-section="claims" class="no-data">Chargement...</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>⚙️ Actions</h3>
+                        <button class="btn btn-primary" data-page="subscribe" style="width:100%;margin-bottom:0.75rem;">➕ Nouvelle assurance</button>
+                        <button class="btn btn-secondary" style="width:100%;">📋 Déclarer sinistre</button>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
 
-    <footer style="background:linear-gradient(135deg, #1f2937, #111827);color:white;padding:3rem 2rem;text-align:center;margin-top:6rem;">
+    <!-- FOOTER -->
+    <footer>
         <p>&copy; 2026 SURO - Assurance Auto Digitalisée | Partenaire: Sanlam Maroc</p>
     </footer>
 

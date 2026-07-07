@@ -9,6 +9,8 @@ const authRoutes = require('./routes/auth');
 const contractsRoutes = require('./routes/contracts');
 const claimsRoutes = require('./routes/claims');
 const contactRoutes = require('./routes/contact');
+const productsRoutes = require('./routes/products');
+const applicationsRoutes = require('./routes/applications');
 
 // Middleware
 app.use(cors());
@@ -20,6 +22,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/contracts', contractsRoutes);
 app.use('/api/claims', claimsRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/products', productsRoutes);
+app.use('/api/applications', applicationsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -10,18 +10,24 @@
 }
 
 :root {
-    --primary: #3b82f6;
-    --primary-dark: #2563eb;
-    --primary-light: #dbeafe;
-    --secondary: #6b7280;
+    --primary: #0066ff;
+    --primary-dark: #0052cc;
+    --primary-light: #e6f2ff;
+    --secondary: #667eea;
+    --accent: #ffa500;
+    --accent-dark: #ff8c00;
     --border: #e5e7eb;
-    --bg-light: #f9fafb;
+    --bg-light: #f8f9fa;
     --bg-white: #ffffff;
-    --text-dark: #1f2937;
+    --text-dark: #0a0e27;
     --text-light: #6b7280;
     --success: #10b981;
     --danger: #ef4444;
-    --gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    --gradient: linear-gradient(135deg, #0066ff 0%, #667eea 100%);
+    --gradient-accent: linear-gradient(135deg, #ffa500 0%, #ff8c00 100%);
+    --shadow-sm: 0 2px 8px rgba(0, 102, 255, 0.08);
+    --shadow-md: 0 8px 24px rgba(0, 102, 255, 0.12);
+    --shadow-lg: 0 16px 48px rgba(0, 102, 255, 0.15);
 }
 
 /* Base Styles */
@@ -120,18 +126,39 @@ a:hover {
 }
 
 .btn-primary {
-    background: var(--primary);
+    background: linear-gradient(135deg, #0066ff 0%, #667eea 100%);
     color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s ease;
 }
 
 .btn-primary:hover {
-    background: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    background: linear-gradient(135deg, #0052cc 0%, #5568d3 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0, 102, 255, 0.25);
+}
+
+.btn-primary:hover::before {
+    left: 100%;
 }
 
 .btn-primary:active {
-    transform: translateY(0);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 102, 255, 0.2);
 }
 
 .btn-secondary {
@@ -188,23 +215,71 @@ section.active {
    ============================================ */
 
 .hero {
-    background: var(--gradient);
+    background: linear-gradient(135deg, #0066ff 0%, #667eea 50%, #764ba2 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
     color: white;
-    padding: 6rem 2rem;
+    padding: 8rem 2rem;
     text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.hero > .container {
+    position: relative;
+    z-index: 1;
 }
 
 .hero h1 {
-    font-size: clamp(32px, 8vw, 56px);
-    font-weight: 800;
-    margin-bottom: 1rem;
-    line-height: 1.2;
+    font-size: clamp(36px, 10vw, 64px);
+    font-weight: 900;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    animation: slideUp 0.8s ease-out;
+}
+
+.hero h1 strong {
+    color: #ffa500;
+    display: block;
+    font-size: 1.1em;
 }
 
 .hero p {
-    font-size: 20px;
+    font-size: clamp(16px, 4vw, 22px);
     margin-bottom: 2rem;
     opacity: 0.95;
+    line-height: 1.6;
+    animation: slideUp 0.8s ease-out 0.1s both;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .hero-buttons {
@@ -328,19 +403,59 @@ section.active {
 }
 
 .offer-card {
-    padding: 2rem;
+    padding: 2.5rem;
     background: white;
     border: 2px solid var(--border);
-    border-radius: 12px;
+    border-radius: 16px;
     text-align: center;
     transition: all 0.3s ease;
     position: relative;
+    overflow: hidden;
+}
+
+.offer-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.05) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.offer-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-8px);
+}
+
+.offer-card:hover::before {
+    opacity: 1;
 }
 
 .offer-card.recommended {
-    border-color: var(--primary);
-    transform: scale(1.05);
-    box-shadow: 0 12px 24px rgba(59, 130, 246, 0.15);
+    border: 2px solid var(--primary);
+    transform: scale(1.08);
+    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, #f0f7ff 0%, white 100%);
+    position: relative;
+}
+
+.offer-card.recommended::after {
+    content: '⭐ MEILLEURE OFFRE';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gradient-accent);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
 }
 
 .offer-badge {

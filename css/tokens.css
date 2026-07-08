@@ -74,11 +74,19 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.12);
+  --shadow-elevated: 0 20px 25px rgba(0, 0, 0, 0.1), 0 8px 12px rgba(0, 0, 0, 0.06);
+  --shadow-premium: 0 25px 50px rgba(0, 0, 0, 0.15);
 
   /* ====== TRANSITIONS ====== */
   --transition-fast: 150ms ease;
   --transition-base: 200ms ease;
+  --transition-smooth: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
   --transition-slow: 300ms ease;
+
+  /* ====== EFFECTS ====== */
+  --backdrop-blur: blur(12px);
+  --backdrop-blur-sm: blur(8px);
 
   /* ====== LAYOUT ====== */
   --max-width: 600px;

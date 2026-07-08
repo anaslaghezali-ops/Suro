@@ -151,14 +151,24 @@ main {
   text-align: center;
   background: linear-gradient(
     135deg,
-    rgba(15, 118, 110, 0.06) 0%,
-    rgba(249, 115, 22, 0.03) 100%
+    rgba(15, 118, 110, 0.08) 0%,
+    rgba(249, 115, 22, 0.04) 50%,
+    rgba(15, 118, 110, 0.06) 100%
   );
   min-height: 70vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  position: relative;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(15, 118, 110, 0.05) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .hero-content {
@@ -202,6 +212,12 @@ main {
   padding: var(--space-4xl) var(--space-lg);
 }
 
+@media (min-width: 1024px) {
+  .section {
+    padding: 96px var(--space-lg);
+  }
+}
+
 .section-light {
   background: var(--color-neutral-100);
 }
@@ -228,6 +244,17 @@ main {
 .feature-card {
   text-align: center;
   padding: var(--space-2xl);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.4) 100%);
+  backdrop-filter: var(--backdrop-blur-sm);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: var(--transition-smooth);
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-elevated);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
 }
 
 .feature-icon {
@@ -260,6 +287,14 @@ main {
   background: white;
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-neutral-200);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-smooth);
+}
+
+.step:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-elevated);
+  border-color: var(--color-primary);
 }
 
 .step-number {
@@ -289,12 +324,20 @@ main {
 
 /* ====== PRICING ====== */
 .pricing-box {
-  background: white;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(15, 118, 110, 0.02) 100%);
   border: 2px solid var(--color-primary);
   border-radius: var(--radius-lg);
   padding: var(--space-3xl);
   max-width: 400px;
   margin: 0 auto;
+  box-shadow: var(--shadow-elevated);
+  backdrop-filter: var(--backdrop-blur);
+  transition: var(--transition-smooth);
+}
+
+.pricing-box:hover {
+  box-shadow: var(--shadow-premium);
+  transform: translateY(-2px);
 }
 
 .price-amount {
@@ -338,9 +381,12 @@ main {
   max-width: var(--max-width);
   margin: 0 auto;
   width: 100%;
-  background: var(--color-neutral-50);
+  background: linear-gradient(135deg, rgba(249, 250, 251, 0.8) 0%, rgba(15, 118, 110, 0.02) 100%);
   padding: var(--space-3xl) var(--space-lg);
   border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: var(--backdrop-blur-sm);
 }
 
 .messages {

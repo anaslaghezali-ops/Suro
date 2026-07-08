@@ -36,8 +36,9 @@
 
 .btn-primary:hover:not(:disabled) {
   background: var(--color-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elevated);
+  transition: var(--transition-smooth);
 }
 
 /* Secondary / Ghost */
@@ -50,7 +51,9 @@
 .btn-ghost:hover:not(:disabled) {
   background: var(--color-neutral-100);
   border-color: var(--color-primary);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-smooth);
 }
 
 /* Sizes */
@@ -86,7 +89,11 @@
 .input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-ghost);
+  box-shadow: 0 0 0 3px var(--color-primary-ghost),
+              inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: var(--backdrop-blur-sm);
+  transition: var(--transition-smooth);
 }
 
 .input::placeholder {
@@ -188,7 +195,9 @@
 
 .card:hover {
   border-color: var(--color-primary);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-elevated);
+  transform: translateY(-4px);
+  transition: var(--transition-smooth);
 }
 
 .card.flat {

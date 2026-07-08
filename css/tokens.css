@@ -8,6 +8,10 @@
   --color-primary-light: #0D9488;
   --color-primary-ghost: rgba(15, 118, 110, 0.1);
 
+  /* Accent: Orange (Secondary actions, success celebrations) */
+  --color-accent: #F97316;
+  --color-accent-hover: #EA580C;
+
   /* Neutral (Dark to Light) */
   --color-neutral-50: #F9FAFB;
   --color-neutral-100: #F3F4F6;

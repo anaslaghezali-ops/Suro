@@ -17,38 +17,26 @@ class OnboardingTunnel {
     return [
       {
         id: 'immatriculation',
-        question: "L'immatriculation de ta voiture?",
+        question: "Quelle est l'immatriculation de ta voiture?",
         type: 'text',
         placeholder: 'Ex: ABC-1234-CD',
         validate: (value) => /^[A-Z]{2,3}-\d{3,4}-[A-Z]{2}$/.test(value) || 'Format invalide',
       },
       {
         id: 'coverage',
-        question: 'On te propose: Vol, Incendie, Responsabilité, Assistance 24/7. Ça te dit?',
+        question: 'Couverture complète? Vol, Incendie, RC, Assistance 24/7.',
         type: 'choice',
-        choices: ['Ouais', 'Attends...'],
-      },
-      {
-        id: 'firstName',
-        question: 'Ton prénom?',
-        type: 'text',
-        placeholder: 'Ex: Rachid',
-      },
-      {
-        id: 'lastName',
-        question: 'Ton nom?',
-        type: 'text',
-        placeholder: 'Ex: Bennani',
+        choices: ['Ouais', 'Attends, je veux changer'],
       },
       {
         id: 'email',
-        question: 'Email?',
+        question: 'Ton email? (Pour ta quittance)',
         type: 'email',
         placeholder: 'Ex: rachid@email.com',
       },
       {
         id: 'phone',
-        question: 'Numéro?',
+        question: 'Et ton numéro? (Pour les urgences)',
         type: 'tel',
         placeholder: 'Ex: 06 XX XX XX XX',
       },
@@ -82,7 +70,7 @@ class OnboardingTunnel {
         this.store.setState('onboarding.loading', true);
         const vehicle = await this.api.getVehicleInfo(answer);
         this.store.setState('onboarding.data.vehicleInfo', vehicle);
-        this.addMessage('assistant', `Nice! C'est une ${vehicle.brand} ${vehicle.model} ${vehicle.year}, ${vehicle.mileage}km, assurée depuis?`);
+        this.addMessage('assistant', `Ah nice! C'est une ${vehicle.brand} ${vehicle.model} ${vehicle.year}, ${vehicle.mileage}km. Couverture complète? Vol, Incendie, RC, Assistance 24/7.`);
         this.store.setState('onboarding.loading', false);
       } catch (error) {
         this.addMessage('error', 'Immatriculation non reconnue, réessaie?');
@@ -106,7 +94,7 @@ class OnboardingTunnel {
   async complete() {
     const data = this.store.getState('onboarding.data');
 
-    this.addMessage('assistant', 'Bah voilà, c\'est 120 DH/mois. Tu veux continuer?');
+    this.addMessage('assistant', 'Impeccable! C\'est 120 DH/mois. Première quittance demain.');
 
     // Show success/completion UI
     this.showCompletion(data);
@@ -161,7 +149,15 @@ class OnboardingTunnel {
 
       const button = document.createElement('button');
       button.className = 'btn btn-primary';
-      button.textContent = 'Envoyer';
+
+      // Outcome-focused button text
+      if (currentQuestion.id === 'immatriculation') {
+        button.textContent = 'Vérifier';
+      } else if (currentQuestion.id === 'phone') {
+        button.textContent = 'Continuer';
+      } else {
+        button.textContent = 'Continuer';
+      }
 
       button.onclick = () => {
         if (input.value.trim()) {
@@ -190,27 +186,45 @@ class OnboardingTunnel {
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     if (!tunnelWrapper) return;
 
+    const contractNumber = 'SR-' + Date.now().toString().slice(-8);
+    const holder = data.email ? data.email.split('@')[0].toUpperCase() : 'CLIENT';
+
     tunnelWrapper.innerHTML = `
       <div class="success-section">
         <div class="success-icon">✓</div>
         <h2 class="success-heading">C'est bon, t'es couvert</h2>
-        <p class="success-description">Carte verte en pièce jointe. Première quittance demain.</p>
+        <p class="success-description">Carte verte générée. Première quittance demain.</p>
 
         <div class="contract-card">
           <div class="contract-card-header">Carte Verte SURO</div>
-          <div class="contract-card-number">SR-2024-089342</div>
-          <div class="contract-card-holder">${data.firstName?.toUpperCase()} ${data.lastName?.toUpperCase()}</div>
+          <div class="contract-card-number">${contractNumber}</div>
+          <div class="contract-card-holder">${holder}</div>
         </div>
 
-        <p style="margin-top: 24px; font-size: 12px; color: var(--color-neutral-600);">
-          Des questions? On est là → <strong>support@suro.ma</strong>
-        </p>
+        <div class="success-actions">
+          <button class="btn btn-primary" onclick="window.SURO_TUNNEL.handleDownload()">
+            Télécharger ma carte verte
+          </button>
+          <button class="btn btn-ghost" onclick="window.SURO_TUNNEL.handleDashboard()">
+            Mon espace
+          </button>
+        </div>
 
-        <button class="btn btn-primary" style="margin-top: 24px;" onclick="window.SURO_TUNNEL.reset()">
-          Retour à l'accueil
-        </button>
+        <p style="margin-top: 32px; font-size: 12px; color: var(--color-neutral-600); text-align: center;">
+          Questions? On est là → <strong>support@suro.ma</strong>
+        </p>
       </div>
     `;
+  }
+
+  handleDownload() {
+    this.addMessage('assistant', 'Voilà! Télécharge ta carte verte. Elle est valide à partir de demain.');
+    // TODO: Implement actual download
+  }
+
+  handleDashboard() {
+    // Redirect to dashboard
+    window.location.href = '/dashboard';
   }
 
   reset() {

@@ -154,7 +154,7 @@ main {
     rgba(15, 118, 110, 0.06) 0%,
     rgba(249, 115, 22, 0.03) 100%
   );
-  min-height: auto;
+  min-height: 70vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -163,7 +163,7 @@ main {
 
 .hero-content {
   max-width: var(--max-width);
-  margin: 0 auto var(--space-4xl);
+  margin: 0 auto;
 }
 
 .hero h1 {
@@ -191,18 +191,146 @@ main {
   color: var(--color-neutral-600);
 }
 
-.hero-stat {
-  display: inline-block;
-  background: white;
-  padding: var(--space-lg) var(--space-2xl);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  font-weight: var(--weight-bold);
-  color: var(--color-primary);
-  font-size: var(--text-sm);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+.hero .btn-lg {
   margin-top: var(--space-2xl);
+  padding: var(--space-md) var(--space-2xl);
+  height: auto;
+}
+
+/* ====== SECTIONS ====== */
+.section {
+  padding: var(--space-4xl) var(--space-lg);
+}
+
+.section-light {
+  background: var(--color-neutral-100);
+}
+
+.section-content {
+  max-width: var(--max-width-wide);
+  margin: 0 auto;
+}
+
+.section-title {
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-extrabold);
+  margin-bottom: var(--space-3xl);
+  text-align: center;
+}
+
+/* ====== FEATURES GRID ====== */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-2xl);
+}
+
+.feature-card {
+  text-align: center;
+  padding: var(--space-2xl);
+}
+
+.feature-icon {
+  font-size: var(--text-5xl);
+  margin-bottom: var(--space-lg);
+  display: block;
+}
+
+.feature-card h3 {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  margin-bottom: var(--space-md);
+}
+
+.feature-card p {
+  color: var(--color-neutral-600);
+  line-height: var(--line-relaxed);
+}
+
+/* ====== STEPS GRID ====== */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-2xl);
+}
+
+.step {
+  text-align: center;
+  padding: var(--space-2xl);
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-neutral-200);
+}
+
+.step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-extrabold);
+  margin-bottom: var(--space-lg);
+}
+
+.step h3 {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  margin-bottom: var(--space-md);
+}
+
+.step p {
+  color: var(--color-neutral-600);
+  font-size: var(--text-sm);
+}
+
+/* ====== PRICING ====== */
+.pricing-box {
+  background: white;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3xl);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.price-amount {
+  font-size: 3rem;
+  font-weight: var(--weight-extrabold);
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.price-period {
+  font-size: var(--text-lg);
+  color: var(--color-neutral-600);
+  margin-bottom: var(--space-2xl);
+}
+
+.price-includes {
+  text-align: left;
+  font-size: var(--text-base);
+}
+
+.price-includes p {
+  margin-bottom: var(--space-md);
+  color: var(--color-neutral-900);
+}
+
+/* ====== TUNNEL SECTION ====== */
+.tunnel-section {
+  background: white;
+  padding: var(--space-4xl) var(--space-lg);
+}
+
+.tunnel-title {
+  text-align: center;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  margin-bottom: var(--space-2xl);
 }
 
 /* ====== TUNNEL WRAPPER ====== */
@@ -210,6 +338,9 @@ main {
   max-width: var(--max-width);
   margin: 0 auto;
   width: 100%;
+  background: var(--color-neutral-50);
+  padding: var(--space-3xl) var(--space-lg);
+  border-radius: var(--radius-lg);
 }
 
 .messages {
@@ -377,8 +508,28 @@ main {
     min-height: 50vh;
   }
 
+  .section {
+    padding: var(--space-2xl) var(--space-lg);
+  }
+
+  .section-title {
+    font-size: var(--text-2xl);
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .steps-grid {
+    grid-template-columns: 1fr;
+  }
+
   .tunnel-section {
     padding: var(--space-2xl) var(--space-lg);
+  }
+
+  .tunnel-wrapper {
+    padding: var(--space-lg);
   }
 
   .messages {
@@ -399,6 +550,10 @@ main {
 
   .contract-card {
     padding: var(--space-lg);
+  }
+
+  .pricing-box {
+    max-width: 100%;
   }
 }
 

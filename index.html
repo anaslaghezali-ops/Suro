@@ -6,7 +6,6 @@
   <title>SURO — Assurance Protection</title>
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/tunnel.css">
-  <link rel="stylesheet" href="css/subscription.css">
 </head>
 <body>
   <!-- HEADER -->
@@ -32,44 +31,48 @@
   <!-- MAIN CONTENT -->
   <main>
     <!-- HERO: SURO AUTO -->
-    <section class="hero" id="hero-auto" data-section-target="auto">
+    <section class="hero">
       <div class="wrap">
-        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; align-items: center; padding: 84px 0 60px;">
-          <div>
+        <div class="hero-grid">
+          <div class="hero-text">
             <div class="eyebrow">
               <span>🚗</span>
               <span>Protection Routière</span>
             </div>
-            <h1>SURO Auto<br><span style="color: var(--jade);">Protection Intégrale</span></h1>
-            <p class="lede" style="font-size: 17px; color: var(--ink-soft); margin-top: 20px; max-width: 42ch;">
+            <h1>SURO Auto<br><span class="accent-text">Protection Intégrale</span></h1>
+            <p class="hero-lede">
               Couvrez-vous en 3 moments. Immatriculation, profil, prix. Zéro surprise, 100% transparent.
             </p>
-            <div class="hero-cta" style="margin-top: 32px; gap: 16px;">
+            <div class="hero-cta">
               <button class="btn lg primary" onclick="document.querySelector('.tunnel-container').tunnelInstance?.open('automobile')">
                 Commencer la souscription
               </button>
               <button class="btn lg ghost">Voir les garanties</button>
             </div>
-            <div class="trust" style="margin-top: 32px;">
-              <span><b>4.8★</b> 12k avis</span>
-              <span><b>✓</b> Agréée ACAPS</span>
-              <span><b>⚡</b> Traitement immédiat</span>
+            <div class="trust-badges">
+              <span><strong>4.8★</strong> 12k avis</span>
+              <span><strong>✓</strong> Agréée ACAPS</span>
+              <span><strong>⚡</strong> Traitement immédiat</span>
             </div>
           </div>
-          <div class="hcard">
-            <div class="row1">
-              <div class="pname">
-                <div class="i">🚗</div>
-                <span>SURO Auto</span>
+
+          <!-- HERO CARD -->
+          <div class="hero-card card">
+            <div class="card-header">
+              <div class="card-product">
+                <div class="product-icon">🚗</div>
+                <h3>SURO Auto</h3>
               </div>
               <div class="badge">Tous risques</div>
             </div>
-            <div class="price">
-              <b style="font-variant-numeric: tabular-nums;">120</b>
-              <span>DH/mois</span>
+            <div class="price-section">
+              <div class="price">
+                <span class="price-value">120</span>
+                <span class="price-unit">DH/mois</span>
+              </div>
+              <p class="price-note">Première quittance prélevée immédiatement</p>
             </div>
-            <p style="font-size: 13px; color: var(--muted); margin-top: 4px; margin-bottom: 0;">Première quittance prélevée immédiatement</p>
-            <ul>
+            <ul class="features-list">
               <li>Vol & Incendie</li>
               <li>Responsabilité Civile</li>
               <li>Assistance 24/7</li>
@@ -78,108 +81,117 @@
             <button class="btn primary block" onclick="document.querySelector('.tunnel-container').tunnelInstance?.open('automobile')">
               Commencer
             </button>
-            <p class="fine">Durée: 12 mois | Tacite reconduction</p>
+            <p class="fine-print">Durée: 12 mois | Tacite reconduction</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- PRODUCTS GRID -->
-    <section class="prot">
+    <!-- PRODUCTS SECTION -->
+    <section class="products-section">
       <div class="wrap">
-        <div class="shead">
-          <div class="kick">Couvertures SURO</div>
+        <div class="section-header">
+          <div class="section-label">Couvertures SURO</div>
           <h2>Protégez ce qui compte</h2>
           <p>De votre maison à votre santé, SURO s'engage pour votre tranquillité d'esprit.</p>
         </div>
-        <div class="prot-grid" style="margin-top: 48px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
-          <div class="pcard live" data-product="automobile">
-            <div class="tagl">Live</div>
-            <div class="i">🚗</div>
+
+        <div class="products-grid">
+          <!-- Auto -->
+          <div class="product-card live" data-product="automobile">
+            <div class="live-badge">Live</div>
+            <div class="product-icon large">🚗</div>
             <h3>Auto</h3>
             <p>Couverture routière complète, tous types de véhicules.</p>
-            <div class="from">À partir de <b>120 DH</b>/mois</div>
+            <div class="product-price">À partir de <strong>120 DH</strong>/mois</div>
           </div>
-          <div class="pcard" data-product="habitation">
-            <div class="soon">Bientôt</div>
-            <div class="i">🏠</div>
+
+          <!-- Habitation -->
+          <div class="product-card coming-soon" data-product="habitation">
+            <div class="coming-badge">Bientôt</div>
+            <div class="product-icon large">🏠</div>
             <h3>Habitation</h3>
             <p>Protégez votre bien immobilier contre les risques majeurs.</p>
-            <div class="from">À partir de <b>180 DH</b>/mois</div>
+            <div class="product-price">À partir de <strong>180 DH</strong>/mois</div>
           </div>
-          <div class="pcard" data-product="voyage">
-            <div class="soon">Bientôt</div>
-            <div class="i">✈️</div>
+
+          <!-- Voyage -->
+          <div class="product-card coming-soon" data-product="voyage">
+            <div class="coming-badge">Bientôt</div>
+            <div class="product-icon large">✈️</div>
             <h3>Voyage</h3>
             <p>Couverture globale pour vos déplacements nationaux et internationaux.</p>
-            <div class="from">À partir de <b>45 DH</b>/jour</div>
+            <div class="product-price">À partir de <strong>45 DH</strong>/jour</div>
           </div>
-          <div class="pcard" data-product="sante">
-            <div class="soon">Bientôt</div>
-            <div class="i">🏥</div>
+
+          <!-- Santé -->
+          <div class="product-card coming-soon" data-product="sante">
+            <div class="coming-badge">Bientôt</div>
+            <div class="product-icon large">🏥</div>
             <h3>Santé</h3>
             <p>Couverture médicale adaptée à vous et votre famille.</p>
-            <div class="from">À partir de <b>200 DH</b>/mois</div>
+            <div class="product-price">À partir de <strong>200 DH</strong>/mois</div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- HOW IT WORKS -->
-    <section style="padding: 76px 0;">
+    <section class="how-it-works">
       <div class="wrap">
-        <div class="shead">
-          <div class="kick">Processus simplifié</div>
+        <div class="section-header">
+          <div class="section-label">Processus simplifié</div>
           <h2>SURO en 3 moments</h2>
           <p>Du scan à la couverture active, tout se fait en ligne.</p>
         </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 32px; margin-top: 48px;">
-          <div style="text-align: center;">
-            <div style="width: 64px; height: 64px; border-radius: 16px; background: color-mix(in srgb, var(--jade) 15%, transparent); border: 2px solid var(--jade); display: grid; place-items: center; font-size: 32px; margin: 0 auto 16px;">1️⃣</div>
-            <h3 style="margin-top: 0;">Immatriculation</h3>
+
+        <div class="steps-grid">
+          <div class="step">
+            <div class="step-icon">1️⃣</div>
+            <h3>Immatriculation</h3>
             <p>Entrez votre numéro d'immatriculation pour la reconnaissance immédiate de votre véhicule.</p>
           </div>
-          <div style="text-align: center;">
-            <div style="width: 64px; height: 64px; border-radius: 16px; background: color-mix(in srgb, var(--jade) 15%, transparent); border: 2px solid var(--jade); display: grid; place-items: center; font-size: 32px; margin: 0 auto 16px;">2️⃣</div>
-            <h3 style="margin-top: 0;">Profil</h3>
+          <div class="step">
+            <div class="step-icon">2️⃣</div>
+            <h3>Profil</h3>
             <p>Vérifiez vos informations pré-remplies automatiquement. Pas de formulaire long et fastidieux.</p>
           </div>
-          <div style="text-align: center;">
-            <div style="width: 64px; height: 64px; border-radius: 16px; background: color-mix(in srgb, var(--jade) 15%, transparent); border: 2px solid var(--jade); display: grid; place-items: center; font-size: 32px; margin: 0 auto 16px;">3️⃣</div>
-            <h3 style="margin-top: 0;">Paiement</h3>
+          <div class="step">
+            <div class="step-icon">3️⃣</div>
+            <h3>Paiement</h3>
             <p>Confirmez votre prix fixe et payez immédiatement. Contrat actif en 5 minutes.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- SURO AUTO DETAIL -->
-    <section id="suro-auto-detail" style="padding: 76px 0; display: none;" data-section-target="auto-detail">
+    <!-- FEATURES SECTION -->
+    <section class="features-section">
       <div class="wrap">
-        <h2 style="text-align: center; margin-bottom: 48px;">SURO Auto — Couvertures Incluses</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 48px;">
-          <div class="card">
-            <h3 style="color: var(--pos); margin-top: 0;">Responsabilité Civile</h3>
+        <h2>SURO Auto — Couvertures Incluses</h2>
+        <div class="features-cards">
+          <div class="feature-card">
+            <h3>Responsabilité Civile</h3>
             <p>Couverture légale obligatoire pour les dommages causés à tiers. Limite adaptée à vos besoins.</p>
           </div>
-          <div class="card">
-            <h3 style="color: var(--pos); margin-top: 0;">Vol et Incendie</h3>
+          <div class="feature-card">
+            <h3>Vol et Incendie</h3>
             <p>Protection complète contre le vol, l'incendie et les catastrophes naturelles. Couverture 24/7.</p>
           </div>
-          <div class="card">
-            <h3 style="color: var(--pos); margin-top: 0;">Assistance Routière</h3>
+          <div class="feature-card">
+            <h3>Assistance Routière</h3>
             <p>Dépannage, remorquage et remplacement de véhicule inclus. Service national disponible.</p>
           </div>
-          <div class="card">
-            <h3 style="color: var(--pos); margin-top: 0;">Protection Juridique</h3>
+          <div class="feature-card">
+            <h3>Protection Juridique</h3>
             <p>Accompagnement légal en cas de sinistre. Avis juridiques disponibles 24/7.</p>
           </div>
-          <div class="card">
-            <h3 style="color: var(--pos); margin-top: 0;">Tous Risques</h3>
+          <div class="feature-card">
+            <h3>Tous Risques</h3>
             <p>Couverture des dommages au véhicule suite à accident, collision ou choc. Franchise flexible.</p>
           </div>
-          <div class="card">
-            <h3 style="color: var(--pos); margin-top: 0;">Franchise Adaptée</h3>
+          <div class="feature-card">
+            <h3>Franchise Adaptée</h3>
             <p>Choisissez votre franchise. Plus basse = prime plus élevée. À vous de décider.</p>
           </div>
         </div>
@@ -187,85 +199,67 @@
     </section>
   </main>
 
-  <!-- SUBSCRIPTION TUNNEL -->
-  <div class="tunnel-container">
-    <!-- Contenu généré par tunnel.js -->
-  </div>
-
   <!-- FOOTER -->
-  <footer style="background: var(--surface-2); border-top: 1px solid var(--line); padding: 48px 0; color: var(--muted); font-size: 13px; margin-top: 80px;">
-    <div class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; margin-bottom: 32px;">
-      <div>
-        <h4 style="color: var(--ink); margin-bottom: 16px; font-size: 14px; font-weight: 600;">SURO</h4>
-        <p style="margin: 0 0 12px; font-size: 13px;">Plateforme d'assurance digitalisée pour une protection claire et accessible.</p>
-        <p style="margin: 0; font-size: 12px;">Courtier en assurance agréé | ACAPS n° 2024-XXXXX</p>
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h4>SURO</h4>
+          <p>Plateforme d'assurance digitalisée pour une protection claire et accessible.</p>
+          <p class="footer-legal">Courtier en assurance agréé | ACAPS n° 2024-XXXXX</p>
+        </div>
+        <div class="footer-col">
+          <h4>Produits</h4>
+          <ul>
+            <li><a href="#">SURO Auto</a></li>
+            <li><a href="#">SURO Habitation</a></li>
+            <li><a href="#">SURO Voyage</a></li>
+            <li><a href="#">SURO Santé</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Compagnie</h4>
+          <ul>
+            <li><a href="#">À propos</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">FAQ</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Légal</h4>
+          <ul>
+            <li><a href="#">Conditions d'utilisation</a></li>
+            <li><a href="#">Politique de confidentialité</a></li>
+            <li><a href="#">Cookies</a></li>
+          </ul>
+        </div>
       </div>
-      <div>
-        <h4 style="color: var(--ink); margin-bottom: 16px; font-size: 14px; font-weight: 600;">Produits</h4>
-        <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 8px;">
-          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">SURO Auto</a></li>
-          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">SURO Habitation</a></li>
-          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">SURO Voyage</a></li>
-          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">SURO Santé</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4 style="color: var(--ink); margin-bottom: 16px; font-size: 14px; font-weight: 600;">Compagnie</h4>
-        <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 8px;">
-          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">À propos</a></li>
-          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">Blog</a></li>
-          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">FAQ</a></li>
-          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">Contact</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4 style="color: var(--ink); margin-bottom: 16px; font-size: 14px; font-weight: 600;">Légal</h4>
-        <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 8px;">
-          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">Conditions d'utilisation</a></li>
-          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">Politique de confidentialité</a></li>
-          <li><a href="#" style="color: var(--muted); transition: color 0.2s;">Cookies</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="wrap" style="border-top: 1px solid var(--line); padding-top: 24px; display: flex; justify-content: space-between; align-items: center;">
-      <p style="margin: 0; font-size: 12px;">© 2024 SURO. Tous droits réservés.</p>
-      <div style="display: flex; gap: 16px;">
-        <a href="#" style="color: var(--muted); transition: color 0.2s;">Twitter</a>
-        <a href="#" style="color: var(--muted); transition: color 0.2s;">LinkedIn</a>
-        <a href="#" style="color: var(--muted); transition: color 0.2s;">Instagram</a>
+      <div class="footer-bottom">
+        <p>© 2024 SURO. Tous droits réservés.</p>
+        <div class="social-links">
+          <a href="#">Twitter</a>
+          <a href="#">LinkedIn</a>
+          <a href="#">Instagram</a>
+        </div>
       </div>
     </div>
   </footer>
+
+  <!-- SUBSCRIPTION TUNNEL -->
+  <div class="tunnel-container"></div>
 
   <script src="js/components/tunnel.js"></script>
   <script src="app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Initialize tunnel
       const tunnelContainer = document.querySelector('.tunnel-container');
       window.tunnel = new SubscriptionTunnel(tunnelContainer);
 
-      // Navigation
-      document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-          link.classList.add('active');
-        });
-      });
-
-      // Product cards click to open tunnel
-      document.querySelectorAll('.pcard.live').forEach(card => {
+      document.querySelectorAll('.product-card.live').forEach(card => {
         card.addEventListener('click', () => {
           const product = card.dataset.product;
           window.tunnel.open(product);
-        });
-      });
-
-      // CTA buttons click to open tunnel
-      document.querySelectorAll('[onclick*="tunnel"]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
         });
       });
     });

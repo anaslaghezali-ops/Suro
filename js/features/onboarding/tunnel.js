@@ -94,10 +94,29 @@ class OnboardingTunnel {
   async complete() {
     const data = this.store.getState('onboarding.data');
 
-    this.addMessage('assistant', 'Impeccable! C\'est 120 DH/mois. Première quittance demain.');
+    try {
+      this.store.setState('onboarding.loading', true);
 
-    // Show success/completion UI
-    this.showCompletion(data);
+      // Submit application to backend
+      const application = await this.api.createApplication({
+        product_slug: 'automobile',
+        immatriculation: data.immatriculation,
+        vehicleInfo: data.vehicleInfo,
+        coverage: data.coverage,
+        email: data.email,
+        phone: data.phone,
+      });
+
+      this.store.setState('onboarding.applicationId', application.id);
+      this.addMessage('assistant', 'Impeccable! C\'est 120 DH/mois. Première quittance demain.');
+
+      // Show success/completion UI
+      this.showCompletion(data);
+      this.store.setState('onboarding.loading', false);
+    } catch (error) {
+      this.addMessage('error', 'Erreur lors de la création de l\'application. Réessaie?');
+      this.store.setState('onboarding.loading', false);
+    }
   }
 
   addMessage(type, content) {
@@ -217,9 +236,24 @@ class OnboardingTunnel {
     `;
   }
 
-  handleDownload() {
-    this.addMessage('assistant', 'Voilà! Télécharge ta carte verte. Elle est valide à partir de demain.');
-    // TODO: Implement actual download
+  async handleDownload() {
+    try {
+      const applicationId = this.store.getState('onboarding.applicationId');
+      if (!applicationId) {
+        this.addMessage('error', 'Impossible de télécharger. Application non trouvée.');
+        return;
+      }
+
+      this.addMessage('assistant', 'Voilà! Télécharge ta carte verte. Elle est valide à partir de demain.');
+
+      // TODO: Implement actual PDF download from /api/applications/:id/certificate
+      // For now, simulate success
+      setTimeout(() => {
+        this.addMessage('assistant', 'Merci d\'avoir choisi SURO! 🎉');
+      }, 1000);
+    } catch (error) {
+      this.addMessage('error', 'Erreur lors du téléchargement. Réessaie?');
+    }
   }
 
   handleDashboard() {

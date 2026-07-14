@@ -11,6 +11,7 @@ const claimsRoutes = require('./routes/claims');
 const contactRoutes = require('./routes/contact');
 const productsRoutes = require('./routes/products');
 const applicationsRoutes = require('./routes/applications');
+const vehiclesRoutes = require('./routes/vehicles');
 
 // Middleware
 app.use(cors());
@@ -24,6 +25,7 @@ app.use('/api/claims', claimsRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/applications', applicationsRoutes);
+app.use('/api/vehicles', vehiclesRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

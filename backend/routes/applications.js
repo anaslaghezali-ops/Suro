@@ -172,4 +172,47 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
+// POST /api/applications/:id/payment - Process payment for an application
+router.post('/:id/payment', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { method, amount, currency = 'MAD' } = req.body;
+
+    if (!method || !amount) {
+      return res.status(400).json({ error: 'payment method and amount are required' });
+    }
+
+    // In production, this would integrate with Stripe, MTN Mobile Money, or other payment providers
+    // For now, we'll simulate successful payment
+    const paymentId = 'PAY-' + Date.now().toString();
+
+    // Update application status to active
+    const { data, error } = await supabase
+      .from('insurance_applications')
+      .update({ status: 'active', paid_at: new Date().toISOString() })
+      .eq('id', id)
+      .select();
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.json({
+      message: 'Payment processed successfully',
+      payment: {
+        id: paymentId,
+        application_id: id,
+        method,
+        amount,
+        currency,
+        status: 'success',
+        timestamp: new Date().toISOString(),
+      },
+      application: data[0],
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

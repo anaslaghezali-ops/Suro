@@ -107,12 +107,13 @@ class OnboardingTunnel {
         phone: data.phone,
       });
 
-      this.store.setState('onboarding.applicationId', application.id);
+      this.store.setState('onboarding.applicationId', application.application.id);
       this.addMessage('assistant', 'Impeccable! C\'est 120 DH/mois. Première quittance demain.');
 
-      // Show success/completion UI
-      this.showCompletion(data);
       this.store.setState('onboarding.loading', false);
+
+      // Show payment options
+      this.showPaymentOptions(application.application.id);
     } catch (error) {
       this.addMessage('error', 'Erreur lors de la création de l\'application. Réessaie?');
       this.store.setState('onboarding.loading', false);
@@ -201,12 +202,22 @@ class OnboardingTunnel {
     this.addMessage('assistant', currentQuestion.question);
   }
 
-  showCompletion(data) {
+  showCompletion(applicationIdOrData) {
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     if (!tunnelWrapper) return;
 
+    // Handle both applicationId (string) and full data object (from old code)
+    let applicationId, email;
+    if (typeof applicationIdOrData === 'string') {
+      applicationId = applicationIdOrData;
+      email = this.store.getState('onboarding.data.email');
+    } else {
+      applicationId = this.store.getState('onboarding.applicationId');
+      email = applicationIdOrData.email;
+    }
+
     const contractNumber = 'SR-' + Date.now().toString().slice(-8);
-    const holder = data.email ? data.email.split('@')[0].toUpperCase() : 'CLIENT';
+    const holder = email ? email.split('@')[0].toUpperCase() : 'CLIENT';
 
     tunnelWrapper.innerHTML = `
       <div class="success-section">
@@ -236,6 +247,114 @@ class OnboardingTunnel {
     `;
   }
 
+  showPaymentOptions(applicationId) {
+    const tunnelWrapper = document.querySelector('.tunnel-wrapper');
+    if (!tunnelWrapper) return;
+
+    tunnelWrapper.innerHTML = `
+      <div class="payment-section">
+        <h3 style="margin-bottom: 24px; text-align: center; font-size: 18px; font-weight: 600;">Choisir une méthode de paiement</h3>
+
+        <div class="payment-methods" style="display: grid; gap: 12px; margin-bottom: 24px;">
+          <button class="payment-method-btn" onclick="window.SURO_TUNNEL.selectPaymentMethod('card', '${applicationId}')">
+            <span style="font-size: 24px;">💳</span>
+            <div style="flex: 1;">
+              <div style="font-weight: 600;">Carte Bancaire</div>
+              <div style="font-size: 12px; opacity: 0.7;">Visa, Mastercard, Amex</div>
+            </div>
+            <span style="font-size: 20px;">→</span>
+          </button>
+
+          <button class="payment-method-btn" onclick="window.SURO_TUNNEL.selectPaymentMethod('mtn', '${applicationId}')">
+            <span style="font-size: 24px;">📱</span>
+            <div style="flex: 1;">
+              <div style="font-weight: 600;">MTN Mobile Money</div>
+              <div style="font-size: 12px; opacity: 0.7;">Paiement par SMS</div>
+            </div>
+            <span style="font-size: 20px;">→</span>
+          </button>
+
+          <button class="payment-method-btn" onclick="window.SURO_TUNNEL.selectPaymentMethod('bank', '${applicationId}')">
+            <span style="font-size: 24px;">🏦</span>
+            <div style="flex: 1;">
+              <div style="font-weight: 600;">Virement Bancaire</div>
+              <div style="font-size: 12px; opacity: 0.7;">Transfert direct</div>
+            </div>
+            <span style="font-size: 20px;">→</span>
+          </button>
+        </div>
+
+        <p style="text-align: center; font-size: 12px; color: var(--color-neutral-600);">
+          Montant à payer: <strong>120 DH/mois</strong>
+        </p>
+      </div>
+    `;
+
+    // Add CSS for payment methods
+    if (!document.querySelector('style[data-tunnel-payment]')) {
+      const style = document.createElement('style');
+      style.setAttribute('data-tunnel-payment', 'true');
+      style.textContent = `
+        .payment-method-btn {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 16px;
+          border: 1px solid var(--color-neutral-200);
+          border-radius: var(--radius-lg);
+          background: white;
+          cursor: pointer;
+          transition: all 150ms ease;
+          text-align: left;
+        }
+
+        .payment-method-btn:hover {
+          border-color: var(--color-primary);
+          box-shadow: var(--shadow-md);
+          transform: translateY(-2px);
+        }
+
+        .payment-method-btn:active {
+          transform: translateY(0);
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  async selectPaymentMethod(method, applicationId) {
+    try {
+      this.store.setState('onboarding.loading', true);
+      this.addMessage('assistant', `Paiement par ${this.getPaymentMethodLabel(method)}...`);
+
+      const paymentResponse = await this.api.submitPayment(applicationId, {
+        method,
+        amount: 120,
+        currency: 'MAD',
+      });
+
+      this.store.setState('onboarding.loading', false);
+      this.addMessage('assistant', 'Paiement confirmé! ✓');
+
+      // Show completion
+      setTimeout(() => {
+        this.showCompletion(applicationId);
+      }, 1000);
+    } catch (error) {
+      this.addMessage('error', 'Erreur lors du paiement. Réessaie?');
+      this.store.setState('onboarding.loading', false);
+    }
+  }
+
+  getPaymentMethodLabel(method) {
+    const labels = {
+      card: 'Carte Bancaire',
+      mtn: 'MTN Mobile Money',
+      bank: 'Virement Bancaire',
+    };
+    return labels[method] || method;
+  }
+
   async handleDownload() {
     try {
       const applicationId = this.store.getState('onboarding.applicationId');
@@ -244,15 +363,37 @@ class OnboardingTunnel {
         return;
       }
 
+      this.store.setState('onboarding.loading', true);
+      this.addMessage('assistant', 'Génération de ta carte verte...');
+
+      // Download certificate from backend
+      const certificateUrl = `/api/applications/${applicationId}/certificate`;
+      const response = await fetch(certificateUrl);
+
+      if (!response.ok) {
+        throw new Error('Impossible de générer le certificat');
+      }
+
+      // Trigger download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SURO-${applicationId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+
+      this.store.setState('onboarding.loading', false);
       this.addMessage('assistant', 'Voilà! Télécharge ta carte verte. Elle est valide à partir de demain.');
 
-      // TODO: Implement actual PDF download from /api/applications/:id/certificate
-      // For now, simulate success
       setTimeout(() => {
         this.addMessage('assistant', 'Merci d\'avoir choisi SURO! 🎉');
-      }, 1000);
+      }, 1500);
     } catch (error) {
       this.addMessage('error', 'Erreur lors du téléchargement. Réessaie?');
+      this.store.setState('onboarding.loading', false);
     }
   }
 

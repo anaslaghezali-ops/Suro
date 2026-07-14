@@ -1,4 +1,5 @@
 const express = require('express');
+const PDFDocument = require('pdfkit');
 const { supabase } = require('../config/supabase');
 const { verifyToken } = require('../middleware/auth');
 
@@ -167,6 +168,105 @@ router.get('/', verifyToken, async (req, res) => {
     }
 
     res.json({ applications: data });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/applications/:id/certificate - Generate insurance certificate PDF
+router.get('/:id/certificate', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get application details
+    const { data: application, error: appError } = await supabase
+      .from('insurance_applications')
+      .select(`
+        id,
+        customer_name,
+        customer_email,
+        customer_phone,
+        status,
+        created_at,
+        product:product_id(slug, name)
+      `)
+      .eq('id', id)
+      .single();
+
+    if (appError || !application) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    // Create PDF
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    const filename = `SURO-Insurance-${id}.pdf`;
+
+    // Set response headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    doc.pipe(res);
+
+    // Header
+    doc.fontSize(24).font('Helvetica-Bold').text('SURO', { align: 'center' });
+    doc.fontSize(14).font('Helvetica').text('Assurance Automobile', { align: 'center', color: '#0F766E' });
+    doc.moveDown(1);
+
+    // Title
+    doc.fontSize(16).font('Helvetica-Bold').text('Carte Verte d\'Assurance', { align: 'center' });
+    doc.moveDown(0.5);
+
+    // Separator line
+    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#ccc');
+    doc.moveDown(1);
+
+    // Certificate number
+    doc.fontSize(10).font('Helvetica').text('Numéro de Certificat:', { continued: true });
+    doc.fontSize(12).font('Helvetica-Bold').text(` SR-${id.substring(0, 8).toUpperCase()}`);
+    doc.moveDown(0.5);
+
+    // Issue date
+    doc.fontSize(10).font('Helvetica').text('Date d\'émission:', { continued: true });
+    const issueDate = new Date().toLocaleDateString('fr-FR');
+    doc.fontSize(12).font('Helvetica-Bold').text(` ${issueDate}`);
+    doc.moveDown(0.5);
+
+    // Valid from
+    doc.fontSize(10).font('Helvetica').text('Valide à partir de:', { continued: true });
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    doc.fontSize(12).font('Helvetica-Bold').text(` ${tomorrow.toLocaleDateString('fr-FR')}`);
+    doc.moveDown(1.5);
+
+    // Policyholder section
+    doc.fontSize(12).font('Helvetica-Bold').text('Assuré');
+    doc.fontSize(10).font('Helvetica');
+    doc.text(`Nom: ${application.customer_name || 'Non fourni'}`);
+    doc.text(`Email: ${application.customer_email || 'Non fourni'}`);
+    doc.text(`Téléphone: ${application.customer_phone || 'Non fourni'}`);
+    doc.moveDown(1);
+
+    // Coverage section
+    doc.fontSize(12).font('Helvetica-Bold').text('Couverture');
+    doc.fontSize(10).font('Helvetica');
+    doc.text('✓ Vol et Incendie');
+    doc.text('✓ Responsabilité Civile');
+    doc.text('✓ Assistance 24/7');
+    doc.text('✓ Première quittance demain');
+    doc.moveDown(1.5);
+
+    // Amount section
+    doc.fontSize(12).font('Helvetica-Bold').text('Montant de la Prime');
+    doc.fontSize(14).font('Helvetica-Bold').text('120 DH/mois', { color: '#0F766E' });
+    doc.moveDown(1.5);
+
+    // Footer
+    doc.fontSize(9).font('Helvetica').text('Souscription entièrement digitalisée par SURO', { align: 'center', color: '#999' });
+    doc.text('Cette assurance est valide jusqu\'au premier paiement confirmé', { align: 'center', color: '#999' });
+    doc.text('Pour toute question: support@suro.ma | www.suro.ma', { align: 'center', color: '#999' });
+
+    // End PDF
+    doc.end();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

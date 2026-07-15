@@ -21,11 +21,12 @@ class OnboardingForm {
         label: 'Quelle est l\'immatriculation?',
         hint: 'Tu la trouves sur la carte grise ou sur ta plaque',
         type: 'text',
-        placeholder: 'Ex: 7737-A-76',
+        placeholder: 'Ex: 7737-A-76 ou 7737A76',
         required: true,
         validate: (value) => {
           if (!value) return 'L\'immatriculation est nécessaire pour continuer';
-          if (!/^\d+-[A-Za-z]-\d+$/i.test(value)) {
+          const cleaned = value.replace(/\s+/g, '');
+          if (!/^\d+[A-Za-z]\d+$/i.test(cleaned)) {
             return 'Format: nombre-lettre-nombre (Ex: 7737-A-76)';
           }
           return true;

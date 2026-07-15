@@ -481,11 +481,12 @@ class OnboardingForm {
 
     try {
       tunnelWrapper.innerHTML = `
-        <div style="text-align: center; padding: 32px;">
-          <div style="font-size: 48px; margin-bottom: 16px;">⏳</div>
-          <p style="font-size: 16px; color: var(--color-neutral-600);">Traitement de votre demande...</p>
+        <div style="text-align: center; padding: 48px 32px;">
+          <div class="loading-spinner"></div>
+          <p style="font-size: 16px; color: var(--color-neutral-600); margin-top: 24px;">Traitement de votre demande...</p>
         </div>
       `;
+      this.addLoadingStyles();
 
       const data = this.store.getState('onboarding.data');
 
@@ -564,11 +565,12 @@ class OnboardingForm {
   async selectPaymentMethod(method, applicationId) {
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     tunnelWrapper.innerHTML = `
-      <div style="text-align: center; padding: 32px;">
-        <div style="font-size: 48px; margin-bottom: 16px;">⏳</div>
-        <p style="font-size: 16px; color: var(--color-neutral-600);">Traitement du paiement...</p>
+      <div style="text-align: center; padding: 48px 32px;">
+        <div class="loading-spinner"></div>
+        <p style="font-size: 16px; color: var(--color-neutral-600); margin-top: 24px;">Traitement du paiement...</p>
       </div>
     `;
+    this.addLoadingStyles();
 
     try {
       await this.api.submitPayment(applicationId, {
@@ -600,31 +602,36 @@ class OnboardingForm {
     const contractNumber = 'SR-' + Date.now().toString().slice(-8);
 
     tunnelWrapper.innerHTML = `
-      <div class="success-section">
-        <div class="success-icon">✓</div>
-        <h2 class="success-heading">C'est bon, t'es couvert</h2>
-        <p class="success-description">Carte verte générée. Première quittance demain.</p>
+      <div class="success-container">
+        <div class="confetti" id="confetti"></div>
+        <div class="success-section">
+          <div class="success-icon">✓</div>
+          <h2 class="success-heading">C'est bon, t'es couvert</h2>
+          <p class="success-description">Carte verte générée. Première quittance demain.</p>
 
-        <div class="contract-card">
-          <div class="contract-card-header">Carte Verte SURO</div>
-          <div class="contract-card-number">${contractNumber}</div>
-          <div class="contract-card-holder">${holder}</div>
+          <div class="contract-card">
+            <div class="contract-card-header">Carte Verte SURO</div>
+            <div class="contract-card-number">${contractNumber}</div>
+            <div class="contract-card-holder">${holder}</div>
+          </div>
+
+          <div class="success-actions">
+            <button class="btn btn-primary" onclick="window.SURO_FORM.handleDownload('${applicationId}')">
+              ✓ Télécharger ma carte verte
+            </button>
+            <button class="btn btn-ghost" onclick="window.SURO_FORM.handleDashboard()">
+              Mon espace →
+            </button>
+          </div>
+
+          <p style="margin-top: 32px; font-size: 12px; color: var(--color-neutral-600); text-align: center;">
+            Questions? On est là → <strong>support@suro.ma</strong>
+          </p>
         </div>
-
-        <div class="success-actions">
-          <button class="btn btn-primary" onclick="window.SURO_FORM.handleDownload('${applicationId}')">
-            Télécharger ma carte verte
-          </button>
-          <button class="btn btn-ghost" onclick="window.SURO_FORM.handleDashboard()">
-            Mon espace
-          </button>
-        </div>
-
-        <p style="margin-top: 32px; font-size: 12px; color: var(--color-neutral-600); text-align: center;">
-          Questions? On est là → <strong>support@suro.ma</strong>
-        </p>
       </div>
     `;
+    this.addSuccessStyles();
+    this.triggerConfetti();
   }
 
   async handleDownload(applicationId) {
@@ -648,6 +655,207 @@ class OnboardingForm {
 
   handleDashboard() {
     window.location.href = '/dashboard';
+  }
+
+  addSuccessStyles() {
+    if (document.querySelector('style[data-success-styles]')) return;
+
+    const style = document.createElement('style');
+    style.setAttribute('data-success-styles', 'true');
+    style.textContent = `
+      .success-container {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .success-section {
+        animation: slideInUp 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      @keyframes slideInUp {
+        from {
+          opacity: 0;
+          transform: translateY(40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .success-icon {
+        animation: scaleAndBounce 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      @keyframes scaleAndBounce {
+        0% {
+          transform: scale(0) rotate(-180deg);
+          opacity: 0;
+        }
+        60% {
+          transform: scale(1.1) rotate(20deg);
+          opacity: 1;
+        }
+        80% {
+          transform: scale(0.95) rotate(-5deg);
+        }
+        100% {
+          transform: scale(1) rotate(0deg);
+          opacity: 1;
+        }
+      }
+
+      .contract-card {
+        animation: scaleIn 500ms 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      }
+
+      @keyframes scaleIn {
+        from {
+          opacity: 0;
+          transform: scale(0.8);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .success-actions {
+        animation: fadeInUp 500ms 400ms ease both;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .confetti {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+      }
+
+      .confetti-piece {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: var(--color-accent);
+        opacity: 1;
+      }
+
+      .confetti-piece.blue {
+        background: var(--color-primary);
+      }
+
+      .confetti-piece.gold {
+        background: #FDB022;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  triggerConfetti() {
+    const confettiContainer = document.getElementById('confetti');
+    if (!confettiContainer) return;
+
+    const colors = ['blue', 'gold', 'var(--color-accent)'];
+    const pieceCount = 50;
+
+    for (let i = 0; i < pieceCount; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece ' + colors[Math.floor(Math.random() * 3)];
+
+      const startX = Math.random() * 100;
+      const delay = Math.random() * 200;
+      const duration = 2000 + Math.random() * 1000;
+      const angle = (Math.random() - 0.5) * 60 + 90;
+      const velocity = 3 + Math.random() * 4;
+
+      piece.style.left = startX + '%';
+      piece.style.top = '-10px';
+      piece.style.animation = `confettiFall ${duration}ms linear ${delay}ms infinite`;
+      piece.style.setProperty('--angle', angle + 'deg');
+      piece.style.setProperty('--velocity', velocity);
+
+      confettiContainer.appendChild(piece);
+    }
+
+    // Add keyframes for confetti fall
+    if (!document.querySelector('style[data-confetti-fall]')) {
+      const style = document.createElement('style');
+      style.setAttribute('data-confetti-fall', 'true');
+      style.textContent = `
+        @keyframes confettiFall {
+          0% {
+            transform: translateY(0) rotateZ(0deg);
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(600px) rotateZ(720deg);
+            opacity: 0;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  addLoadingStyles() {
+    if (document.querySelector('style[data-loading-styles]')) return;
+
+    const style = document.createElement('style');
+    style.setAttribute('data-loading-styles', 'true');
+    style.textContent = `
+      .loading-spinner {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto;
+        position: relative;
+      }
+
+      .loading-spinner::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 4px solid var(--color-neutral-200);
+        border-top-color: var(--color-primary);
+        border-radius: 50%;
+        animation: spin 1.2s linear infinite;
+      }
+
+      .loading-spinner::after {
+        content: '';
+        position: absolute;
+        width: 80%;
+        height: 80%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border: 3px solid var(--color-neutral-100);
+        border-right-color: var(--color-accent);
+        border-radius: 50%;
+        animation: spin-reverse 1.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes spin-reverse {
+        to { transform: rotate(-360deg); }
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   addPaymentStyles() {

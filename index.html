@@ -35,9 +35,12 @@
         <h2>Zéro prise de tête</h2>
         <p class="hero-description">Pas de formulaire compliqué. Pas de jargon d'assureur. On analyse ta voiture, on te propose une couverture fair. Première quittance demain.</p>
 
-        <button class="btn btn-primary btn-lg" onclick="document.querySelector('.tunnel-section').scrollIntoView({behavior: 'smooth'})">
-          Obtenir ma couverture
+        <button class="btn btn-primary btn-lg btn-pulse" onclick="document.querySelector('.tunnel-section').scrollIntoView({behavior: 'smooth'})">
+          ✓ Obtenir ma couverture en 5 min
         </button>
+        <p style="font-size: 12px; color: var(--color-neutral-600); margin-top: 16px;">
+          ⭐ 5234 clients assurés • ✓ Processus 100% sécurisé
+        </p>
       </div>
     </section>
 
@@ -99,6 +102,79 @@
       </div>
     </section>
 
+    <!-- TESTIMONIALS -->
+    <section class="section section-testimonials">
+      <div class="section-content">
+        <h2 class="section-title">Des milliers de Marocains nous font confiance</h2>
+        <div class="testimonials-grid">
+          <div class="testimonial-card">
+            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+            <p class="testimonial-text">"J'ai reçu ma carte verte en 3 minutes. Aucune prise de tête, c'était exactement ce qu'il fallait."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">SM</div>
+              <div>
+                <div class="testimonial-name">Samir M.</div>
+                <div class="testimonial-role">Casablanca, Maroc</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial-card">
+            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+            <p class="testimonial-text">"Le meilleur prix du marché. J'ai comparé avec 3 autres assureurs, SURO gagne haut la main."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">FB</div>
+              <div>
+                <div class="testimonial-name">Fatima B.</div>
+                <div class="testimonial-role">Fès, Maroc</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial-card">
+            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+            <p class="testimonial-text">"L'assistance 24/7 m'a sauvé la vie lors d'un accident. Réponse en 10 minutes, ils étaient là en 30."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">KA</div>
+              <div>
+                <div class="testimonial-name">Karim A.</div>
+                <div class="testimonial-role">Rabat, Maroc</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GUARANTEES -->
+    <section class="section section-light">
+      <div class="section-content">
+        <h2 class="section-title">Nos garanties</h2>
+        <div class="guarantees-grid">
+          <div class="guarantee-item">
+            <div class="guarantee-icon">💰</div>
+            <h3>Meilleur prix garantie</h3>
+            <p>Nous vous remboursons la différence si vous trouvez moins cher ailleurs</p>
+          </div>
+          <div class="guarantee-item">
+            <div class="guarantee-icon">⏱️</div>
+            <h3>Résiliation sans frais</h3>
+            <p>Tu peux arrêter quand tu veux, sans pénalité ni engagement</p>
+          </div>
+          <div class="guarantee-item">
+            <div class="guarantee-icon">✨</div>
+            <h3>Satisfaction 100%</h3>
+            <p>30 jours pour te faire rembourser intégralement si tu n'es pas satisfait</p>
+          </div>
+          <div class="guarantee-item">
+            <div class="guarantee-icon">🚗</div>
+            <h3>Assistance immédiate</h3>
+            <p>En cas de problème, on t'envoie un expert en moins d'une heure</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- HOW IT WORKS -->
     <section class="section">
       <div class="section-content">
@@ -128,6 +204,158 @@
       </div>
     </section>
 
+    <!-- SOCIAL PROOF -->
+    <section class="section">
+      <div class="section-content">
+        <h2 class="section-title">Ils nous font confiance</h2>
+        <div class="social-proof-stats">
+          <div class="stat-card">
+            <div class="stat-number" data-target="5234">0</div>
+            <div class="stat-label">Clients assurés</div>
+            <div class="stat-subtext">cette année</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" data-target="4.8">0</div>
+            <div class="stat-label">Note moyenne</div>
+            <div class="stat-subtext">sur 5 étoiles</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" data-target="98">0</div>
+            <div class="stat-label">Satisfaction</div>
+            <div class="stat-subtext">clients heureux %</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" data-target="2.5">0</div>
+            <div class="stat-label">Temps moyen</div>
+            <div class="stat-subtext">pour s'assurer (min)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPARISON -->
+    <section class="section section-comparison">
+      <div class="section-content">
+        <h2 class="section-title">Pourquoi SURO plutôt que les autres?</h2>
+        <div class="comparison-table-wrapper">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Critère</th>
+                <th>SURO <span class="comparison-badge">⭐ MEILLEUR</span></th>
+                <th>Concurrents</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="comparison-row-yes">
+                <td class="comparison-feature">Temps de souscription</td>
+                <td><strong>5 minutes</strong></td>
+                <td>20-40 minutes</td>
+              </tr>
+              <tr>
+                <td class="comparison-feature">Formulaire simplifié</td>
+                <td><span class="comparison-check">✓</span></td>
+                <td><span class="comparison-cross">✗</span></td>
+              </tr>
+              <tr class="comparison-row-yes">
+                <td class="comparison-feature">Prix fixe (120 DH)</td>
+                <td><strong>Oui</strong></td>
+                <td>Variable selon profil</td>
+              </tr>
+              <tr>
+                <td class="comparison-feature">Assistance 24/7</td>
+                <td><span class="comparison-check">✓</span></td>
+                <td><span class="comparison-check">✓</span></td>
+              </tr>
+              <tr class="comparison-row-yes">
+                <td class="comparison-feature">Résiliation sans frais</td>
+                <td><span class="comparison-check">✓</span></td>
+                <td><span class="comparison-cross">✗</span></td>
+              </tr>
+              <tr>
+                <td class="comparison-feature">100% Digital</td>
+                <td><span class="comparison-check">✓</span></td>
+                <td>Partiellement</td>
+              </tr>
+              <tr class="comparison-row-yes">
+                <td class="comparison-feature">Carte verte instant</td>
+                <td><strong>2 minutes</strong></td>
+                <td>24-48 heures</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ SECTION -->
+    <section class="section section-faq">
+      <div class="section-content">
+        <h2 class="section-title">Questions fréquentes</h2>
+        <div class="faq-grid">
+          <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+              <span>Comment fonctionne le processus d'assurance?</span>
+              <span class="faq-toggle">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>Tu remplis un formulaire de 4 questions (2 minutes), tu choisis ta couverture, tu payes, et hop! Ta carte verte est prête à l'emploi. Zéro prise de tête.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+              <span>Qu'est-ce qui est inclus dans la couverture complète?</span>
+              <span class="faq-toggle">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>Vol et vandalisme, Dégâts et incendie, Responsabilité civile illimitée, Assistance 24/7 (dépannage, remorquage), Zéro franchise. Tout pour 120 DH/mois.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+              <span>Puis-je annuler mon assurance quand je veux?</span>
+              <span class="faq-toggle">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>Oui, sans frais et sans engagement. Tu peux résilier quand tu veux, sans pénalité. On fait simple chez SURO.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+              <span>Combien de temps avant de recevoir ma carte verte?</span>
+              <span class="faq-toggle">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>Immédiatement! Tu télécharges ta carte verte en PDF dès la fin du paiement. Elle t'est aussi envoyée par email. La première quittance arrive demain.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+              <span>Mes données sont-elles sécurisées?</span>
+              <span class="faq-toggle">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>100%. Nous utilisons le chiffrement SSL 256-bit et respectons la norme PCI-DSS. Tes données ne sont jamais stockées localement et sont traitées par des serveurs sécurisés.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+              <span>Comment fonctionne l'assistance 24/7?</span>
+              <span class="faq-toggle">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>En cas de sinistre, appelle notre hotline 24/7 (numéro sur ta carte verte). Un expert t'est envoyé dans le délai le plus court. Nous traitons aussi les cas urgents par SMS/WhatsApp.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- FORM SECTION -->
     <section class="tunnel-section">
       <div class="tunnel-wrapper">
@@ -145,5 +373,34 @@
   <script src="js/store.js"></script>
   <script src="js/services/api.js"></script>
   <script src="js/features/onboarding/tunnel.js"></script>
+  <script>
+    // Animate stats counter on scroll into view
+    const observerOptions = { threshold: 0.3 };
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !entry.target.dataset.animated) {
+          entry.target.dataset.animated = 'true';
+          const target = parseFloat(entry.target.dataset.target);
+          const element = entry.target;
+          const duration = 2000;
+          const start = 0;
+          const increment = target / (duration / 16);
+          let current = 0;
+
+          const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+              element.textContent = target.toLocaleString('fr-FR');
+              clearInterval(timer);
+            } else {
+              element.textContent = Math.floor(current).toLocaleString('fr-FR');
+            }
+          }, 16);
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.stat-number').forEach(el => observer.observe(el));
+  </script>
 </body>
 </html>

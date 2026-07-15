@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SURO — Inscription Client</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .auth-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 40px 32px;
+      box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .auth-logo {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--color-primary);
+      margin-bottom: 8px;
+    }
+
+    .auth-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--color-neutral-900);
+      margin-bottom: 8px;
+    }
+
+    .auth-subtitle {
+      font-size: 14px;
+      color: var(--color-neutral-600);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: var(--color-neutral-900);
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--color-neutral-200);
+      border-radius: var(--radius-md);
+      font-size: 16px;
+      font-family: inherit;
+      transition: all 200ms ease;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+    }
+
+    .form-group input::placeholder {
+      color: var(--color-neutral-400);
+    }
+
+    .error-message {
+      color: var(--color-error);
+      font-size: 13px;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .form-group button {
+      width: 100%;
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 14px;
+      color: var(--color-neutral-600);
+    }
+
+    .auth-footer a {
+      color: var(--color-primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 200ms ease;
+    }
+
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .loading-spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 640px) {
+      .auth-card {
+        padding: 32px 20px;
+      }
+
+      .auth-title {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo">SURO</div>
+        <h1 class="auth-title">Inscription</h1>
+        <p class="auth-subtitle">Créez votre compte client</p>
+      </div>
+
+      <form id="signup-form">
+        <div class="form-group">
+          <label for="name">Nom Complet</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            placeholder="Votre nom complet"
+            required
+          >
+          <div class="error-message" id="name-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Adresse Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="votre@email.com"
+            required
+          >
+          <div class="error-message" id="email-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Téléphone</label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            placeholder="Votre numéro de téléphone"
+            required
+          >
+          <div class="error-message" id="phone-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Mot de Passe</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Minimum 8 caractères"
+            required
+          >
+          <div class="error-message" id="password-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirm-password">Confirmer le Mot de Passe</label>
+          <input
+            type="password"
+            id="confirm-password"
+            name="confirm-password"
+            placeholder="Confirmez votre mot de passe"
+            required
+          >
+          <div class="error-message" id="confirm-error"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <span class="loading-spinner" id="spinner"></span>
+          <span id="button-text">Créer mon Compte</span>
+        </button>
+
+        <div class="error-message" id="form-error"></div>
+      </form>
+
+      <div class="auth-footer">
+        Vous avez déjà un compte? <a href="/customer-login.html">Se connecter</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('signup-form');
+    const spinner = document.getElementById('spinner');
+    const buttonText = document.getElementById('button-text');
+    const formError = document.getElementById('form-error');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Clear errors
+      document.querySelectorAll('.error-message').forEach(el => {
+        el.classList.remove('show');
+        el.textContent = '';
+      });
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const phone = document.getElementById('phone').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+
+      // Validate password
+      if (password.length < 8) {
+        document.getElementById('password-error').textContent = 'Minimum 8 caractères requis';
+        document.getElementById('password-error').classList.add('show');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        document.getElementById('confirm-error').textContent = 'Les mots de passe ne correspondent pas';
+        document.getElementById('confirm-error').classList.add('show');
+        return;
+      }
+
+      // Show loading state
+      spinner.style.display = 'inline-block';
+      buttonText.textContent = 'Création en cours...';
+      form.querySelector('button').disabled = true;
+
+      try {
+        const response = await fetch('/api/customer/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, phone, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Erreur d\'inscription');
+        }
+
+        // Store token and email
+        localStorage.setItem('customerToken', data.token);
+        localStorage.setItem('customerEmail', email);
+
+        // Redirect to dashboard
+        window.location.href = '/backoffice/customer/';
+      } catch (error) {
+        formError.textContent = error.message;
+        formError.classList.add('show');
+      } finally {
+        spinner.style.display = 'none';
+        buttonText.textContent = 'Créer mon Compte';
+        form.querySelector('button').disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

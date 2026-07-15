@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SURO — Mon Espace Client</title>
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="css/customer.css">
+</head>
+<body>
+  <div class="admin-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1 class="sidebar-logo">SURO</h1>
+        <p class="sidebar-subtitle">Client</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#dashboard" class="nav-item active" data-page="dashboard">
+          <span class="nav-icon">📊</span>
+          <span>Mon Tableau de Bord</span>
+        </a>
+        <a href="#policies" class="nav-item" data-page="policies">
+          <span class="nav-icon">📋</span>
+          <span>Mes Polices</span>
+        </a>
+        <a href="#claims" class="nav-item" data-page="claims">
+          <span class="nav-icon">⚠️</span>
+          <span>Mes Sinistres</span>
+        </a>
+        <a href="#payments" class="nav-item" data-page="payments">
+          <span class="nav-icon">💳</span>
+          <span>Paiements</span>
+        </a>
+        <a href="#profile" class="nav-item" data-page="profile">
+          <span class="nav-icon">👤</span>
+          <span>Mon Profil</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn-logout" onclick="logout()">
+          <span class="nav-icon">🚪</span>
+          <span>Déconnexion</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- HEADER -->
+      <header class="admin-header">
+        <div class="header-info">
+          <h2 class="welcome-text">Mon Espace Client</h2>
+        </div>
+        <div class="header-user">
+          <span class="user-name" id="user-name">Client</span>
+          <img src="https://ui-avatars.com/api/?name=Client&background=0F766E&color=fff" alt="Client" class="user-avatar">
+        </div>
+      </header>
+
+      <!-- DASHBOARD CONTENT -->
+      <div class="page-content">
+        <!-- Dashboard Page -->
+        <div class="page" id="dashboard-page">
+          <div class="page-header">
+            <h1>Mon Tableau de Bord</h1>
+            <p>Gérez vos contrats et sinistres facilement</p>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">📋</div>
+              <h3>Polices Actives</h3>
+              <div class="stat-value" id="stat-active-policies">0</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon">⚠️</div>
+              <h3>Sinistres</h3>
+              <div class="stat-value" id="stat-claims">0</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon">💳</div>
+              <h3>Paiements Effectués</h3>
+              <div class="stat-value" id="stat-payments">0</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon">✓</div>
+              <h3>Prochaine Échéance</h3>
+              <div class="stat-value" id="stat-next-renewal">—</div>
+            </div>
+          </div>
+
+          <!-- Active Policies -->
+          <div class="section-card">
+            <div class="section-header">
+              <h3>Mes Polices Actives</h3>
+              <a href="#policies" class="link-view-all">Voir tout →</a>
+            </div>
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Couverture</th>
+                    <th>Date de Souscription</th>
+                    <th>Statut</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="active-policies-tbody">
+                  <tr>
+                    <td colspan="4" class="text-center">Chargement...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Policies Page -->
+        <div class="page" id="policies-page" style="display: none;">
+          <div class="page-header">
+            <h1>Mes Polices</h1>
+            <p>Visualisez et gérez toutes vos polices d'assurance</p>
+          </div>
+
+          <div class="filter-bar">
+            <select id="filter-policy-status" class="filter-select">
+              <option value="">Tous les statuts</option>
+              <option value="active">Active</option>
+              <option value="expired">Expirée</option>
+              <option value="cancelled">Annulée</option>
+            </select>
+          </div>
+
+          <div class="section-card">
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Couverture</th>
+                    <th>Date de Souscription</th>
+                    <th>Statut</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="policies-tbody">
+                  <tr>
+                    <td colspan="5" class="text-center">Chargement...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Claims Page -->
+        <div class="page" id="claims-page" style="display: none;">
+          <div class="page-header">
+            <h1>Mes Sinistres</h1>
+            <p>Déclarez et suivez vos sinistres</p>
+          </div>
+
+          <div class="filter-bar">
+            <select id="filter-claim-status" class="filter-select">
+              <option value="">Tous les statuts</option>
+              <option value="pending">En attente</option>
+              <option value="approved">Approuvé</option>
+              <option value="rejected">Rejeté</option>
+              <option value="paid">Payé</option>
+            </select>
+            <button class="btn btn-primary" onclick="openNewClaimModal()">+ Déclarer un Sinistre</button>
+          </div>
+
+          <div class="section-card">
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Politique</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="claims-tbody">
+                  <tr>
+                    <td colspan="7" class="text-center">Chargement...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payments Page -->
+        <div class="page" id="payments-page" style="display: none;">
+          <div class="page-header">
+            <h1>Historique des Paiements</h1>
+            <p>Consultez tous vos paiements d'assurance</p>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">💳</div>
+              <h3>Total Payé</h3>
+              <div class="stat-value" id="payment-total">0 DH</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">📊</div>
+              <h3>Nombre de Paiements</h3>
+              <div class="stat-value" id="payment-count">0</div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <h3>Détail des Paiements</h3>
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Montant</th>
+                    <th>Méthode</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                  </tr>
+                </thead>
+                <tbody id="payments-tbody">
+                  <tr>
+                    <td colspan="4" class="text-center">Chargement...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div class="page" id="profile-page" style="display: none;">
+          <div class="page-header">
+            <h1>Mon Profil</h1>
+            <p>Mettez à jour vos informations personnelles</p>
+          </div>
+
+          <div class="section-card">
+            <h3>Informations Personnelles</h3>
+            <form id="profile-form" class="profile-form">
+              <div class="form-group">
+                <label for="profile-email">Email</label>
+                <input type="email" id="profile-email" readonly>
+                <small class="form-hint">Non modifiable</small>
+              </div>
+
+              <div class="form-group">
+                <label for="profile-name">Nom Complet</label>
+                <input type="text" id="profile-name" placeholder="Votre nom complet">
+              </div>
+
+              <div class="form-group">
+                <label for="profile-phone">Téléphone</label>
+                <input type="tel" id="profile-phone" placeholder="Votre numéro de téléphone">
+              </div>
+
+              <div class="form-group">
+                <label for="profile-created">Inscrit depuis</label>
+                <input type="text" id="profile-created" readonly>
+              </div>
+
+              <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+            </form>
+          </div>
+
+          <div class="section-card">
+            <h3>Sécurité</h3>
+            <div class="security-group">
+              <p>Gérez vos paramètres de sécurité et vos préférences de confidentialité.</p>
+              <button class="btn btn-secondary" onclick="openChangePasswordModal()">Changer le mot de passe</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal for details -->
+  <div class="modal" id="detail-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div id="modal-body"><!-- Details loaded here --></div>
+    </div>
+  </div>
+
+  <!-- Modal for new claim -->
+  <div class="modal" id="claim-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <h2>Déclarer un Sinistre</h2>
+      <form id="claim-form" class="modal-form">
+        <div class="form-group">
+          <label for="claim-policy">Sélectionnez une police</label>
+          <select id="claim-policy" required>
+            <option value="">-- Choisir une police --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="claim-type">Type de sinistre</label>
+          <select id="claim-type" required>
+            <option value="">-- Type de sinistre --</option>
+            <option value="accident">Accident automobile</option>
+            <option value="theft">Vol</option>
+            <option value="fire">Incendie</option>
+            <option value="damage">Dommages</option>
+            <option value="other">Autre</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="claim-date">Date du sinistre</label>
+          <input type="date" id="claim-date" required>
+        </div>
+
+        <div class="form-group">
+          <label for="claim-description">Description</label>
+          <textarea id="claim-description" placeholder="Décrivez le sinistre..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Déclarer le sinistre</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal for change password -->
+  <div class="modal" id="password-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <h2>Changer le mot de passe</h2>
+      <form id="password-form" class="modal-form">
+        <div class="form-group">
+          <label for="current-password">Mot de passe actuel</label>
+          <input type="password" id="current-password" required>
+        </div>
+
+        <div class="form-group">
+          <label for="new-password">Nouveau mot de passe</label>
+          <input type="password" id="new-password" required>
+        </div>
+
+        <div class="form-group">
+          <label for="confirm-password">Confirmer le mot de passe</label>
+          <input type="password" id="confirm-password" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Mettre à jour</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/customer.js"></script>
+</body>
+</html>

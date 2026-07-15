@@ -525,7 +525,7 @@ class OnboardingForm {
       <div class="payment-section">
         <h3 style="margin-bottom: 24px; text-align: center; font-size: 20px; font-weight: 600;">Choisir une méthode de paiement</h3>
         <p style="text-align: center; color: var(--color-neutral-600); margin-bottom: 24px;">
-          Montant à payer: <strong style="color: var(--color-primary); font-size: 18px;">120 DH/mois</strong>
+          Choisis ta méthode de paiement
         </p>
 
         <div class="payment-methods" style="display: grid; gap: 12px; margin-bottom: 24px;">
@@ -575,7 +575,7 @@ class OnboardingForm {
     try {
       await this.api.submitPayment(applicationId, {
         method,
-        amount: 120,
+        amount: null,  // Prix déterminé côté backend selon couverture
         currency: 'MAD',
       });
 

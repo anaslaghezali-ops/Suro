@@ -256,8 +256,8 @@ router.get('/:id/certificate', async (req, res) => {
     doc.moveDown(1.5);
 
     // Amount section
-    doc.fontSize(12).font('Helvetica-Bold').text('Montant de la Prime');
-    doc.fontSize(14).font('Helvetica-Bold').text('120 DH/mois', { color: '#0F766E' });
+    doc.fontSize(12).font('Helvetica-Bold').text('Tarif');
+    doc.fontSize(10).font('Helvetica').text('Tarif personnalisé selon votre couverture');
     doc.moveDown(1.5);
 
     // Footer

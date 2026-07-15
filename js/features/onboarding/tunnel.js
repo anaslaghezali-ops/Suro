@@ -17,20 +17,76 @@ class OnboardingForm {
   getFields() {
     return [
       {
-        id: 'immatriculation',
-        label: 'Quelle est l\'immatriculation?',
-        hint: 'Tu la trouves sur la carte grise ou sur ta plaque',
-        type: 'text',
-        placeholder: 'Ex: 7737-A-76 ou 7737A76',
+        id: 'vehicle',
+        label: 'Parle-nous de ton véhicule',
+        hint: 'Ces infos nous permettent de calculer ton tarif',
+        type: 'group',
+        fields: [
+          {
+            id: 'immatriculation',
+            label: 'Immatriculation',
+            type: 'text',
+            placeholder: 'Ex: 7737-A-76',
+            validate: (value) => {
+              if (!value) return 'L\'immatriculation est nécessaire';
+              const cleaned = value.replace(/[\s-]/g, '');
+              if (!/^\d+[A-Za-z]\d+$/.test(cleaned)) {
+                return 'Format: nombre-lettre-nombre (Ex: 7737-A-76)';
+              }
+              return true;
+            },
+          },
+          {
+            id: 'marque',
+            label: 'Marque',
+            type: 'text',
+            placeholder: 'Ex: Dacia, Renault, Peugeot',
+            validate: (value) => {
+              if (!value) return 'La marque est nécessaire';
+              return true;
+            },
+          },
+          {
+            id: 'modele',
+            label: 'Modèle',
+            type: 'text',
+            placeholder: 'Ex: Logan, Clio, 208',
+            validate: (value) => {
+              if (!value) return 'Le modèle est nécessaire';
+              return true;
+            },
+          },
+          {
+            id: 'annee',
+            label: 'Année de mise en circulation',
+            type: 'number',
+            placeholder: 'Ex: 2018',
+            validate: (value) => {
+              if (!value) return 'L\'année est nécessaire';
+              const year = parseInt(value, 10);
+              const currentYear = new Date().getFullYear();
+              if (isNaN(year) || year < 1980 || year > currentYear) {
+                return `Année invalide (entre 1980 et ${currentYear})`;
+              }
+              return true;
+            },
+          },
+          {
+            id: 'puissance',
+            label: 'Puissance fiscale (chevaux)',
+            type: 'number',
+            placeholder: 'Ex: 6',
+            validate: (value) => {
+              if (!value) return 'La puissance fiscale est nécessaire';
+              const cv = parseInt(value, 10);
+              if (isNaN(cv) || cv < 1 || cv > 100) {
+                return 'Puissance invalide (entre 1 et 100 CV)';
+              }
+              return true;
+            },
+          },
+        ],
         required: true,
-        validate: (value) => {
-          if (!value) return 'L\'immatriculation est nécessaire pour continuer';
-          const cleaned = value.replace(/[\s-]/g, '');
-          if (!/^\d+[A-Za-z]\d+$/.test(cleaned)) {
-            return 'Format: nombre-lettre-nombre (Ex: 7737-A-76)';
-          }
-          return true;
-        },
       },
       {
         id: 'coverage',
@@ -130,6 +186,26 @@ class OnboardingForm {
           `).join('')}
         </div>
       `;
+    } else if (field.type === 'group') {
+      formHTML += `<div class="form-group-fields">`;
+      field.fields.forEach((sub) => {
+        const subValue = this.store.getState(`onboarding.data.${sub.id}`) || '';
+        formHTML += `
+          <div class="form-subfield">
+            <label class="form-sublabel" for="field-${sub.id}">${sub.label}</label>
+            <input
+              type="${sub.type}"
+              id="field-${sub.id}"
+              class="form-input"
+              placeholder="${sub.placeholder}"
+              value="${subValue}"
+              ${sub.type === 'number' ? 'inputmode="numeric"' : ''}
+            />
+            <span class="form-error" id="error-${sub.id}"></span>
+          </div>
+        `;
+      });
+      formHTML += `</div>`;
     } else {
       const currentValue = this.store.getState(`onboarding.data.${field.id}`) || '';
       formHTML += `
@@ -164,7 +240,8 @@ class OnboardingForm {
     // Focus input if not choice
     if (field.type !== 'choice') {
       setTimeout(() => {
-        const input = document.querySelector(`#field-${field.id}`);
+        const firstId = field.type === 'group' ? field.fields[0].id : field.id;
+        const input = document.querySelector(`#field-${firstId}`);
         if (input) input.focus();
       }, 100);
     }
@@ -235,6 +312,29 @@ class OnboardingForm {
         outline: none;
         border-color: var(--color-primary);
         box-shadow: 0 0 0 3px var(--color-primary-ghost);
+      }
+
+      .form-group-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .form-subfield {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .form-subfield .form-input {
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .form-sublabel {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--color-neutral-900);
       }
 
       .form-choices {
@@ -393,18 +493,47 @@ class OnboardingForm {
     return true;
   }
 
-  async handleVehicleLookup(immatriculation) {
-    try {
-      const vehicle = await this.api.getVehicleInfo(immatriculation);
-      this.store.setState('onboarding.data.vehicleInfo', vehicle);
-      return true;
-    } catch (error) {
-      return 'Véhicule non trouvé. Vérifiez l\'immatriculation.';
-    }
-  }
 
   async nextStep() {
     const field = this.fields[this.currentStep];
+
+    // Group field: validate and store each sub-field
+    if (field.type === 'group') {
+      let allValid = true;
+      field.fields.forEach((sub) => {
+        const input = document.querySelector(`#field-${sub.id}`);
+        const subErrorEl = document.querySelector(`#error-${sub.id}`);
+        const val = input ? input.value.trim() : '';
+
+        if (subErrorEl) {
+          subErrorEl.textContent = '';
+          subErrorEl.classList.remove('show');
+        }
+
+        const validation = sub.validate ? sub.validate(val) : true;
+        if (validation !== true) {
+          if (subErrorEl) {
+            subErrorEl.textContent = validation;
+            subErrorEl.classList.add('show');
+          }
+          allValid = false;
+          return;
+        }
+
+        this.store.setState(`onboarding.data.${sub.id}`, val);
+      });
+
+      if (!allValid) return;
+
+      if (this.currentStep < this.fields.length - 1) {
+        this.currentStep++;
+        this.render();
+      } else {
+        this.submit();
+      }
+      return;
+    }
+
     const errorEl = document.querySelector(`#error-${field.id}`);
 
     // Get value
@@ -430,18 +559,6 @@ class OnboardingForm {
           errorEl.classList.add('show');
         }
         return;
-      }
-
-      // Special: vehicle lookup
-      if (field.id === 'immatriculation') {
-        const lookupResult = await this.handleVehicleLookup(value);
-        if (lookupResult !== true) {
-          if (errorEl) {
-            errorEl.textContent = lookupResult;
-            errorEl.classList.add('show');
-          }
-          return;
-        }
       }
     }
 
@@ -495,7 +612,10 @@ class OnboardingForm {
       const application = await this.api.createApplication({
         product_slug: 'automobile',
         immatriculation: data.immatriculation,
-        vehicleInfo: data.vehicleInfo,
+        marque: data.marque,
+        modele: data.modele,
+        annee: data.annee,
+        puissance: data.puissance,
         coverage: data.coverage,
         email: data.email,
         phone: data.phone,

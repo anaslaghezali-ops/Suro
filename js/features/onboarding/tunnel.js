@@ -21,12 +21,12 @@ class OnboardingForm {
         label: 'Quelle est l\'immatriculation?',
         hint: 'Tu la trouves sur la carte grise ou sur ta plaque',
         type: 'text',
-        placeholder: 'Ex: ABC-1234-CD',
+        placeholder: 'Ex: 123-A-456',
         required: true,
         validate: (value) => {
           if (!value) return 'L\'immatriculation est nécessaire pour continuer';
-          if (!/^[A-Z]{2,3}-\d{3,4}-[A-Z]{2}$/.test(value)) {
-            return 'Format attendu: ABC-1234-CD (lettres-chiffres-lettres)';
+          if (!/^\d+-[A-Z]-\d+$/.test(value)) {
+            return 'Format marocain: 123-A-456 (chiffres-lettre-chiffres)';
           }
           return true;
         },

@@ -18,52 +18,69 @@ class OnboardingForm {
     return [
       {
         id: 'immatriculation',
-        label: 'Immatriculation du véhicule',
+        label: 'Quelle est l\'immatriculation?',
+        hint: 'Tu la trouves sur la carte grise ou sur ta plaque',
         type: 'text',
         placeholder: 'Ex: ABC-1234-CD',
         required: true,
         validate: (value) => {
-          if (!value) return 'Ce champ est requis';
+          if (!value) return 'L\'immatriculation est nécessaire pour continuer';
           if (!/^[A-Z]{2,3}-\d{3,4}-[A-Z]{2}$/.test(value)) {
-            return 'Format invalide (ex: ABC-1234-CD)';
+            return 'Format attendu: ABC-1234-CD (lettres-chiffres-lettres)';
           }
           return true;
         },
       },
       {
         id: 'coverage',
-        label: 'Couverture',
+        label: 'Quel niveau de protection?',
+        sublabel: 'Choisir le plan qui te convient',
         type: 'choice',
         choices: [
-          { label: 'Couverture complète', value: 'complete' },
-          { label: 'Couverture minimale', value: 'minimal' },
+          {
+            label: 'Couverture complète',
+            value: 'complete',
+            icon: '🛡️',
+            description: 'Vol, Incendie, Responsabilité civile, Assistance 24/7',
+            badge: '⭐ POPULAIRE',
+            details: ['Vol et vandalisme', 'Dégâts et incendie', 'Tiers illimité', 'Assistance 24/7', 'Pas de franchise']
+          },
+          {
+            label: 'Couverture minimale',
+            value: 'minimal',
+            icon: '✓',
+            description: 'Responsabilité civile minimale (légale)',
+            details: ['Tiers obligatoire', 'Assistance de base']
+          },
         ],
         required: true,
       },
       {
         id: 'email',
-        label: 'Email',
+        label: 'Ton email? (Pour ta quittance)',
+        hint: 'On t\'enverras ta carte verte et tes documents',
         type: 'email',
         placeholder: 'Ex: vous@email.com',
         required: true,
         validate: (value) => {
-          if (!value) return 'Ce champ est requis';
+          if (!value) return 'L\'email est nécessaire pour recevoir tes documents';
           if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-            return 'Email invalide';
+            return 'Adresse email invalide (ex: nom@domaine.com)';
           }
           return true;
         },
       },
       {
         id: 'phone',
-        label: 'Numéro de téléphone',
+        label: 'Et ton numéro? (Pour les urgences)',
+        hint: 'On t\'appellera uniquement en cas de sinistre',
         type: 'tel',
         placeholder: 'Ex: +212 6 XX XX XX XX',
         required: true,
         validate: (value) => {
-          if (!value) return 'Ce champ est requis';
+          if (!value) return 'Un numéro de contact est nécessaire';
           if (!/^[\+]?[\d\s\-\(\)]{10,}$/.test(value.replace(/\s/g, ''))) {
-            return 'Numéro invalide';
+            return 'Numéro invalide (ex: +212 6 XX XX XX XX ou 06 XX XX XX XX)';
           }
           return true;
         },
@@ -87,15 +104,27 @@ class OnboardingForm {
 
       <form class="form-step" id="form-step">
         <h3 class="form-title">${field.label}</h3>
+        ${field.hint ? `<p class="form-hint-text">${field.hint}</p>` : ''}
     `;
 
     if (field.type === 'choice') {
       formHTML += `
+        <p style="font-size: 14px; color: var(--color-neutral-600); margin-top: -12px; margin-bottom: 20px;">${field.sublabel || ''}</p>
         <div class="form-choices">
           ${field.choices.map((choice, idx) => `
-            <button type="button" class="choice-btn" data-value="${choice.value}" onclick="window.SURO_FORM.selectChoice('${choice.value}')">
-              <span class="choice-radio"></span>
-              <span>${choice.label}</span>
+            <button type="button" class="choice-btn ${choice.icon ? 'choice-card' : ''}" data-value="${choice.value}" onclick="window.SURO_FORM.selectChoice('${choice.value}')">
+              ${choice.badge ? `<span class="choice-badge">${choice.badge}</span>` : ''}
+              <div style="display: flex; gap: 16px; flex: 1;">
+                ${choice.icon ? `<div style="font-size: 32px; line-height: 1;">${choice.icon}</div>` : ''}
+                <div style="flex: 1; text-align: left;">
+                  <div style="font-weight: 600; font-size: 16px; margin-bottom: 6px;">${choice.label}</div>
+                  ${choice.description ? `<div style="font-size: 13px; color: var(--color-neutral-600); margin-bottom: 12px;">${choice.description}</div>` : ''}
+                  ${choice.details ? `<div style="font-size: 12px; color: var(--color-neutral-600);">
+                    ${choice.details.map(d => `<div style="margin-top: 4px;">✓ ${d}</div>`).join('')}
+                  </div>` : ''}
+                </div>
+              </div>
+              <span class="choice-radio" style="margin-left: auto; flex-shrink: 0;"></span>
             </button>
           `).join('')}
         </div>
@@ -182,7 +211,14 @@ class OnboardingForm {
         font-size: 24px;
         font-weight: 600;
         color: var(--color-neutral-900);
-        margin: 0;
+        margin: 0 0 8px 0;
+      }
+
+      .form-hint-text {
+        font-size: 14px;
+        color: var(--color-neutral-600);
+        margin: 0 0 20px 0;
+        font-weight: 400;
       }
 
       .form-input {
@@ -203,42 +239,87 @@ class OnboardingForm {
       .form-choices {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 16px;
       }
 
       .choice-btn {
         display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 16px;
-        border: 1px solid var(--color-neutral-200);
+        align-items: flex-start;
+        padding: 20px;
+        border: 2px solid var(--color-neutral-200);
         border-radius: var(--radius-lg);
         background: white;
         cursor: pointer;
-        transition: all 150ms ease;
+        transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
         text-align: left;
-        font-size: 16px;
         font-family: var(--font-body);
+        position: relative;
+        overflow: hidden;
+        min-height: 48px;
+      }
+
+      .choice-btn.choice-card {
+        min-height: auto;
+      }
+
+      .choice-btn::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(15, 118, 110, 0.03) 0%, rgba(249, 115, 22, 0.01) 100%);
+        opacity: 0;
+        transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
       }
 
       .choice-btn:hover {
         border-color: var(--color-primary);
-        background: var(--color-primary-ghost);
+        box-shadow: 0 8px 16px rgba(15, 118, 110, 0.12);
+        transform: translateY(-2px);
+      }
+
+      .choice-btn:hover::before {
+        opacity: 1;
+      }
+
+      .choice-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: linear-gradient(135deg, var(--color-accent), #FF9D2D);
+        color: white;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 4px;
+        letter-spacing: 0.05em;
+        z-index: 1;
       }
 
       .choice-radio {
-        width: 20px;
-        height: 20px;
-        border: 2px solid var(--color-neutral-400);
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        border: 2.5px solid var(--color-neutral-300);
         border-radius: 50%;
         flex-shrink: 0;
-        transition: all 150ms ease;
+        transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .choice-btn.selected {
+        border-color: var(--color-primary);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(15, 118, 110, 0.02) 100%);
+        box-shadow: 0 8px 16px rgba(15, 118, 110, 0.15), inset 0 0 0 1px var(--color-primary);
+      }
+
+      .choice-btn.selected::before {
+        opacity: 1;
       }
 
       .choice-btn.selected .choice-radio {
         border-color: var(--color-primary);
         background: var(--color-primary);
-        box-shadow: inset 0 0 0 4px white;
+        box-shadow: inset 0 0 0 3px white;
       }
 
       .form-error {
@@ -268,7 +349,31 @@ class OnboardingForm {
         }
 
         .form-title {
-          font-size: 18px;
+          font-size: 20px;
+        }
+
+        .form-hint-text {
+          font-size: 13px;
+        }
+
+        .choice-btn {
+          padding: 24px 16px;
+          min-height: 60px;
+        }
+
+        .choice-btn.choice-card {
+          min-height: auto;
+        }
+
+        .form-input {
+          padding: 14px 16px;
+          height: 48px;
+          font-size: 16px;
+        }
+
+        .form-actions .btn {
+          height: 48px;
+          font-size: 16px;
         }
       }
     `;

@@ -25,8 +25,8 @@ class OnboardingForm {
         required: true,
         validate: (value) => {
           if (!value) return 'L\'immatriculation est nécessaire pour continuer';
-          const cleaned = value.replace(/\s+/g, '');
-          if (!/^\d+[A-Za-z]\d+$/i.test(cleaned)) {
+          const cleaned = value.replace(/[\s-]/g, '');
+          if (!/^\d+[A-Za-z]\d+$/.test(cleaned)) {
             return 'Format: nombre-lettre-nombre (Ex: 7737-A-76)';
           }
           return true;

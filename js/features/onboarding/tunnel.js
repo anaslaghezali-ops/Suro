@@ -755,27 +755,62 @@ class OnboardingForm {
     this.triggerConfetti();
   }
 
-  async handleDownload(applicationId) {
-    try {
-      const response = await fetch(`/api/applications/${applicationId}/certificate`);
-      if (!response.ok) throw new Error('Erreur de génération');
+  handleDownload(applicationId) {
+    // Génère la carte verte côté client (imprimable / enregistrable en PDF)
+    const data = this.store.getState('onboarding.data') || {};
+    const certNumber = 'SR-' + String(applicationId).replace(/-/g, '').slice(0, 8).toUpperCase();
+    const today = new Date().toLocaleDateString('fr-FR');
+    const coverageLabel = data.coverage === 'complete' ? 'Couverture complète' : 'Couverture minimale';
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `SURO-${applicationId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-    } catch (error) {
-      alert('Erreur lors du téléchargement');
+    const win = window.open('', '_blank');
+    if (!win) {
+      alert('Autorise les popups pour télécharger ta carte verte');
+      return;
     }
+
+    win.document.write(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Carte Verte SURO — ${certNumber}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px; color: #111827; }
+    .card { max-width: 560px; margin: 0 auto; border: 2px solid #0F766E; border-radius: 16px; padding: 32px; }
+    .logo { font-size: 28px; font-weight: 800; color: #0F766E; text-align: center; }
+    .subtitle { text-align: center; color: #4B5563; margin-bottom: 24px; }
+    h2 { text-align: center; font-size: 18px; border-bottom: 1px solid #E5E7EB; padding-bottom: 16px; }
+    .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #F3F4F6; font-size: 14px; }
+    .row .label { color: #4B5563; }
+    .row .value { font-weight: 600; }
+    .footer { margin-top: 24px; font-size: 11px; color: #9CA3AF; text-align: center; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">SURO</div>
+    <div class="subtitle">Assurance Automobile</div>
+    <h2>Carte Verte d'Assurance</h2>
+    <div class="row"><span class="label">N° de certificat</span><span class="value">${certNumber}</span></div>
+    <div class="row"><span class="label">Date d'émission</span><span class="value">${today}</span></div>
+    <div class="row"><span class="label">Immatriculation</span><span class="value">${data.immatriculation || '—'}</span></div>
+    <div class="row"><span class="label">Véhicule</span><span class="value">${data.marque || ''} ${data.modele || ''} (${data.annee || '—'})</span></div>
+    <div class="row"><span class="label">Puissance fiscale</span><span class="value">${data.puissance || '—'} CV</span></div>
+    <div class="row"><span class="label">Couverture</span><span class="value">${coverageLabel}</span></div>
+    <div class="row"><span class="label">Email</span><span class="value">${data.email || '—'}</span></div>
+    <div class="footer">
+      Souscription 100% digitale par SURO — support@suro.ma<br>
+      Document provisoire en attente de la première quittance.
+    </div>
+  </div>
+  <script>window.onload = function() { window.print(); };<\/script>
+</body>
+</html>`);
+    win.document.close();
   }
 
   handleDashboard() {
-    window.location.href = '/dashboard';
+    window.location.href = 'customer-login.html';
   }
 
   addSuccessStyles() {

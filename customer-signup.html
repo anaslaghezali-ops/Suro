@@ -227,11 +227,18 @@
     </div>
   </div>
 
+  <script src="js/services/api.js?v=4"></script>
   <script>
     const form = document.getElementById('signup-form');
     const spinner = document.getElementById('spinner');
     const buttonText = document.getElementById('button-text');
     const formError = document.getElementById('form-error');
+
+    // Pré-remplir l'email depuis le tunnel (?email=...)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('email')) {
+      document.getElementById('email').value = params.get('email');
+    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -243,8 +250,8 @@
       });
 
       const name = document.getElementById('name').value;
-      const email = document.getElementById('email').value;
       const phone = document.getElementById('phone').value;
+      const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirm-password').value;
 
@@ -267,28 +274,32 @@
       form.querySelector('button').disabled = true;
 
       try {
-        const response = await fetch('/api/customer/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, phone, password })
-        });
+        const result = await window.SURO_API.signup(email, password, { name, phone });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Erreur d\'inscription');
+        if (result.session) {
+          // Connecté directement
+          window.location.href = 'backoffice/customer/';
+        } else {
+          // Confirmation par email requise
+          form.innerHTML = `
+            <div style="text-align: center; padding: 24px 0;">
+              <div style="font-size: 40px; margin-bottom: 12px;">📬</div>
+              <p style="font-weight: 600; margin-bottom: 8px;">Vérifie ta boîte mail</p>
+              <p style="font-size: 14px; color: #4B5563;">
+                On t'a envoyé un lien de confirmation à <strong>${email}</strong>.<br>
+                Clique dessus puis connecte-toi.
+              </p>
+              <a href="customer-login.html" class="btn btn-primary" style="display: inline-block; margin-top: 16px; text-decoration: none;">Aller à la connexion</a>
+            </div>
+          `;
         }
-
-        // Store token and email
-        localStorage.setItem('customerToken', data.token);
-        localStorage.setItem('customerEmail', email);
-
-        // Redirect to dashboard
-        window.location.href = '/backoffice/customer/';
       } catch (error) {
-        formError.textContent = error.message;
+        let message = error.message || 'Erreur d\'inscription';
+        if (/already registered/i.test(message)) {
+          message = 'Un compte existe déjà avec cet email — connecte-toi';
+        }
+        formError.textContent = message;
         formError.classList.add('show');
-      } finally {
         spinner.style.display = 'none';
         buttonText.textContent = 'Créer mon Compte';
         form.querySelector('button').disabled = false;

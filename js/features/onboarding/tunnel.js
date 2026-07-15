@@ -142,6 +142,21 @@ class OnboardingForm {
           return true;
         },
       },
+      {
+        id: 'address',
+        label: 'Où veux-tu recevoir tes documents?',
+        hint: 'Ta carte verte et tes documents officiels seront envoyés à cette adresse',
+        type: 'text',
+        placeholder: 'Ex: 12 Rue Atlas, Quartier Maârif, Casablanca',
+        required: true,
+        validate: (value) => {
+          if (!value) return 'L\'adresse de livraison est nécessaire';
+          if (value.trim().length < 10) {
+            return 'Adresse trop courte — précise la rue et la ville';
+          }
+          return true;
+        },
+      },
     ];
   }
 
@@ -165,16 +180,23 @@ class OnboardingForm {
     `;
 
     if (field.type === 'choice') {
+      const quote = this.store.getState('onboarding.quote') || {};
       formHTML += `
         <p style="font-size: 14px; color: var(--color-neutral-600); margin-top: -12px; margin-bottom: 20px;">${field.sublabel || ''}</p>
         <div class="form-choices">
-          ${field.choices.map((choice, idx) => `
+          ${field.choices.map((choice, idx) => {
+            const price = quote[choice.value];
+            const priceHTML = price
+              ? `<div class="choice-price">${Number(price).toLocaleString('fr-FR')} <span class="choice-price-unit">DH/an</span></div>`
+              : '';
+            return `
             <button type="button" class="choice-btn ${choice.icon ? 'choice-card' : ''}" data-value="${choice.value}" onclick="window.SURO_FORM.selectChoice('${choice.value}')">
               ${choice.badge ? `<span class="choice-badge">${choice.badge}</span>` : ''}
               <div style="display: flex; gap: 16px; flex: 1;">
                 ${choice.icon ? `<div style="font-size: 32px; line-height: 1;">${choice.icon}</div>` : ''}
                 <div style="flex: 1; text-align: left;">
                   <div style="font-weight: 600; font-size: 16px; margin-bottom: 6px;">${choice.label}</div>
+                  ${priceHTML}
                   ${choice.description ? `<div style="font-size: 13px; color: var(--color-neutral-600); margin-bottom: 12px;">${choice.description}</div>` : ''}
                   ${choice.details ? `<div style="font-size: 12px; color: var(--color-neutral-600);">
                     ${choice.details.map(d => `<div style="margin-top: 4px;">✓ ${d}</div>`).join('')}
@@ -183,7 +205,7 @@ class OnboardingForm {
               </div>
               <span class="choice-radio" style="margin-left: auto; flex-shrink: 0;"></span>
             </button>
-          `).join('')}
+          `;}).join('')}
         </div>
       `;
     } else if (field.type === 'group') {
@@ -312,6 +334,19 @@ class OnboardingForm {
         outline: none;
         border-color: var(--color-primary);
         box-shadow: 0 0 0 3px var(--color-primary-ghost);
+      }
+
+      .choice-price {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--color-primary);
+        margin-bottom: 6px;
+      }
+
+      .choice-price-unit {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--color-neutral-600);
       }
 
       .form-group-fields {
@@ -525,6 +560,22 @@ class OnboardingForm {
 
       if (!allValid) return;
 
+      // Après l'étape véhicule : calcul du devis (prix affichés à l'étape couverture)
+      if (field.id === 'vehicle') {
+        try {
+          const quote = await this.api.getQuote({
+            annee: this.store.getState('onboarding.data.annee'),
+            puissance: this.store.getState('onboarding.data.puissance'),
+            marque: this.store.getState('onboarding.data.marque'),
+            modele: this.store.getState('onboarding.data.modele'),
+          });
+          this.store.setState('onboarding.quote', quote);
+        } catch (e) {
+          // Devis indisponible : on continue, le prix sera confirmé plus tard
+          this.store.setState('onboarding.quote', {});
+        }
+      }
+
       if (this.currentStep < this.fields.length - 1) {
         this.currentStep++;
         this.render();
@@ -619,6 +670,7 @@ class OnboardingForm {
         coverage: data.coverage,
         email: data.email,
         phone: data.phone,
+        address: data.address,
       });
 
       this.store.setState('onboarding.applicationId', application.application.id);
@@ -642,9 +694,20 @@ class OnboardingForm {
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     if (!tunnelWrapper) return;
 
+    const quote = this.store.getState('onboarding.quote') || {};
+    const coverage = this.store.getState('onboarding.data.coverage');
+    const premium = quote[coverage];
+    const amountHTML = premium
+      ? `<div style="text-align: center; margin-bottom: 24px; padding: 16px; background: var(--color-neutral-50, #F9FAFB); border-radius: 12px;">
+           <div style="font-size: 13px; color: var(--color-neutral-600);">Prime annuelle — ${coverage === 'complete' ? 'Couverture complète' : 'Couverture minimale'}</div>
+           <div style="font-size: 28px; font-weight: 800; color: var(--color-primary);">${Number(premium).toLocaleString('fr-FR')} DH<span style="font-size: 14px; font-weight: 500;">/an</span></div>
+         </div>`
+      : '';
+
     tunnelWrapper.innerHTML = `
       <div class="payment-section">
         <h3 style="margin-bottom: 24px; text-align: center; font-size: 20px; font-weight: 600;">Choisir une méthode de paiement</h3>
+        ${amountHTML}
         <p style="text-align: center; color: var(--color-neutral-600); margin-bottom: 24px;">
           Choisis ta méthode de paiement
         </p>
@@ -694,9 +757,11 @@ class OnboardingForm {
     this.addLoadingStyles();
 
     try {
+      const quote = this.store.getState('onboarding.quote') || {};
+      const coverage = this.store.getState('onboarding.data.coverage');
       await this.api.submitPayment(applicationId, {
         method,
-        amount: null,  // Prix déterminé côté backend selon couverture
+        amount: quote[coverage] || null,  // Montant de référence (le prix officiel est calculé côté serveur)
         currency: 'MAD',
       });
 
@@ -718,9 +783,14 @@ class OnboardingForm {
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     if (!tunnelWrapper) return;
 
-    const email = this.store.getState('onboarding.data.email');
+    const email = this.store.getState('onboarding.data.email') || '';
+    const address = this.store.getState('onboarding.data.address') || '';
     const holder = email ? email.split('@')[0].toUpperCase() : 'CLIENT';
-    const contractNumber = 'SR-' + Date.now().toString().slice(-8);
+    const contractNumber = 'SR-' + String(applicationId).replace(/-/g, '').slice(0, 8).toUpperCase();
+
+    const quote = this.store.getState('onboarding.quote') || {};
+    const coverage = this.store.getState('onboarding.data.coverage');
+    const premium = quote[coverage];
 
     tunnelWrapper.innerHTML = `
       <div class="success-container">
@@ -728,20 +798,25 @@ class OnboardingForm {
         <div class="success-section">
           <div class="success-icon">✓</div>
           <h2 class="success-heading">C'est bon, t'es couvert</h2>
-          <p class="success-description">Carte verte générée. Première quittance demain.</p>
+          <p class="success-description">Ta souscription est confirmée${premium ? ` — ${Number(premium).toLocaleString('fr-FR')} DH/an` : ''}.</p>
 
           <div class="contract-card">
-            <div class="contract-card-header">Carte Verte SURO</div>
+            <div class="contract-card-header">Contrat SURO</div>
             <div class="contract-card-number">${contractNumber}</div>
             <div class="contract-card-holder">${holder}</div>
           </div>
 
+          <div style="margin-top: 24px; padding: 16px; background: rgba(15, 118, 110, 0.06); border-radius: 12px; font-size: 14px; color: var(--color-neutral-600); text-align: left;">
+            <div style="margin-bottom: 8px;">📄 <strong>Tes documents officiels</strong> (carte verte, attestation) seront préparés par nos équipes et mis à disposition dans ton espace client.</div>
+            <div>📮 Ils seront aussi envoyés à : <strong>${address}</strong></div>
+          </div>
+
           <div class="success-actions">
-            <button class="btn btn-primary" onclick="window.SURO_FORM.handleDownload('${applicationId}')">
-              ✓ Télécharger ma carte verte
+            <button class="btn btn-primary" onclick="window.SURO_FORM.handleCreateAccount()">
+              Créer mon espace client →
             </button>
             <button class="btn btn-ghost" onclick="window.SURO_FORM.handleDashboard()">
-              Mon espace →
+              J'ai déjà un compte
             </button>
           </div>
 
@@ -755,58 +830,9 @@ class OnboardingForm {
     this.triggerConfetti();
   }
 
-  handleDownload(applicationId) {
-    // Génère la carte verte côté client (imprimable / enregistrable en PDF)
-    const data = this.store.getState('onboarding.data') || {};
-    const certNumber = 'SR-' + String(applicationId).replace(/-/g, '').slice(0, 8).toUpperCase();
-    const today = new Date().toLocaleDateString('fr-FR');
-    const coverageLabel = data.coverage === 'complete' ? 'Couverture complète' : 'Couverture minimale';
-
-    const win = window.open('', '_blank');
-    if (!win) {
-      alert('Autorise les popups pour télécharger ta carte verte');
-      return;
-    }
-
-    win.document.write(`<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Carte Verte SURO — ${certNumber}</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px; color: #111827; }
-    .card { max-width: 560px; margin: 0 auto; border: 2px solid #0F766E; border-radius: 16px; padding: 32px; }
-    .logo { font-size: 28px; font-weight: 800; color: #0F766E; text-align: center; }
-    .subtitle { text-align: center; color: #4B5563; margin-bottom: 24px; }
-    h2 { text-align: center; font-size: 18px; border-bottom: 1px solid #E5E7EB; padding-bottom: 16px; }
-    .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #F3F4F6; font-size: 14px; }
-    .row .label { color: #4B5563; }
-    .row .value { font-weight: 600; }
-    .footer { margin-top: 24px; font-size: 11px; color: #9CA3AF; text-align: center; }
-    @media print { body { padding: 0; } }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="logo">SURO</div>
-    <div class="subtitle">Assurance Automobile</div>
-    <h2>Carte Verte d'Assurance</h2>
-    <div class="row"><span class="label">N° de certificat</span><span class="value">${certNumber}</span></div>
-    <div class="row"><span class="label">Date d'émission</span><span class="value">${today}</span></div>
-    <div class="row"><span class="label">Immatriculation</span><span class="value">${data.immatriculation || '—'}</span></div>
-    <div class="row"><span class="label">Véhicule</span><span class="value">${data.marque || ''} ${data.modele || ''} (${data.annee || '—'})</span></div>
-    <div class="row"><span class="label">Puissance fiscale</span><span class="value">${data.puissance || '—'} CV</span></div>
-    <div class="row"><span class="label">Couverture</span><span class="value">${coverageLabel}</span></div>
-    <div class="row"><span class="label">Email</span><span class="value">${data.email || '—'}</span></div>
-    <div class="footer">
-      Souscription 100% digitale par SURO — support@suro.ma<br>
-      Document provisoire en attente de la première quittance.
-    </div>
-  </div>
-  <script>window.onload = function() { window.print(); };<\/script>
-</body>
-</html>`);
-    win.document.close();
+  handleCreateAccount() {
+    const email = this.store.getState('onboarding.data.email') || '';
+    window.location.href = 'customer-signup.html' + (email ? '?email=' + encodeURIComponent(email) : '');
   }
 
   handleDashboard() {

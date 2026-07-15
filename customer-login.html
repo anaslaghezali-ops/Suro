@@ -229,6 +229,7 @@
     </div>
   </div>
 
+  <script src="js/services/api.js?v=4"></script>
   <script>
     const form = document.getElementById('login-form');
     const spinner = document.getElementById('spinner');
@@ -253,26 +254,18 @@
       form.querySelector('button').disabled = true;
 
       try {
-        const response = await fetch('/api/customer/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Erreur de connexion');
-        }
-
-        // Store token and email
-        localStorage.setItem('customerToken', data.token);
-        localStorage.setItem('customerEmail', email);
+        await window.SURO_API.login(email, password);
 
         // Redirect to dashboard
-        window.location.href = '/backoffice/customer/';
+        window.location.href = 'backoffice/customer/';
       } catch (error) {
-        formError.textContent = error.message;
+        let message = error.message || 'Erreur de connexion';
+        if (/invalid login credentials/i.test(message)) {
+          message = 'Email ou mot de passe incorrect';
+        } else if (/email not confirmed/i.test(message)) {
+          message = 'Confirme ton email avant de te connecter (vérifie ta boîte mail)';
+        }
+        formError.textContent = message;
         formError.classList.add('show');
       } finally {
         spinner.style.display = 'none';

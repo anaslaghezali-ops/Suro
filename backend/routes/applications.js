@@ -8,19 +8,43 @@ const router = express.Router();
 // POST /api/applications - Create a new application
 router.post('/', async (req, res) => {
   try {
-    const { product_id, customer_name, customer_email, customer_phone } = req.body;
+    const {
+      product_id, product_slug,
+      customer_name, customer_email, customer_phone,
+      email, phone, coverage,
+      immatriculation, marque, modele, annee, puissance,
+    } = req.body;
 
-    if (!product_id || !customer_email) {
-      return res.status(400).json({ error: 'product_id and customer_email are required' });
+    const finalEmail = customer_email || email;
+    const finalPhone = customer_phone || phone;
+
+    if (!finalEmail) {
+      return res.status(400).json({ error: 'customer_email is required' });
+    }
+
+    // Resolve product: accept an explicit id or look it up by slug
+    let productId = product_id;
+    if (!productId) {
+      const { data: product } = await supabase
+        .from('insurance_products')
+        .select('id')
+        .eq('slug', product_slug || 'automobile')
+        .single();
+      if (product) productId = product.id;
+    }
+
+    if (!productId) {
+      return res.status(400).json({ error: 'Product not found' });
     }
 
     const { data, error } = await supabase
       .from('insurance_applications')
       .insert([{
-        product_id,
-        customer_name,
-        customer_email,
-        customer_phone,
+        product_id: productId,
+        customer_name: customer_name || null,
+        customer_email: finalEmail,
+        customer_phone: finalPhone || null,
+        coverage_type: coverage || null,
         status: 'nouvelle'
       }])
       .select();
@@ -29,9 +53,30 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
 
+    const application = data[0];
+
+    // Save vehicle details as application answers
+    const vehicleAnswers = { immatriculation, marque, modele, annee, puissance };
+    const answersToInsert = Object.entries(vehicleAnswers)
+      .filter(([, value]) => value !== undefined && value !== null && value !== '')
+      .map(([field_key, field_value]) => ({
+        application_id: application.id,
+        field_key,
+        field_value: String(field_value),
+      }));
+
+    if (answersToInsert.length > 0) {
+      const { error: answersError } = await supabase
+        .from('insurance_application_answers')
+        .insert(answersToInsert);
+      if (answersError) {
+        console.error('[applications] Failed to save answers:', answersError.message);
+      }
+    }
+
     res.status(201).json({
       message: 'Application created successfully',
-      application: data[0]
+      application
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -278,8 +323,8 @@ router.post('/:id/payment', async (req, res) => {
     const { id } = req.params;
     const { method, amount, currency = 'MAD' } = req.body;
 
-    if (!method || !amount) {
-      return res.status(400).json({ error: 'payment method and amount are required' });
+    if (!method) {
+      return res.status(400).json({ error: 'payment method is required' });
     }
 
     // In production, this would integrate with Stripe, MTN Mobile Money, or other payment providers

@@ -14,21 +14,14 @@ class API {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'API Error');
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || error.message || 'API Error');
     }
 
     return response.json();
   }
 
   // Onboarding
-  static getVehicleInfo(immatriculation) {
-    return this.call('/vehicles/info', {
-      method: 'POST',
-      body: JSON.stringify({ immatriculation }),
-    });
-  }
-
   static getCoverage(vehicleType) {
     return this.call(`/products/automobile?type=${vehicleType}`);
   }
@@ -36,11 +29,7 @@ class API {
   static createApplication(data) {
     return this.call('/applications', {
       method: 'POST',
-      body: JSON.stringify({
-        product_slug: 'automobile',
-        status: 'pending',
-        answers: data,
-      }),
+      body: JSON.stringify(data),
     });
   }
 

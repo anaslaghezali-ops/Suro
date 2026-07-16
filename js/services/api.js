@@ -5,8 +5,8 @@
  * protégé par Row Level Security. La clé publishable est publique par design.
  */
 
-const SUPABASE_URL = 'https://dnrudcpaqcqyybpbbrum.supabase.co';
-const SUPABASE_KEY = 'sb_publishable__c1wQLooo7xS-34-zNi3_A_EZetrQDv';
+const SUPABASE_URL = 'https://eprtmdugiusidtbwzozj.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_hltn9fC1cJKrsJ7QJf6sJQ_mbBHLx4-';
 
 class API {
   // --- Supabase REST helper ---

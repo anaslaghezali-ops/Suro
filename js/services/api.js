@@ -235,6 +235,130 @@ class API {
       asUser: true,
     });
   }
+
+  // --- Admin (compte authentifié + membre de suro_admins ; RLS applique les droits) ---
+  static async isAdmin() {
+    try {
+      const result = await this.sb('/rest/v1/rpc/is_suro_admin', {
+        method: 'POST',
+        asUser: true,
+        body: JSON.stringify({}),
+      });
+      return result === true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static adminGetApplications() {
+    return this.sb('/rest/v1/insurance_applications?select=*&order=created_at.desc', {
+      asUser: true,
+    });
+  }
+
+  static adminGetApplicationAnswers(applicationId) {
+    return this.sb(
+      `/rest/v1/insurance_application_answers?application_id=eq.${applicationId}&select=*`,
+      { asUser: true }
+    );
+  }
+
+  static adminUpdateApplicationStatus(applicationId, status) {
+    return this.sb(`/rest/v1/insurance_applications?id=eq.${applicationId}`, {
+      method: 'PATCH',
+      asUser: true,
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ status, updated_at: new Date().toISOString() }),
+    });
+  }
+
+  static adminGetClaims() {
+    return this.sb('/rest/v1/insurance_claims?select=*&order=created_at.desc', {
+      asUser: true,
+    });
+  }
+
+  static adminUpdateClaimStatus(claimId, status) {
+    return this.sb(`/rest/v1/insurance_claims?id=eq.${claimId}`, {
+      method: 'PATCH',
+      asUser: true,
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ status, updated_at: new Date().toISOString() }),
+    });
+  }
+
+  static adminGetDocuments(applicationId) {
+    const filter = applicationId ? `&application_id=eq.${applicationId}` : '';
+    return this.sb(
+      `/rest/v1/insurance_documents?select=*${filter}&order=created_at.desc`,
+      { asUser: true }
+    );
+  }
+
+  // Upload d'un fichier dans le bucket privé + création de la ligne insurance_documents
+  static async adminUploadDocument(application, file) {
+    const session = this.getSession();
+    if (!session) throw new Error('Session admin expirée');
+
+    // Chemin: <application_id>/<timestamp>-<nom de fichier nettoyé>
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storagePath = `${application.id}/${Date.now()}-${safeName}`;
+
+    // 1. Upload dans le storage
+    const uploadRes = await fetch(
+      `${SUPABASE_URL}/storage/v1/object/suro-documents/${storagePath}`,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': file.type || 'application/octet-stream',
+          'x-upsert': 'false',
+        },
+        body: file,
+      }
+    );
+    if (!uploadRes.ok) {
+      const err = await uploadRes.json().catch(() => ({}));
+      throw new Error(err.message || 'Échec de l\'upload du fichier');
+    }
+
+    // 2. Enregistrement de la ligne (visible par le client)
+    await this.sb('/rest/v1/insurance_documents', {
+      method: 'POST',
+      asUser: true,
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        application_id: application.id,
+        customer_email: application.customer_email,
+        name: file.name,
+        storage_path: storagePath,
+      }),
+    });
+
+    return { storage_path: storagePath };
+  }
+
+  static async adminDeleteDocument(doc) {
+    const session = this.getSession();
+    // 1. Supprime le fichier du storage
+    await fetch(
+      `${SUPABASE_URL}/storage/v1/object/suro-documents/${doc.storage_path}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${session ? session.access_token : SUPABASE_KEY}`,
+        },
+      }
+    );
+    // 2. Supprime la ligne
+    await this.sb(`/rest/v1/insurance_documents?id=eq.${doc.id}`, {
+      method: 'DELETE',
+      asUser: true,
+      headers: { Prefer: 'return=minimal' },
+    });
+  }
 }
 
 // Export

@@ -1,225 +1,205 @@
-// Admin Dashboard Controller
+/* SURO — Admin Dashboard (Supabase, static-hosting compatible)
+ * Auth via Supabase; RLS + suro_admins enforce admin privileges.
+ */
+
+const ADMIN_LOGIN_PAGE = '../admin-login.html';
+
 class AdminDashboard {
   constructor() {
-    this.adminKey = localStorage.getItem('adminKey') || '';
+    this.api = window.SURO_API;
     this.currentPage = 'dashboard';
+    this.applications = null; // cache
     this.init();
   }
 
-  init() {
-    // Check if admin is authenticated
-    if (!this.adminKey) {
-      this.showLoginPrompt();
+  async init() {
+    const session = this.api.getSession();
+    if (!session || !session.access_token) {
+      window.location.href = ADMIN_LOGIN_PAGE;
       return;
     }
 
+    // Vérifie les droits admin
+    const isAdmin = await this.api.isAdmin();
+    if (!isAdmin) {
+      this.api.logout();
+      window.location.href = ADMIN_LOGIN_PAGE;
+      return;
+    }
+
+    const nameEl = document.querySelector('.user-name');
+    if (nameEl) nameEl.textContent = session.email || 'Admin SURO';
+
     this.setupNavigation();
     this.loadDashboard();
-    this.startAutoRefresh();
   }
 
-  showLoginPrompt() {
-    const key = prompt('Entrez la clé d\'administration SURO:');
-    if (key) {
-      localStorage.setItem('adminKey', key);
-      this.adminKey = key;
-      this.setupNavigation();
-      this.loadDashboard();
-    } else {
-      window.location.href = '/';
+  handleAuthError(error) {
+    if (/JWT|expired|401|invalid token/i.test(error.message || '')) {
+      this.api.logout();
+      window.location.href = ADMIN_LOGIN_PAGE;
+      return true;
     }
+    return false;
   }
 
   setupNavigation() {
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
-        const page = item.dataset.page;
-        this.navigateTo(page);
+        this.navigateTo(item.dataset.page);
       });
     });
   }
 
   navigateTo(page) {
-    // Hide all pages
-    document.querySelectorAll('.page').forEach(p => {
-      p.style.display = 'none';
-    });
-
-    // Show selected page
+    document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; });
     const pageEl = document.getElementById(`${page}-page`);
-    if (pageEl) {
-      pageEl.style.display = 'block';
-    }
+    if (pageEl) pageEl.style.display = 'block';
 
-    // Update active nav item
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.classList.remove('active');
-    });
-    document.querySelector(`[data-page="${page}"]`).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    const navEl = document.querySelector(`[data-page="${page}"]`);
+    if (navEl) navEl.classList.add('active');
 
-    // Ferme le menu mobile après la navigation
     closeSidebar();
-
     this.currentPage = page;
 
-    // Load page data
     switch (page) {
-      case 'dashboard':
-        this.loadDashboard();
-        break;
-      case 'applications':
-        this.loadApplications();
-        break;
-      case 'claims':
-        this.loadClaims();
-        break;
-      case 'payments':
-        this.loadPayments();
-        break;
-      case 'customers':
-        this.loadCustomers();
-        break;
-      case 'settings':
-        this.loadSettings();
-        break;
+      case 'dashboard': this.loadDashboard(); break;
+      case 'applications': this.loadApplications(); break;
+      case 'claims': this.loadClaims(); break;
+      case 'payments': this.loadPayments(); break;
+      case 'customers': this.loadCustomers(); break;
+      case 'settings': break;
     }
+  }
+
+  async fetchApplications(force = false) {
+    if (!this.applications || force) {
+      this.applications = await this.api.adminGetApplications() || [];
+    }
+    return this.applications;
   }
 
   async loadDashboard() {
     try {
-      const response = await fetch('/api/admin/dashboard', {
-        headers: { 'x-admin-key': this.adminKey }
-      });
-      const data = await response.json();
+      const apps = await this.fetchApplications(true);
+      const active = apps.filter(a => a.status === 'active');
+      const pending = apps.filter(a => a.status === 'nouvelle');
+      const revenue = active.reduce((sum, a) => sum + (Number(a.annual_premium) || 0), 0);
+      const conversion = apps.length ? Math.round((active.length / apps.length) * 100) : 0;
 
-      if (!response.ok) throw new Error(data.error);
+      this.setText('stat-total-apps', apps.length);
+      this.setText('stat-active', active.length);
+      this.setText('stat-pending', pending.length);
+      this.setText('stat-conversion', conversion);
+      this.setText('stat-revenue', `${revenue.toLocaleString('fr-FR')} DH`);
+      this.setText('stat-apps-change', pending.length);
 
-      // Update stats
-      document.getElementById('stat-total-apps').textContent = data.totalApplications;
-      document.getElementById('stat-active').textContent = data.activeApplications;
-      document.getElementById('stat-pending').textContent = data.pendingApplications;
-      document.getElementById('stat-conversion').textContent = data.conversionRate;
-      document.getElementById('stat-revenue').textContent = `${data.totalRevenue.toLocaleString('fr-FR')} DH`;
-      document.getElementById('stat-apps-change').textContent = Math.floor(Math.random() * 20 + 5); // Mock
-
-      // Load recent applications
-      await this.loadRecentApplications();
+      const tbody = document.getElementById('recent-apps-tbody');
+      if (tbody) {
+        const rows = apps.slice(0, 5);
+        tbody.innerHTML = rows.length ? rows.map(a => `
+          <tr>
+            <td>${this.escape(a.customer_email)}</td>
+            <td>${this.escape(a.customer_email)}</td>
+            <td>${this.coverageLabel(a.coverage_type)}</td>
+            <td><span class="status-badge status-${a.status}">${this.formatStatus(a.status)}</span></td>
+            <td>${new Date(a.created_at).toLocaleDateString('fr-FR')}</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="dashboard.viewApplicationDetail('${a.id}')">Voir</button></td>
+          </tr>
+        `).join('') : '<tr><td colspan="6" class="text-center">Aucune demande pour le moment</td></tr>';
+      }
     } catch (error) {
+      if (this.handleAuthError(error)) return;
       console.error('Error loading dashboard:', error);
       this.showError('Erreur lors du chargement du dashboard');
     }
   }
 
-  async loadRecentApplications() {
-    try {
-      const response = await fetch('/api/admin/applications?limit=5', {
-        headers: { 'x-admin-key': this.adminKey }
-      });
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.error);
-
-      const tbody = document.getElementById('recent-apps-tbody');
-      tbody.innerHTML = data.applications.map(app => `
-        <tr>
-          <td>${app.customer_name}</td>
-          <td>${app.customer_email}</td>
-          <td>${app.coverage_type || 'N/A'}</td>
-          <td><span class="status-badge status-${app.status}">${this.formatStatus(app.status)}</span></td>
-          <td>${new Date(app.created_at).toLocaleDateString('fr-FR')}</td>
-          <td><button class="btn btn-ghost btn-sm" onclick="dashboard.viewApplicationDetail('${app.id}')">Voir</button></td>
-        </tr>
-      `).join('');
-    } catch (error) {
-      console.error('Error loading recent applications:', error);
-    }
-  }
-
   async loadApplications() {
     try {
-      const response = await fetch('/api/admin/applications?limit=20', {
-        headers: { 'x-admin-key': this.adminKey }
-      });
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.error);
-
+      const apps = await this.fetchApplications(true);
       const tbody = document.getElementById('applications-tbody');
-      tbody.innerHTML = data.applications.map(app => `
+      tbody.innerHTML = apps.length ? apps.map(a => `
         <tr>
-          <td>${app.id.slice(0, 8)}...</td>
-          <td>${app.customer_name}</td>
-          <td>${app.customer_email}</td>
-          <td>${app.customer_phone}</td>
-          <td>${app.coverage_type || 'N/A'}</td>
-          <td><span class="status-badge status-${app.status}">${this.formatStatus(app.status)}</span></td>
-          <td>${new Date(app.created_at).toLocaleDateString('fr-FR')}</td>
-          <td>
-            <button class="btn btn-ghost btn-sm" onclick="dashboard.viewApplicationDetail('${app.id}')">Détails</button>
-          </td>
+          <td>${a.id.slice(0, 8)}…</td>
+          <td>${this.vehicleLabel(a)}</td>
+          <td>${this.escape(a.customer_email)}</td>
+          <td>${this.escape(a.customer_phone || '—')}</td>
+          <td>${this.coverageLabel(a.coverage_type)}</td>
+          <td><span class="status-badge status-${a.status}">${this.formatStatus(a.status)}</span></td>
+          <td>${new Date(a.created_at).toLocaleDateString('fr-FR')}</td>
+          <td><button class="btn btn-ghost btn-sm" onclick="dashboard.viewApplicationDetail('${a.id}')">Détails</button></td>
         </tr>
-      `).join('');
+      `).join('') : '<tr><td colspan="8" class="text-center">Aucune demande</td></tr>';
 
-      document.getElementById('pagination-info').textContent = `Page ${data.page}/${data.pages}`;
+      const info = document.getElementById('pagination-info');
+      if (info) info.textContent = `${apps.length} demande(s)`;
     } catch (error) {
+      if (this.handleAuthError(error)) return;
       console.error('Error loading applications:', error);
-      this.showError('Erreur lors du chargement des applications');
+      this.showError('Erreur lors du chargement des demandes');
     }
   }
 
   async loadClaims() {
     try {
-      const response = await fetch('/api/admin/claims?limit=20', {
-        headers: { 'x-admin-key': this.adminKey }
-      });
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.error);
-
+      const claims = await this.api.adminGetClaims() || [];
       const tbody = document.getElementById('claims-tbody');
-      tbody.innerHTML = data.claims.map(claim => `
+      tbody.innerHTML = claims.length ? claims.map(c => `
         <tr>
-          <td>${claim.id.slice(0, 8)}...</td>
-          <td>${claim.application_id.slice(0, 8)}...</td>
-          <td>${claim.claim_type || 'N/A'}</td>
-          <td>${claim.description.slice(0, 50)}...</td>
-          <td><span class="status-badge status-${claim.status}">${this.formatStatus(claim.status)}</span></td>
-          <td>${new Date(claim.created_at).toLocaleDateString('fr-FR')}</td>
+          <td>${c.id.slice(0, 8)}…</td>
+          <td>${(c.application_id || '').slice(0, 8)}…</td>
+          <td>${this.escape(c.claim_type || 'N/A')}</td>
+          <td>${this.escape((c.description || '').slice(0, 50))}…</td>
+          <td><span class="status-badge status-${c.status}">${this.formatStatus(c.status)}</span></td>
+          <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
           <td>
-            <button class="btn btn-ghost btn-sm" onclick="dashboard.viewClaimDetail('${claim.id}')">Gérer</button>
+            <select class="filter-select" style="min-width:auto;padding:4px 8px" onchange="dashboard.updateClaimStatus('${c.id}', this.value)">
+              ${['pending','approved','rejected','paid'].map(s => `<option value="${s}" ${s === c.status ? 'selected' : ''}>${this.formatStatus(s)}</option>`).join('')}
+            </select>
           </td>
         </tr>
-      `).join('');
+      `).join('') : '<tr><td colspan="7" class="text-center">Aucun sinistre déclaré</td></tr>';
     } catch (error) {
+      if (this.handleAuthError(error)) return;
       console.error('Error loading claims:', error);
       this.showError('Erreur lors du chargement des sinistres');
     }
   }
 
+  async updateClaimStatus(claimId, status) {
+    try {
+      await this.api.adminUpdateClaimStatus(claimId, status);
+      this.showSuccess('Sinistre mis à jour');
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      this.showError('Erreur lors de la mise à jour du sinistre');
+    }
+  }
+
   async loadPayments() {
     try {
-      const response = await fetch('/api/admin/payments', {
-        headers: { 'x-admin-key': this.adminKey }
-      });
-      const data = await response.json();
+      const apps = await this.fetchApplications();
+      const paid = apps.filter(a => a.paid_at);
+      const revenue = paid.reduce((sum, a) => sum + (Number(a.annual_premium) || 0), 0);
 
-      if (!response.ok) throw new Error(data.error);
-
-      document.getElementById('payments-total').textContent = data.totalPayments;
-      document.getElementById('payments-revenue').textContent = `${data.totalRevenue.toLocaleString('fr-FR')} DH`;
+      this.setText('payments-total', paid.length);
+      this.setText('payments-revenue', `${revenue.toLocaleString('fr-FR')} DH`);
 
       const tbody = document.getElementById('payments-tbody');
-      tbody.innerHTML = data.payments.map(payment => `
+      tbody.innerHTML = paid.length ? paid.map(a => `
         <tr>
-          <td>${payment.customer_name}</td>
-          <td>120 DH</td>
-          <td>Virement bancaire</td>
-          <td>${new Date(payment.paid_at).toLocaleDateString('fr-FR')}</td>
+          <td>${this.escape(a.customer_email)}</td>
+          <td>${a.annual_premium ? Number(a.annual_premium).toLocaleString('fr-FR') + ' DH' : '—'}</td>
+          <td>${this.coverageLabel(a.coverage_type)}</td>
+          <td>${new Date(a.paid_at).toLocaleDateString('fr-FR')}</td>
           <td><span class="status-badge status-active">Payé</span></td>
         </tr>
-      `).join('');
+      `).join('') : '<tr><td colspan="5" class="text-center">Aucun paiement</td></tr>';
     } catch (error) {
+      if (this.handleAuthError(error)) return;
       console.error('Error loading payments:', error);
       this.showError('Erreur lors du chargement des paiements');
     }
@@ -227,131 +207,181 @@ class AdminDashboard {
 
   async loadCustomers() {
     try {
-      const response = await fetch('/api/admin/applications?limit=50', {
-        headers: { 'x-admin-key': this.adminKey }
-      });
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.error);
-
-      // Group by email to get unique customers
-      const customers = [];
+      const apps = await this.fetchApplications();
       const seen = new Set();
-      data.applications.forEach(app => {
-        if (!seen.has(app.customer_email)) {
-          seen.add(app.customer_email);
-          customers.push(app);
+      const customers = [];
+      apps.forEach(a => {
+        if (!seen.has(a.customer_email)) {
+          seen.add(a.customer_email);
+          customers.push(a);
         }
       });
 
       const tbody = document.getElementById('customers-tbody') || this.createCustomersTable();
-      tbody.innerHTML = customers.slice(0, 20).map(customer => `
+      if (!tbody) return;
+      tbody.innerHTML = customers.length ? customers.map(c => `
         <tr>
-          <td>${customer.customer_name}</td>
-          <td>${customer.customer_email}</td>
-          <td>${customer.customer_phone}</td>
-          <td>${new Date(customer.created_at).toLocaleDateString('fr-FR')}</td>
+          <td>${this.escape(c.customer_email)}</td>
+          <td>${this.escape(c.customer_email)}</td>
+          <td>${this.escape(c.customer_phone || '—')}</td>
+          <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
           <td><span class="status-badge status-active">Actif</span></td>
         </tr>
-      `).join('');
+      `).join('') : '<tr><td colspan="5" class="text-center">Aucun client</td></tr>';
     } catch (error) {
+      if (this.handleAuthError(error)) return;
       console.error('Error loading customers:', error);
-    }
-  }
-
-  async loadSettings() {
-    try {
-      const response = await fetch('/api/admin/products', {
-        headers: { 'x-admin-key': this.adminKey }
-      });
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.error);
-
-      console.log('Products loaded:', data.products);
-    } catch (error) {
-      console.error('Error loading settings:', error);
     }
   }
 
   async viewApplicationDetail(applicationId) {
     try {
-      const response = await fetch(`/api/admin/applications/${applicationId}`, {
-        headers: { 'x-admin-key': this.adminKey }
-      });
-      const app = await response.json();
+      const apps = await this.fetchApplications();
+      const app = apps.find(a => a.id === applicationId);
+      if (!app) return;
 
-      if (!response.ok) throw new Error(app.error);
+      const [answers, documents] = await Promise.all([
+        this.api.adminGetApplicationAnswers(applicationId).catch(() => []),
+        this.api.adminGetDocuments(applicationId).catch(() => []),
+      ]);
 
       const modal = document.getElementById('detail-modal');
       const body = document.getElementById('modal-body');
 
+      const answersHtml = (answers || []).length
+        ? (answers || []).map(a => `<p><strong>${this.escape(a.field_key)}:</strong> ${this.escape(a.field_value)}</p>`).join('')
+        : '';
+
+      const docsHtml = (documents || []).length
+        ? (documents || []).map(d => `
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #F3F4F6;">
+              <span>📄 ${this.escape(d.name)}</span>
+              <button class="btn btn-ghost btn-sm" onclick="dashboard.deleteDocument('${d.id}', '${encodeURIComponent(d.storage_path)}', '${applicationId}')" style="color:#EF4444">Supprimer</button>
+            </div>`).join('')
+        : '<p style="color:#9CA3AF;font-size:13px;">Aucun document déposé pour ce client.</p>';
+
       body.innerHTML = `
-        <h2>${app.customer_name}</h2>
-        <div style="margin-top: 20px;">
-          <p><strong>Email:</strong> ${app.customer_email}</p>
-          <p><strong>Téléphone:</strong> ${app.customer_phone}</p>
-          <p><strong>Couverture:</strong> ${app.coverage_type}</p>
+        <h2>${this.vehicleLabel(app)}</h2>
+        <div style="margin-top: 16px;">
+          <p><strong>Email:</strong> ${this.escape(app.customer_email)}</p>
+          <p><strong>Téléphone:</strong> ${this.escape(app.customer_phone || '—')}</p>
+          <p><strong>Immatriculation:</strong> ${this.escape(app.immatriculation || '—')}</p>
+          <p><strong>Couverture:</strong> ${this.coverageLabel(app.coverage_type)}</p>
+          <p><strong>Prime annuelle:</strong> ${app.annual_premium ? Number(app.annual_premium).toLocaleString('fr-FR') + ' DH/an' : '—'}</p>
+          <p><strong>Adresse de livraison:</strong> ${this.escape(app.address || '—')}</p>
           <p><strong>Statut:</strong> <span class="status-badge status-${app.status}">${this.formatStatus(app.status)}</span></p>
           <p><strong>Créée le:</strong> ${new Date(app.created_at).toLocaleDateString('fr-FR')}</p>
+          ${answersHtml ? `<h3 style="margin-top:16px;font-size:15px;">Infos véhicule</h3>${answersHtml}` : ''}
         </div>
-        <div style="margin-top: 20px; display: flex; gap: 12px;">
+
+        <div style="margin-top: 20px; display: flex; gap: 12px; align-items:center;">
           <select id="status-select" class="filter-select">
-            <option value="nouvelle">Nouvelle</option>
-            <option value="active" selected>Active</option>
-            <option value="cancelled">Annulée</option>
+            ${['nouvelle','active','cancelled'].map(s => `<option value="${s}" ${s === app.status ? 'selected' : ''}>${this.formatStatus(s)}</option>`).join('')}
           </select>
-          <button class="btn btn-primary" onclick="dashboard.updateApplicationStatus('${app.id}')">Mettre à jour</button>
+          <button class="btn btn-primary" onclick="dashboard.updateApplicationStatus('${app.id}')">Mettre à jour le statut</button>
+        </div>
+
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #E5E7EB;">
+          <h3 style="font-size:15px;margin-bottom:12px;">📄 Documents du client</h3>
+          <div id="doc-list">${docsHtml}</div>
+          <div style="margin-top: 16px;">
+            <input type="file" id="doc-file" style="margin-bottom:8px;display:block;font-size:14px;">
+            <button class="btn btn-primary" id="doc-upload-btn" onclick="dashboard.uploadDocument('${applicationId}')">
+              Déposer un document
+            </button>
+            <p style="font-size:12px;color:#9CA3AF;margin-top:8px;">Le client verra ce document dans son espace, onglet « Mes Documents ».</p>
+          </div>
         </div>
       `;
 
       modal.classList.add('open');
     } catch (error) {
-      console.error('Error loading application details:', error);
+      if (this.handleAuthError(error)) return;
+      console.error('Error loading application detail:', error);
       this.showError('Erreur lors du chargement des détails');
+    }
+  }
+
+  async uploadDocument(applicationId) {
+    const fileInput = document.getElementById('doc-file');
+    const btn = document.getElementById('doc-upload-btn');
+    if (!fileInput || !fileInput.files.length) {
+      this.showError('Choisis un fichier à déposer');
+      return;
+    }
+
+    const apps = await this.fetchApplications();
+    const app = apps.find(a => a.id === applicationId);
+    if (!app) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Envoi en cours…';
+
+    try {
+      await this.api.adminUploadDocument(app, fileInput.files[0]);
+      this.showSuccess('Document déposé ✓');
+      // Rafraîchit la liste dans le modal
+      this.viewApplicationDetail(applicationId);
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      console.error('Upload error:', error);
+      this.showError('Erreur lors du dépôt : ' + error.message);
+      btn.disabled = false;
+      btn.textContent = 'Déposer un document';
+    }
+  }
+
+  async deleteDocument(docId, encodedPath, applicationId) {
+    if (!confirm('Supprimer ce document ? Le client n\'y aura plus accès.')) return;
+    try {
+      await this.api.adminDeleteDocument({ id: docId, storage_path: decodeURIComponent(encodedPath) });
+      this.showSuccess('Document supprimé');
+      this.viewApplicationDetail(applicationId);
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      this.showError('Erreur lors de la suppression');
     }
   }
 
   async updateApplicationStatus(applicationId) {
     const status = document.getElementById('status-select').value;
-
     try {
-      const response = await fetch(`/api/admin/applications/${applicationId}/status`, {
-        method: 'PUT',
-        headers: {
-          'x-admin-key': this.adminKey,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.error);
-
-      this.showSuccess('Application mise à jour');
-      this.closeModal();
+      await this.api.adminUpdateApplicationStatus(applicationId, status);
+      this.showSuccess('Statut mis à jour');
+      closeModal();
       this.loadApplications();
+      this.fetchApplications(true);
     } catch (error) {
-      console.error('Error updating application:', error);
+      if (this.handleAuthError(error)) return;
       this.showError('Erreur lors de la mise à jour');
     }
   }
 
-  async viewClaimDetail(claimId) {
-    // Similar to viewApplicationDetail but for claims
-    console.log('Viewing claim:', claimId);
+  // --- Helpers ---
+  setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+
+  escape(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  vehicleLabel(a) {
+    const parts = [a.marque, a.modele].filter(Boolean).join(' ');
+    return parts ? this.escape(`${parts}${a.annee ? ` (${a.annee})` : ''}`) : this.escape(a.customer_email || 'Demande');
+  }
+
+  coverageLabel(type) {
+    return type === 'complete' ? 'Complète' : type === 'minimal' ? 'Minimale' : (type ? this.escape(type) : 'N/A');
   }
 
   formatStatus(status) {
     const labels = {
-      'nouvelle': 'Nouvelle',
-      'active': 'Active',
-      'cancelled': 'Annulée',
-      'pending': 'En attente',
-      'approved': 'Approuvé',
-      'rejected': 'Rejeté',
-      'paid': 'Payé'
+      'nouvelle': 'En attente', 'active': 'Active', 'cancelled': 'Annulée',
+      'pending': 'En attente', 'approved': 'Approuvé', 'rejected': 'Rejeté', 'paid': 'Payé',
     };
     return labels[status] || status;
   }
@@ -359,55 +389,25 @@ class AdminDashboard {
   createCustomersTable() {
     const page = document.getElementById('customers-page');
     if (!page) return null;
-
     const card = document.createElement('div');
     card.className = 'section-card';
     card.innerHTML = `
-      <div class="section-header">
-        <h3>Tous les clients</h3>
-      </div>
+      <div class="section-header"><h3>Tous les clients</h3></div>
       <div class="table-responsive">
         <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Nom</th>
-              <th>Email</th>
-              <th>Téléphone</th>
-              <th>Inscrit le</th>
-              <th>Statut</th>
-            </tr>
-          </thead>
-          <tbody id="customers-tbody">
-            <tr><td colspan="5" class="text-center">Chargement...</td></tr>
-          </tbody>
+          <thead><tr><th>Client</th><th>Email</th><th>Téléphone</th><th>Depuis</th><th>Statut</th></tr></thead>
+          <tbody id="customers-tbody"><tr><td colspan="5" class="text-center">Chargement…</td></tr></tbody>
         </table>
-      </div>
-    `;
+      </div>`;
     page.appendChild(card);
     return document.getElementById('customers-tbody');
   }
 
-  showError(message) {
-    console.error(message);
-    alert(message);
-  }
-
-  showSuccess(message) {
-    console.log(message);
-    // Could show a toast notification here
-  }
-
-  startAutoRefresh() {
-    // Refresh dashboard every 5 minutes
-    setInterval(() => {
-      if (this.currentPage === 'dashboard') {
-        this.loadDashboard();
-      }
-    }, 5 * 60 * 1000);
-  }
+  showError(message) { alert(message); }
+  showSuccess(message) { console.log(message); }
 }
 
-// Initialize dashboard
+// Initialize
 let dashboard;
 document.addEventListener('DOMContentLoaded', () => {
   dashboard = new AdminDashboard();
@@ -430,15 +430,15 @@ function closeSidebar() {
 
 function logout() {
   if (confirm('Êtes-vous sûr de vouloir vous déconnecter?')) {
-    localStorage.removeItem('adminKey');
-    window.location.href = '/';
+    window.SURO_API.logout();
+    window.location.href = ADMIN_LOGIN_PAGE;
   }
 }
 
 function closeModal() {
-  document.getElementById('detail-modal').classList.remove('open');
+  document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
 }
 
 function manageProducts() {
-  alert('Fonctionnalité de gestion des produits (à développer)');
+  alert('Gestion des produits et tarifs : à venir. Pour l\'instant, ajuste les prix dans la table insurance_pricing de Supabase.');
 }

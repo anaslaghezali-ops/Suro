@@ -4,9 +4,39 @@ class OnboardingForm {
   constructor() {
     this.store = window.SURO_STORE;
     this.api = window.SURO_API;
+
+    // Client déjà connecté ? (souscription/renouvellement depuis l'espace client)
+    const session = this.api.getSession ? this.api.getSession() : null;
+    this.loggedIn = !!(session && session.access_token);
+    this.session = session;
+
+    // Pré-remplissage (renouvellement : on récupère les infos du contrat existant)
+    this.applyPrefill();
+
     this.fields = this.getFields();
     this.currentStep = 0;
     this.init();
+  }
+
+  applyPrefill() {
+    let prefill = null;
+    try {
+      const raw = localStorage.getItem('suroTunnelPrefill');
+      if (raw) prefill = JSON.parse(raw);
+    } catch (e) {
+      prefill = null;
+    }
+    localStorage.removeItem('suroTunnelPrefill');
+
+    if (prefill && typeof prefill === 'object') {
+      this.isRenewal = !!prefill.__renewal;
+      delete prefill.__renewal;
+      Object.entries(prefill).forEach(([k, v]) => {
+        if (v !== null && v !== undefined && v !== '') {
+          this.store.setState(`onboarding.data.${k}`, v);
+        }
+      });
+    }
   }
 
   init() {
@@ -15,7 +45,7 @@ class OnboardingForm {
   }
 
   getFields() {
-    return [
+    const fields = [
       {
         id: 'vehicle',
         label: 'Parle-nous de ton véhicule',
@@ -177,6 +207,12 @@ class OnboardingForm {
         },
       },
     ];
+
+    // Client déjà connecté : pas besoin de recréer un compte
+    if (this.loggedIn) {
+      return fields.filter((f) => f.id !== 'account');
+    }
+    return fields;
   }
 
   render() {
@@ -705,31 +741,38 @@ class OnboardingForm {
       this.addLoadingStyles();
 
       const data = this.store.getState('onboarding.data');
-      const password = (this.secrets && this.secrets.password) || '';
 
-      // 1. Créer le compte client AVANT le paiement
+      // Email : soit celui de la session (client connecté), soit celui saisi
+      const email = this.loggedIn && this.session ? this.session.email : data.email;
+
+      // 1. Créer le compte client AVANT le paiement (sauf si déjà connecté)
       // (si le client quitte après avoir payé, son contrat est déjà rattaché à son compte)
-      try {
-        const result = await this.api.signup(data.email, password, {
-          phone: data.phone || null,
-        });
-        this.accountStatus = result.session ? 'logged_in' : 'confirmation_required';
-      } catch (accountError) {
-        if (/already registered|already been registered/i.test(accountError.message || '')) {
-          // Un compte existe déjà : on tente la connexion avec le mot de passe fourni
-          try {
-            await this.api.login(data.email, password);
-            this.accountStatus = 'logged_in';
-          } catch (loginError) {
-            // Mauvais mot de passe pour un compte existant → retour à l'étape compte
-            this.goToStepWithError(
-              'account', 'password',
-              'Un compte existe déjà avec cet email — entre ton mot de passe habituel'
-            );
-            return;
+      if (this.loggedIn) {
+        this.accountStatus = 'logged_in';
+      } else {
+        const password = (this.secrets && this.secrets.password) || '';
+        try {
+          const result = await this.api.signup(email, password, {
+            phone: data.phone || null,
+          });
+          this.accountStatus = result.session ? 'logged_in' : 'confirmation_required';
+        } catch (accountError) {
+          if (/already registered|already been registered/i.test(accountError.message || '')) {
+            // Un compte existe déjà : on tente la connexion avec le mot de passe fourni
+            try {
+              await this.api.login(email, password);
+              this.accountStatus = 'logged_in';
+            } catch (loginError) {
+              // Mauvais mot de passe pour un compte existant → retour à l'étape compte
+              this.goToStepWithError(
+                'account', 'password',
+                'Un compte existe déjà avec cet email — entre ton mot de passe habituel'
+              );
+              return;
+            }
+          } else {
+            throw accountError;
           }
-        } else {
-          throw accountError;
         }
       }
 
@@ -742,7 +785,7 @@ class OnboardingForm {
         annee: data.annee,
         puissance: data.puissance,
         coverage: data.coverage,
-        email: data.email,
+        email: email,
         phone: data.phone,
         address: data.address,
       });
@@ -857,7 +900,7 @@ class OnboardingForm {
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     if (!tunnelWrapper) return;
 
-    const email = this.store.getState('onboarding.data.email') || '';
+    const email = (this.loggedIn && this.session ? this.session.email : this.store.getState('onboarding.data.email')) || '';
     const address = this.store.getState('onboarding.data.address') || '';
     const holder = email ? email.split('@')[0].toUpperCase() : 'CLIENT';
     const contractNumber = 'SR-' + String(applicationId).replace(/-/g, '').slice(0, 8).toUpperCase();

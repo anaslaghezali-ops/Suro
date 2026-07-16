@@ -130,7 +130,10 @@ class CustomerDashboard {
           <td>${this.coverageLabel(p.coverage_type)}</td>
           <td>${this.premiumLabel(p)}</td>
           <td><span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></td>
-          <td><button class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button></td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button>
+            <button class="btn btn-ghost btn-sm" onclick="dashboard.renewPolicy('${p.id}')">Renouveler</button>
+          </td>
         </tr>
       `).join('') : '<tr><td colspan="6" class="text-center">Aucun contrat trouvé</td></tr>';
     } catch (error) {
@@ -288,6 +291,10 @@ class CustomerDashboard {
           <h3 style="font-size:15px;margin-bottom:12px;">📄 Documents de ce contrat</h3>
           ${docsHtml}
         </div>
+
+        <div style="margin-top: 24px;">
+          <button class="btn btn-primary" onclick="dashboard.renewPolicy('${p.id}')">🔄 Renouveler ce contrat</button>
+        </div>
       `;
 
       modal.classList.add('open');
@@ -300,6 +307,40 @@ class CustomerDashboard {
     return String(str == null ? '' : str)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // Souscrire un nouveau contrat : tunnel vierge (client déjà connecté)
+  newSubscription() {
+    localStorage.removeItem('suroTunnelPrefill');
+    localStorage.removeItem('suro-state'); // repart d'un tunnel propre
+    window.location.href = '../../index.html#souscrire';
+  }
+
+  // Renouveler : pré-remplit le tunnel avec les infos du contrat existant
+  async renewPolicy(policyId) {
+    try {
+      const policies = await this.fetchPolicies();
+      const p = policies.find(x => x.id === policyId);
+      if (!p) return;
+
+      const prefill = {
+        __renewal: true,
+        immatriculation: p.immatriculation,
+        marque: p.marque,
+        modele: p.modele,
+        annee: p.annee,
+        puissance: p.puissance,
+        coverage: p.coverage_type,
+        phone: p.customer_phone,
+        address: p.address,
+      };
+      localStorage.removeItem('suro-state'); // repart propre, la prefill fait foi
+      localStorage.setItem('suroTunnelPrefill', JSON.stringify(prefill));
+      window.location.href = '../../index.html#souscrire';
+    } catch (error) {
+      console.error('Error preparing renewal:', error);
+      this.newSubscription();
+    }
   }
 
   vehicleLabel(p) {

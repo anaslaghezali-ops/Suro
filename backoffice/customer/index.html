@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SURO — Mon Espace Client</title>
-  <link rel="stylesheet" href="../css/dashboard.css?v=7">
-  <link rel="stylesheet" href="css/customer.css?v=7">
+  <link rel="stylesheet" href="../css/dashboard.css?v=8">
+  <link rel="stylesheet" href="css/customer.css?v=8">
 </head>
 <body>
   <div class="admin-container">
@@ -99,6 +99,10 @@
             </div>
           </div>
 
+            <div style="margin-bottom: 24px;">
+            <button class="btn btn-primary" onclick="dashboard.newSubscription()">+ Souscrire une nouvelle assurance</button>
+          </div>
+
           <!-- Active Policies -->
           <div class="section-card">
             <div class="section-header">
@@ -139,6 +143,7 @@
               <option value="expired">Expirée</option>
               <option value="cancelled">Annulée</option>
             </select>
+            <button class="btn btn-primary" onclick="dashboard.newSubscription()">+ Nouvelle assurance</button>
           </div>
 
           <div class="section-card">
@@ -362,7 +367,7 @@
     </div>
   </div>
 
-  <script src="../../js/services/api.js?v=7"></script>
-  <script src="js/customer.js?v=7"></script>
+  <script src="../../js/services/api.js?v=8"></script>
+  <script src="js/customer.js?v=8"></script>
 </body>
 </html>

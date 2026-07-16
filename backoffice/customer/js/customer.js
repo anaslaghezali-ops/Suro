@@ -63,7 +63,6 @@ class CustomerDashboard {
       case 'dashboard': this.loadDashboard(); break;
       case 'policies': this.loadPolicies(); break;
       case 'claims': this.loadClaims(); break;
-      case 'documents': this.loadDocuments(); break;
       case 'payments': this.loadPayments(); break;
       case 'profile': this.loadProfilePage(); break;
     }
@@ -179,27 +178,6 @@ class CustomerDashboard {
     }
   }
 
-  async loadDocuments() {
-    try {
-      const docs = await this.api.getMyDocuments() || [];
-      const tbody = document.getElementById('documents-tbody');
-
-      tbody.innerHTML = docs.length ? docs.map(d => `
-        <tr>
-          <td>📄 ${d.name}</td>
-          <td>${new Date(d.created_at).toLocaleDateString('fr-FR')}</td>
-          <td><button class="btn btn-primary btn-sm" onclick="dashboard.downloadDoc('${d.storage_path}', '${d.name.replace(/'/g, "\\'")}')">Télécharger</button></td>
-        </tr>
-      `).join('') : `<tr><td colspan="3" class="text-center">
-        Aucun document pour le moment.<br>
-        <small>Nos équipes préparent tes documents après la souscription — tu recevras aussi un exemplaire à ton adresse.</small>
-      </td></tr>`;
-    } catch (error) {
-      if (this.handleAuthError(error)) return;
-      console.error('Error loading documents:', error);
-    }
-  }
-
   async downloadDoc(path, name) {
     try {
       await this.api.downloadDocument(path, name);
@@ -274,27 +252,54 @@ class CustomerDashboard {
       const modal = document.getElementById('detail-modal');
       const body = document.getElementById('modal-body');
 
+      // Documents rattachés à cette police (RLS = seulement les siens)
+      let docs = [];
+      try {
+        docs = await this.api.getDocumentsForPolicy(policyId) || [];
+      } catch (e) {
+        docs = [];
+      }
+
+      const docsHtml = docs.length
+        ? docs.map(d => `
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid #F3F4F6;">
+              <span>📄 ${this.escape(d.name)}</span>
+              <button class="btn btn-primary btn-sm" onclick="dashboard.downloadDoc('${this.escape(d.storage_path)}', '${this.escape(d.name).replace(/'/g, "\\'")}')">Télécharger</button>
+            </div>`).join('')
+        : `<p style="font-size:13px;color:#9CA3AF;margin:0;">
+             Tes documents officiels (carte verte, attestation) apparaîtront ici dès que nos équipes les auront préparés.
+             Un exemplaire te sera aussi envoyé à ton adresse.
+           </p>`;
+
       body.innerHTML = `
         <h2>${this.vehicleLabel(p)}</h2>
         <div style="margin-top: 20px;">
           <p><strong>N° de contrat:</strong> SR-${String(p.id).replace(/-/g, '').slice(0, 8).toUpperCase()}</p>
-          <p><strong>Immatriculation:</strong> ${p.immatriculation || '—'}</p>
+          <p><strong>Immatriculation:</strong> ${this.escape(p.immatriculation || '—')}</p>
           <p><strong>Année:</strong> ${p.annee || '—'} — <strong>Puissance:</strong> ${p.puissance || '—'} CV</p>
           <p><strong>Couverture:</strong> ${this.coverageLabel(p.coverage_type)}</p>
           <p><strong>Prime annuelle:</strong> ${this.premiumLabel(p)}</p>
-          <p><strong>Adresse de livraison:</strong> ${p.address || '—'}</p>
+          <p><strong>Adresse de livraison:</strong> ${this.escape(p.address || '—')}</p>
           <p><strong>Statut:</strong> <span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></p>
           <p><strong>Souscrit le:</strong> ${new Date(p.created_at).toLocaleDateString('fr-FR')}</p>
         </div>
-        <p style="margin-top: 16px; font-size: 13px; color: #4B5563;">
-          📄 Tes documents officiels sont disponibles dans l'onglet <strong>Mes Documents</strong> dès que nos équipes les ont préparés.
-        </p>
+
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #E5E7EB;">
+          <h3 style="font-size:15px;margin-bottom:12px;">📄 Documents de ce contrat</h3>
+          ${docsHtml}
+        </div>
       `;
 
       modal.classList.add('open');
     } catch (error) {
       console.error('Error loading policy detail:', error);
     }
+  }
+
+  escape(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
   vehicleLabel(p) {

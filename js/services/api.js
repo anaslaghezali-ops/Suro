@@ -197,6 +197,13 @@ class API {
     });
   }
 
+  static getDocumentsForPolicy(policyId) {
+    return this.sb(
+      `/rest/v1/insurance_documents?application_id=eq.${policyId}&select=*&order=created_at.desc`,
+      { asUser: true }
+    );
+  }
+
   static async downloadDocument(storagePath, fileName) {
     const session = this.getSession();
     const response = await fetch(

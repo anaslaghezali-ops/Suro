@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SURO — Mon Espace Client</title>
-  <link rel="stylesheet" href="../css/dashboard.css?v=6">
-  <link rel="stylesheet" href="css/customer.css?v=6">
+  <link rel="stylesheet" href="../css/dashboard.css?v=7">
+  <link rel="stylesheet" href="css/customer.css?v=7">
 </head>
 <body>
   <div class="admin-container">
@@ -28,10 +28,6 @@
         <a href="#claims" class="nav-item" data-page="claims">
           <span class="nav-icon">⚠️</span>
           <span>Mes Sinistres</span>
-        </a>
-        <a href="#documents" class="nav-item" data-page="documents">
-          <span class="nav-icon">📄</span>
-          <span>Mes Documents</span>
         </a>
         <a href="#payments" class="nav-item" data-page="payments">
           <span class="nav-icon">💳</span>
@@ -208,33 +204,6 @@
           </div>
         </div>
 
-        <!-- Documents Page -->
-        <div class="page" id="documents-page" style="display: none;">
-          <div class="page-header">
-            <h1>Mes Documents</h1>
-            <p>Carte verte, attestations et documents officiels préparés par nos équipes</p>
-          </div>
-
-          <div class="section-card">
-            <div class="table-responsive">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Document</th>
-                    <th>Ajouté le</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="documents-tbody">
-                  <tr>
-                    <td colspan="3" class="text-center">Chargement...</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
         <!-- Payments Page -->
         <div class="page" id="payments-page" style="display: none;">
           <div class="page-header">
@@ -393,7 +362,7 @@
     </div>
   </div>
 
-  <script src="../../js/services/api.js?v=6"></script>
-  <script src="js/customer.js?v=6"></script>
+  <script src="../../js/services/api.js?v=7"></script>
+  <script src="js/customer.js?v=7"></script>
 </body>
 </html>

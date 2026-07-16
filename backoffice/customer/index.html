@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SURO — Mon Espace Client</title>
-  <link rel="stylesheet" href="../css/dashboard.css">
-  <link rel="stylesheet" href="css/customer.css">
+  <link rel="stylesheet" href="../css/dashboard.css?v=6">
+  <link rel="stylesheet" href="css/customer.css?v=6">
 </head>
 <body>
   <div class="admin-container">
@@ -55,6 +55,7 @@
     <main class="main-content">
       <!-- HEADER -->
       <header class="admin-header">
+        <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Menu">☰</button>
         <div class="header-info">
           <h2 class="welcome-text">Mon Espace Client</h2>
         </div>
@@ -63,6 +64,9 @@
           <img src="https://ui-avatars.com/api/?name=Client&background=0F766E&color=fff" alt="Client" class="user-avatar">
         </div>
       </header>
+
+      <!-- Overlay mobile (ferme le menu au clic) -->
+      <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
       <!-- DASHBOARD CONTENT -->
       <div class="page-content">
@@ -389,7 +393,7 @@
     </div>
   </div>
 
-  <script src="../../js/services/api.js?v=5"></script>
-  <script src="js/customer.js?v=5"></script>
+  <script src="../../js/services/api.js?v=6"></script>
+  <script src="js/customer.js?v=6"></script>
 </body>
 </html>

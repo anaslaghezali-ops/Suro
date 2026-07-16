@@ -54,6 +54,9 @@ class CustomerDashboard {
     const navEl = document.querySelector(`[data-page="${page}"]`);
     if (navEl) navEl.classList.add('active');
 
+    // Ferme le menu mobile après la navigation
+    closeSidebar();
+
     this.currentPage = page;
 
     switch (page) {
@@ -329,6 +332,20 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Global functions
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  if (sidebar) sidebar.classList.toggle('open');
+  if (overlay) overlay.classList.toggle('open');
+}
+
+function closeSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  if (sidebar) sidebar.classList.remove('open');
+  if (overlay) overlay.classList.remove('open');
+}
+
 function logout() {
   if (confirm('Êtes-vous sûr de vouloir vous déconnecter?')) {
     window.SURO_API.logout();

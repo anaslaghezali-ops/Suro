@@ -571,10 +571,38 @@ body {
   color: var(--color-neutral-900);
 }
 
+/* MOBILE MENU TOGGLE (hamburger) */
+.sidebar-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-primary);
+  padding: 4px 12px 4px 0;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 90;
+}
+
+.sidebar-overlay.open {
+  display: block;
+}
+
 /* RESPONSIVE */
 @media (max-width: 1024px) {
   .admin-container {
     grid-template-columns: 1fr;
+  }
+
+  .sidebar-toggle {
+    display: block;
   }
 
   .sidebar {

@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SURO — Mon Espace Client</title>
-  <link rel="stylesheet" href="../css/dashboard.css?v=10">
-  <link rel="stylesheet" href="css/customer.css?v=10">
+  <link rel="stylesheet" href="../css/dashboard.css?v=11">
+  <link rel="stylesheet" href="css/customer.css?v=11">
 </head>
 <body>
   <div class="admin-container">
@@ -99,7 +99,19 @@
             </div>
           </div>
 
-            <div style="margin-bottom: 24px;">
+          <!-- Urgence sinistre -->
+          <div class="sos-card">
+            <div class="sos-text">
+              <strong>🚨 Urgence sinistre ?</strong>
+              <span>Accident, panne, vol — on est là 24/7</span>
+            </div>
+            <div class="sos-actions">
+              <a id="sos-phone" href="#" class="btn btn-primary btn-sm">📞 Appeler</a>
+              <a id="sos-whatsapp" href="#" class="btn btn-secondary btn-sm" target="_blank" rel="noopener">💬 WhatsApp</a>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 24px;">
             <button class="btn btn-primary" onclick="dashboard.newSubscription()">+ Souscrire une nouvelle assurance</button>
           </div>
 
@@ -196,7 +208,7 @@
                     <th>Description</th>
                     <th>Date du sinistre</th>
                     <th>Statut</th>
-                    <th>Déclaré le</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody id="claims-tbody">
@@ -269,12 +281,12 @@
 
               <div class="form-group">
                 <label for="profile-name">Nom Complet</label>
-                <input type="text" id="profile-name" placeholder="Votre nom complet">
+                <input type="text" id="profile-name" placeholder="Votre nom complet" autocomplete="name">
               </div>
 
               <div class="form-group">
                 <label for="profile-phone">Téléphone</label>
-                <input type="tel" id="profile-phone" placeholder="Votre numéro de téléphone">
+                <input type="tel" id="profile-phone" placeholder="Votre numéro de téléphone" autocomplete="tel">
               </div>
 
               <div class="form-group">
@@ -341,7 +353,13 @@
           <textarea id="claim-description" placeholder="Décrivez le sinistre..." required></textarea>
         </div>
 
-        <button type="submit" class="btn btn-primary">Déclarer le sinistre</button>
+        <div class="form-group">
+          <label for="claim-files">Photos / vidéos <span style="font-weight:400;color:#6B7280;">(recommandé — accélère le traitement)</span></label>
+          <input type="file" id="claim-files" multiple accept="image/*,video/*">
+          <small class="form-hint">Avant / arrière du véhicule, plaque adverse, constat…</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="claim-submit-btn">Déclarer le sinistre</button>
       </form>
     </div>
   </div>
@@ -367,7 +385,7 @@
     </div>
   </div>
 
-  <script src="../../js/services/api.js?v=10"></script>
-  <script src="js/customer.js?v=10"></script>
+  <script src="../../js/services/api.js?v=11"></script>
+  <script src="js/customer.js?v=11"></script>
 </body>
 </html>

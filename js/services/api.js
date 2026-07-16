@@ -45,6 +45,43 @@ class API {
     });
   }
 
+  // --- Analytics (fire-and-forget : ne bloque et ne casse jamais l'UX) ---
+  static getTrackingSessionId() {
+    try {
+      let sid = localStorage.getItem('suroSid');
+      if (!sid) {
+        sid = this.uuid();
+        localStorage.setItem('suroSid', sid);
+      }
+      return sid;
+    } catch (e) {
+      return 'anonymous';
+    }
+  }
+
+  static track(event, step, meta) {
+    try {
+      fetch(`${SUPABASE_URL}/rest/v1/suro_events`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Prefer': 'return=minimal',
+        },
+        keepalive: true,
+        body: JSON.stringify({
+          session_id: this.getTrackingSessionId(),
+          event,
+          step: step || null,
+          meta: meta || null,
+        }),
+      }).catch(() => {});
+    } catch (e) {
+      /* jamais bloquant */
+    }
+  }
+
   // --- Tarification ---
   // Prix calculés côté serveur depuis la table insurance_pricing (modifiable par l'équipe)
   static async getQuote({ annee, puissance, marque, modele }) {
@@ -252,6 +289,101 @@ class API {
     });
   }
 
+  // --- Sinistres v2 : pièces jointes (photos/vidéos) ---
+  static async uploadClaimFile(claimId, customerEmail, file) {
+    const session = this.getSession();
+    if (!session) throw new Error('Session expirée');
+
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storagePath = `${claimId}/${Date.now()}-${safeName}`;
+
+    const uploadRes = await fetch(
+      `${SUPABASE_URL}/storage/v1/object/suro-claims/${storagePath}`,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': file.type || 'application/octet-stream',
+        },
+        body: file,
+      }
+    );
+    if (!uploadRes.ok) {
+      const err = await uploadRes.json().catch(() => ({}));
+      throw new Error(err.message || 'Échec de l\'envoi du fichier');
+    }
+
+    await this.sb('/rest/v1/insurance_claim_files', {
+      method: 'POST',
+      asUser: true,
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        claim_id: claimId,
+        customer_email: customerEmail,
+        name: file.name,
+        storage_path: storagePath,
+        content_type: file.type || null,
+      }),
+    });
+
+    return { storage_path: storagePath };
+  }
+
+  static getClaimFiles(claimId) {
+    return this.sb(
+      `/rest/v1/insurance_claim_files?claim_id=eq.${claimId}&select=*&order=created_at.asc`,
+      { asUser: true }
+    );
+  }
+
+  static async downloadClaimFile(storagePath, fileName) {
+    const session = this.getSession();
+    const response = await fetch(
+      `${SUPABASE_URL}/storage/v1/object/authenticated/suro-claims/${storagePath}`,
+      {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${session ? session.access_token : SUPABASE_KEY}`,
+        },
+      }
+    );
+    if (!response.ok) throw new Error('Fichier inaccessible');
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName || storagePath.split('/').pop();
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    a.remove();
+  }
+
+  // --- Sinistres v2 : messagerie client <-> gestionnaire ---
+  static getClaimMessages(claimId) {
+    return this.sb(
+      `/rest/v1/insurance_claim_messages?claim_id=eq.${claimId}&select=*&order=created_at.asc`,
+      { asUser: true }
+    );
+  }
+
+  static sendClaimMessage(claimId, body, sender) {
+    const session = this.getSession();
+    return this.sb('/rest/v1/insurance_claim_messages', {
+      method: 'POST',
+      asUser: true,
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        claim_id: claimId,
+        sender: sender || 'customer',
+        sender_email: session ? session.email : null,
+        body,
+      }),
+    });
+  }
+
   // --- Admin (compte authentifié + membre de suro_admins ; RLS applique les droits) ---
   static async isAdmin() {
     try {
@@ -291,6 +423,14 @@ class API {
   static adminGetClaims() {
     return this.sb('/rest/v1/insurance_claims?select=*&order=created_at.desc', {
       asUser: true,
+    });
+  }
+
+  static adminGetFunnelStats(days) {
+    return this.sb('/rest/v1/rpc/suro_funnel_stats', {
+      method: 'POST',
+      asUser: true,
+      body: JSON.stringify({ p_days: days || 7 }),
     });
   }
 

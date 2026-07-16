@@ -190,6 +190,7 @@
             id="email"
             name="email"
             placeholder="votre@email.com"
+            autocomplete="email"
             required
           >
           <div class="error-message" id="email-error"></div>
@@ -202,6 +203,7 @@
             id="password"
             name="password"
             placeholder="Votre mot de passe"
+            autocomplete="current-password"
             required
           >
           <div class="error-message" id="password-error"></div>
@@ -229,7 +231,7 @@
     </div>
   </div>
 
-  <script src="js/services/api.js?v=10"></script>
+  <script src="js/services/api.js?v=11"></script>
   <script>
     const form = document.getElementById('login-form');
     const spinner = document.getElementById('spinner');

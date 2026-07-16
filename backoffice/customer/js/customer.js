@@ -5,6 +5,10 @@
 
 const LOGIN_PAGE = '../../customer-login.html';
 
+// ⚠️ À personnaliser par l'équipe SURO : numéros officiels du support
+const SUPPORT_PHONE = '+212600000000';
+const SUPPORT_WHATSAPP = '212600000000'; // format international sans +
+
 class CustomerDashboard {
   constructor() {
     this.api = window.SURO_API;
@@ -21,8 +25,16 @@ class CustomerDashboard {
     }
 
     this.setupNavigation();
+    this.setupSupportLinks();
     this.loadProfileHeader();
     this.loadDashboard();
+  }
+
+  setupSupportLinks() {
+    const phone = document.getElementById('sos-phone');
+    const wa = document.getElementById('sos-whatsapp');
+    if (phone) phone.href = 'tel:' + SUPPORT_PHONE;
+    if (wa) wa.href = 'https://wa.me/' + SUPPORT_WHATSAPP + '?text=' + encodeURIComponent('Bonjour SURO, j\'ai une urgence sinistre.');
   }
 
   // Redirige vers la connexion si le token a expiré
@@ -108,10 +120,10 @@ class CustomerDashboard {
       const rows = policies.slice(0, 5);
       tbody.innerHTML = rows.length ? rows.map(p => `
         <tr>
-          <td>${this.vehicleLabel(p)}</td>
-          <td>${this.premiumLabel(p)}</td>
-          <td><span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></td>
-          <td><button class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button></td>
+          <td data-label="Véhicule">${this.vehicleLabel(p)}</td>
+          <td data-label="Prime">${this.premiumLabel(p)}</td>
+          <td data-label="Statut"><span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></td>
+          <td data-label=""><button class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button></td>
         </tr>
       `).join('') : '<tr><td colspan="4" class="text-center">Aucun contrat pour le moment</td></tr>';
     } catch (error) {
@@ -127,12 +139,12 @@ class CustomerDashboard {
 
       tbody.innerHTML = policies.length ? policies.map(p => `
         <tr>
-          <td>${p.immatriculation || '—'}</td>
-          <td>${this.vehicleLabel(p)}</td>
-          <td>${this.coverageLabel(p.coverage_type)}</td>
-          <td>${this.premiumLabel(p)}</td>
-          <td><span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></td>
-          <td style="white-space:nowrap;">
+          <td data-label="Immatriculation">${p.immatriculation || '—'}</td>
+          <td data-label="Véhicule">${this.vehicleLabel(p)}</td>
+          <td data-label="Couverture">${this.coverageLabel(p.coverage_type)}</td>
+          <td data-label="Prime">${this.premiumLabel(p)}</td>
+          <td data-label="Statut"><span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></td>
+          <td data-label="" style="white-space:nowrap;">
             <button class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button>
             <button class="btn btn-ghost btn-sm" onclick="dashboard.renewPolicy('${p.id}')">Renouveler</button>
           </td>
@@ -147,15 +159,16 @@ class CustomerDashboard {
   async loadClaims() {
     try {
       const claims = await this.api.getMyClaims() || [];
+      this.claims = claims;
       const tbody = document.getElementById('claims-tbody');
 
       tbody.innerHTML = claims.length ? claims.map(c => `
         <tr>
-          <td>${(c.claim_type || 'N/A')}</td>
-          <td>${(c.description || '').slice(0, 60)}${(c.description || '').length > 60 ? '…' : ''}</td>
-          <td>${c.claim_date ? new Date(c.claim_date).toLocaleDateString('fr-FR') : '—'}</td>
-          <td><span class="status-badge status-${c.status}">${this.formatStatus(c.status)}</span></td>
-          <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
+          <td data-label="Type">${this.escape(c.claim_type || 'N/A')}</td>
+          <td data-label="Description">${this.escape((c.description || '').slice(0, 60))}${(c.description || '').length > 60 ? '…' : ''}</td>
+          <td data-label="Date">${c.claim_date ? new Date(c.claim_date).toLocaleDateString('fr-FR') : '—'}</td>
+          <td data-label="Statut"><span class="status-badge status-${c.status}">${this.formatStatus(c.status)}</span></td>
+          <td data-label=""><button class="btn btn-primary btn-sm" onclick="dashboard.viewClaimDetail('${c.id}')">Suivre</button></td>
         </tr>
       `).join('') : '<tr><td colspan="5" class="text-center">Aucun sinistre déclaré</td></tr>';
 
@@ -203,10 +216,10 @@ class CustomerDashboard {
       const tbody = document.getElementById('payments-tbody');
       tbody.innerHTML = paid.length ? paid.map(p => `
         <tr>
-          <td>${this.premiumLabel(p)}</td>
-          <td>${this.vehicleLabel(p)}</td>
-          <td>${new Date(p.paid_at).toLocaleDateString('fr-FR')}</td>
-          <td><span class="status-badge status-active">Payé</span></td>
+          <td data-label="Montant">${this.premiumLabel(p)}</td>
+          <td data-label="Contrat">${this.vehicleLabel(p)}</td>
+          <td data-label="Date">${new Date(p.paid_at).toLocaleDateString('fr-FR')}</td>
+          <td data-label="Statut"><span class="status-badge status-active">Payé</span></td>
         </tr>
       `).join('') : '<tr><td colspan="4" class="text-center">Aucun paiement effectué</td></tr>';
     } catch (error) {
@@ -369,6 +382,141 @@ class CustomerDashboard {
     return p.expires_at && new Date(p.expires_at) < new Date();
   }
 
+  // ===== SINISTRES V2 : suivi détaillé =====
+
+  claimTimelineHTML(claim) {
+    const s = claim.status;
+    const decisionLabel = s === 'rejected' ? 'Rejeté' : s === 'approved' || s === 'paid' ? 'Approuvé' : 'Décision';
+    const steps = [
+      { label: 'Déclaré', date: claim.created_at, state: 'done' },
+      { label: 'En examen', state: s === 'pending' ? 'current' : 'done' },
+      { label: decisionLabel, state: s === 'pending' ? 'todo' : s === 'rejected' ? 'rejected' : 'done' },
+      { label: s === 'paid' ? 'Indemnisé' : 'Indemnisation', state: s === 'paid' ? 'done' : s === 'approved' ? 'current' : 'todo' },
+    ];
+    // Un sinistre rejeté s'arrête à la décision
+    const visible = s === 'rejected' ? steps.slice(0, 3) : steps;
+
+    return `<div class="claim-timeline">` + visible.map(st => `
+      <div class="tl-step tl-${st.state}">
+        <span class="tl-dot"></span>
+        <span class="tl-label">${st.label}</span>
+        ${st.date ? `<span class="tl-date">${new Date(st.date).toLocaleDateString('fr-FR')}</span>` : ''}
+      </div>`).join('') + `</div>`;
+  }
+
+  renderClaimMessages(messages) {
+    if (!messages || !messages.length) {
+      return '<p style="font-size:13px;color:#9CA3AF;">Pas encore de message. Une question sur ton dossier ? Écris-nous ici.</p>';
+    }
+    return messages.map(m => `
+      <div class="msg msg-${m.sender === 'admin' ? 'admin' : 'customer'}">
+        <div class="msg-meta">${m.sender === 'admin' ? 'SURO' : 'Toi'} — ${new Date(m.created_at).toLocaleDateString('fr-FR')} ${new Date(m.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
+        <div class="msg-body">${this.escape(m.body)}</div>
+      </div>`).join('');
+  }
+
+  async viewClaimDetail(claimId) {
+    try {
+      const claims = this.claims || await this.api.getMyClaims() || [];
+      const c = claims.find(x => x.id === claimId);
+      if (!c) return;
+
+      const [files, messages] = await Promise.all([
+        this.api.getClaimFiles(claimId).catch(() => []),
+        this.api.getClaimMessages(claimId).catch(() => []),
+      ]);
+
+      const filesHtml = (files || []).length
+        ? (files || []).map(f => `
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #F3F4F6;">
+              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${(f.content_type || '').startsWith('video') ? '🎬' : '📷'} ${this.escape(f.name)}</span>
+              <button class="btn btn-ghost btn-sm" onclick="dashboard.downloadClaimMedia('${encodeURIComponent(f.storage_path)}', '${this.escape(f.name).replace(/'/g, "\\'")}')">Voir</button>
+            </div>`).join('')
+        : '<p style="font-size:13px;color:#9CA3AF;margin:0;">Aucune pièce jointe.</p>';
+
+      const modal = document.getElementById('detail-modal');
+      const body = document.getElementById('modal-body');
+
+      body.innerHTML = `
+        <h2>Sinistre — ${this.escape(c.claim_type || '')}</h2>
+        <p style="color:#6B7280;font-size:14px;margin-top:4px;">Survenu le ${c.claim_date ? new Date(c.claim_date).toLocaleDateString('fr-FR') : '—'}</p>
+
+        ${this.claimTimelineHTML(c)}
+
+        <div style="margin-top:16px;padding:12px;background:#F9FAFB;border-radius:8px;font-size:14px;">
+          ${this.escape(c.description || '')}
+        </div>
+
+        <div style="margin-top:20px;">
+          <h3 style="font-size:15px;margin-bottom:8px;">📎 Pièces jointes</h3>
+          ${filesHtml}
+          <div style="margin-top:10px;">
+            <input type="file" id="claim-extra-files" multiple accept="image/*,video/*" style="font-size:13px;">
+            <button class="btn btn-secondary btn-sm" id="claim-extra-upload" onclick="dashboard.addClaimFiles('${claimId}')" style="margin-top:6px;">Ajouter des photos/vidéos</button>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;padding-top:16px;border-top:1px solid #E5E7EB;">
+          <h3 style="font-size:15px;margin-bottom:8px;">💬 Messages avec ton gestionnaire</h3>
+          <div id="claim-messages">${this.renderClaimMessages(messages)}</div>
+          <form id="claim-msg-form" style="display:flex;gap:8px;margin-top:12px;">
+            <input type="text" id="claim-msg-input" placeholder="Écris ton message…" style="flex:1;padding:10px 12px;border:1px solid #E5E7EB;border-radius:8px;font-size:14px;" autocomplete="off">
+            <button type="submit" class="btn btn-primary btn-sm">Envoyer</button>
+          </form>
+        </div>
+      `;
+
+      document.getElementById('claim-msg-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const input = document.getElementById('claim-msg-input');
+        const text = input.value.trim();
+        if (!text) return;
+        try {
+          await this.api.sendClaimMessage(claimId, text, 'customer');
+          input.value = '';
+          const msgs = await this.api.getClaimMessages(claimId).catch(() => []);
+          document.getElementById('claim-messages').innerHTML = this.renderClaimMessages(msgs);
+        } catch (err) {
+          alert('Message non envoyé, réessaie.');
+        }
+      };
+
+      modal.classList.add('open');
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      console.error('Error loading claim detail:', error);
+    }
+  }
+
+  async downloadClaimMedia(encodedPath, name) {
+    try {
+      await this.api.downloadClaimFile(decodeURIComponent(encodedPath), name);
+    } catch (e) {
+      alert('Fichier momentanément inaccessible');
+    }
+  }
+
+  async addClaimFiles(claimId) {
+    const input = document.getElementById('claim-extra-files');
+    const btn = document.getElementById('claim-extra-upload');
+    if (!input || !input.files.length) {
+      alert('Choisis d\'abord un ou plusieurs fichiers');
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Envoi…';
+    try {
+      for (const file of input.files) {
+        await this.api.uploadClaimFile(claimId, this.session.email, file);
+      }
+      this.viewClaimDetail(claimId); // rafraîchit
+    } catch (e) {
+      alert('Erreur lors de l\'envoi : ' + (e.message || ''));
+      btn.disabled = false;
+      btn.textContent = 'Ajouter des photos/vidéos';
+    }
+  }
+
   formatStatus(status) {
     const labels = {
       'nouvelle': 'En attente de paiement',
@@ -433,21 +581,48 @@ function openNewClaimModal() {
       return;
     }
 
+    const submitBtn = document.getElementById('claim-submit-btn');
+    const filesInput = document.getElementById('claim-files');
+
     try {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Envoi en cours…';
+
+      // id généré côté client pour pouvoir rattacher les fichiers juste après
+      const claimId = window.SURO_API.uuid();
       await window.SURO_API.declareClaim({
+        id: claimId,
         application_id: policyId,
         claim_type: claimType,
         claim_date: claimDate || new Date().toISOString(),
         description,
       });
 
-      alert('Sinistre déclaré ✓ Nos équipes te recontactent rapidement.');
+      // Upload des photos/vidéos
+      let uploaded = 0;
+      if (filesInput && filesInput.files.length) {
+        submitBtn.textContent = 'Envoi des fichiers…';
+        for (const file of filesInput.files) {
+          try {
+            await window.SURO_API.uploadClaimFile(claimId, dashboard.session.email, file);
+            uploaded++;
+          } catch (e) {
+            console.error('Upload failed for', file.name, e);
+          }
+        }
+      }
+
+      window.SURO_API.track('claim_declared', null, { type: claimType, files: uploaded });
+      alert('Sinistre déclaré ✓' + (uploaded ? ` ${uploaded} fichier(s) envoyé(s).` : '') + ' Nos équipes te recontactent rapidement.');
       closeModal();
       form.reset();
       dashboard.loadClaims();
     } catch (error) {
       console.error('Error submitting claim:', error);
       alert('Erreur lors de la déclaration du sinistre');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Déclarer le sinistre';
     }
   };
 }

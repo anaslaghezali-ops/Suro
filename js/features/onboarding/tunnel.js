@@ -40,6 +40,7 @@ class OnboardingForm {
   }
 
   init() {
+    this.api.track('tunnel_view', null, { logged_in: this.loggedIn, renewal: !!this.isRenewal });
     this.render();
     this.attachListeners();
   }
@@ -56,6 +57,7 @@ class OnboardingForm {
             id: 'immatriculation',
             label: 'Immatriculation',
             type: 'text',
+            autocomplete: 'off',
             placeholder: 'Ex: 7737-A-76',
             validate: (value) => {
               if (!value) return 'L\'immatriculation est nécessaire';
@@ -152,6 +154,7 @@ class OnboardingForm {
             id: 'email',
             label: 'Ton email',
             type: 'email',
+            autocomplete: 'email',
             placeholder: 'Ex: vous@email.com',
             validate: (value) => {
               if (!value) return 'L\'email est nécessaire pour ton espace client';
@@ -165,6 +168,7 @@ class OnboardingForm {
             id: 'password',
             label: 'Ton mot de passe',
             type: 'password',
+            autocomplete: 'new-password',
             placeholder: 'Minimum 8 caractères',
             secret: true,
             validate: (value) => {
@@ -181,6 +185,7 @@ class OnboardingForm {
         label: 'Et ton numéro? (Pour les urgences)',
         hint: 'On t\'appellera uniquement en cas de sinistre',
         type: 'tel',
+        autocomplete: 'tel',
         placeholder: 'Ex: +212 6 XX XX XX XX',
         required: true,
         validate: (value) => {
@@ -196,6 +201,7 @@ class OnboardingForm {
         label: 'Où veux-tu recevoir tes documents?',
         hint: 'Ta carte verte et tes documents officiels seront envoyés à cette adresse',
         type: 'text',
+        autocomplete: 'street-address',
         placeholder: 'Ex: 12 Rue Atlas, Quartier Maârif, Casablanca',
         required: true,
         validate: (value) => {
@@ -219,6 +225,11 @@ class OnboardingForm {
     const field = this.fields[this.currentStep];
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     if (!tunnelWrapper) return;
+
+    if (this.lastTrackedStep !== field.id) {
+      this.lastTrackedStep = field.id;
+      this.api.track('step_view', field.id, { index: this.currentStep + 1 });
+    }
 
     const progressPercent = ((this.currentStep + 1) / this.fields.length) * 100;
     let formHTML = `
@@ -279,6 +290,7 @@ class OnboardingForm {
               class="form-input"
               placeholder="${sub.placeholder}"
               value="${subValue}"
+              autocomplete="${sub.autocomplete || 'off'}"
               ${sub.type === 'number' ? 'inputmode="numeric"' : ''}
             />
             <span class="form-error" id="error-${sub.id}"></span>
@@ -295,6 +307,7 @@ class OnboardingForm {
           class="form-input"
           placeholder="${field.placeholder}"
           value="${currentValue}"
+          autocomplete="${field.autocomplete || 'on'}"
           required="${field.required}"
         />
         <span class="form-error" id="error-${field.id}"></span>
@@ -623,6 +636,7 @@ class OnboardingForm {
       });
 
       if (!allValid) return;
+      this.api.track('step_complete', field.id);
 
       // Après l'étape véhicule : calcul du devis (prix affichés à l'étape couverture)
       if (field.id === 'vehicle') {
@@ -634,6 +648,7 @@ class OnboardingForm {
             modele: this.store.getState('onboarding.data.modele'),
           });
           this.store.setState('onboarding.quote', quote);
+          this.api.track('quote_shown', 'coverage', quote);
         } catch (e) {
           // Devis indisponible : on continue, le prix sera confirmé plus tard
           this.store.setState('onboarding.quote', {});
@@ -679,6 +694,7 @@ class OnboardingForm {
 
     // Store value
     this.store.setState(`onboarding.data.${field.id}`, value);
+    this.api.track('step_complete', field.id);
 
     // Move to next step
     if (this.currentStep < this.fields.length - 1) {
@@ -719,6 +735,7 @@ class OnboardingForm {
   selectChoice(value) {
     const field = this.fields[this.currentStep];
     this.store.setState(`onboarding.data.${field.id}`, value);
+    this.api.track('choice_selected', field.id, { value });
 
     // Update UI
     document.querySelectorAll('.choice-btn').forEach(btn => {
@@ -756,14 +773,17 @@ class OnboardingForm {
             phone: data.phone || null,
           });
           this.accountStatus = result.session ? 'logged_in' : 'confirmation_required';
+          this.api.track('account_created', null, { status: this.accountStatus });
         } catch (accountError) {
           if (/already registered|already been registered/i.test(accountError.message || '')) {
             // Un compte existe déjà : on tente la connexion avec le mot de passe fourni
             try {
               await this.api.login(email, password);
               this.accountStatus = 'logged_in';
+              this.api.track('account_login');
             } catch (loginError) {
               // Mauvais mot de passe pour un compte existant → retour à l'étape compte
+              this.api.track('account_password_error');
               this.goToStepWithError(
                 'account', 'password',
                 'Un compte existe déjà avec cet email — entre ton mot de passe habituel'
@@ -791,10 +811,12 @@ class OnboardingForm {
       });
 
       this.store.setState('onboarding.applicationId', application.application.id);
+      this.api.track('application_created', null, { coverage: data.coverage });
 
       // 3. Paiement
       this.showPaymentOptions(application.application.id);
     } catch (error) {
+      this.api.track('tunnel_error', 'submit', { message: String(error.message || '').slice(0, 200) });
       tunnelWrapper.innerHTML = `
         <div style="text-align: center; padding: 32px;">
           <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
@@ -810,6 +832,7 @@ class OnboardingForm {
   showPaymentOptions(applicationId) {
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     if (!tunnelWrapper) return;
+    this.api.track('payment_view');
 
     const quote = this.store.getState('onboarding.quote') || {};
     const coverage = this.store.getState('onboarding.data.coverage');
@@ -864,6 +887,7 @@ class OnboardingForm {
   }
 
   async selectPaymentMethod(method, applicationId) {
+    this.api.track('payment_method_selected', null, { method });
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     tunnelWrapper.innerHTML = `
       <div style="text-align: center; padding: 48px 32px;">
@@ -882,8 +906,10 @@ class OnboardingForm {
         currency: 'MAD',
       });
 
+      this.api.track('payment_success', null, { method });
       this.showCompletion(applicationId);
     } catch (error) {
+      this.api.track('payment_error', null, { method });
       tunnelWrapper.innerHTML = `
         <div style="text-align: center; padding: 32px;">
           <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
@@ -899,6 +925,7 @@ class OnboardingForm {
   showCompletion(applicationId) {
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     if (!tunnelWrapper) return;
+    this.api.track('completion_view');
 
     const email = (this.loggedIn && this.session ? this.session.email : this.store.getState('onboarding.data.email')) || '';
     const address = this.store.getState('onboarding.data.address') || '';

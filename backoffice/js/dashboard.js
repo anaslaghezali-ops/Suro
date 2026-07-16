@@ -110,10 +110,54 @@ class AdminDashboard {
           </tr>
         `).join('') : '<tr><td colspan="6" class="text-center">Aucune demande pour le moment</td></tr>';
       }
+
+      this.loadFunnel();
     } catch (error) {
       if (this.handleAuthError(error)) return;
       console.error('Error loading dashboard:', error);
       this.showError('Erreur lors du chargement du dashboard');
+    }
+  }
+
+  async loadFunnel() {
+    const el = document.getElementById('funnel-body');
+    if (!el) return;
+    try {
+      const rows = await this.api.adminGetFunnelStats(7) || [];
+      const by = {};
+      rows.forEach(r => { by[r.event] = Number(r.sessions) || 0; });
+
+      const steps = [
+        ['Visite du tunnel', 'tunnel_view'],
+        ['Véhicule complété', 'quote_shown'],
+        ['Couverture choisie', 'choice_selected'],
+        ['Compte créé / connecté', null, (b) => (b.account_created || 0) + (b.account_login || 0)],
+        ['Demande créée', 'application_created'],
+        ['Écran paiement', 'payment_view'],
+        ['Paiement réussi', 'payment_success'],
+      ];
+
+      const base = by.tunnel_view || 0;
+      if (!base) {
+        el.innerHTML = '<p class="text-center">Aucune visite trackée sur les 7 derniers jours.</p>';
+        return;
+      }
+
+      el.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">` + steps.map(([label, key, fn]) => {
+        const n = fn ? fn(by) : (by[key] || 0);
+        const pct = Math.round((n / base) * 100);
+        return `
+          <div style="display:grid;grid-template-columns:190px 1fr 90px;align-items:center;gap:12px;font-size:14px;">
+            <span>${label}</span>
+            <div style="background:var(--color-neutral-100);border-radius:6px;height:20px;overflow:hidden;">
+              <div style="width:${Math.min(pct,100)}%;height:100%;background:var(--color-primary);border-radius:6px;"></div>
+            </div>
+            <span style="text-align:right;font-weight:600;">${n} <span style="color:var(--color-neutral-400);font-weight:400;">(${pct}%)</span></span>
+          </div>`;
+      }).join('') + `</div>
+      <p style="margin-top:12px;font-size:12px;color:var(--color-neutral-400);">Sessions uniques — abandon principal = plus grande marche entre deux barres.</p>`;
+    } catch (error) {
+      el.innerHTML = '<p class="text-center">Funnel indisponible</p>';
     }
   }
 
@@ -146,6 +190,7 @@ class AdminDashboard {
   async loadClaims() {
     try {
       const claims = await this.api.adminGetClaims() || [];
+      this.claimsCache = claims;
       const tbody = document.getElementById('claims-tbody');
       tbody.innerHTML = claims.length ? claims.map(c => `
         <tr>
@@ -155,7 +200,8 @@ class AdminDashboard {
           <td>${this.escape((c.description || '').slice(0, 50))}…</td>
           <td><span class="status-badge status-${c.status}">${this.formatStatus(c.status)}</span></td>
           <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
-          <td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-ghost btn-sm" onclick="dashboard.viewClaimDetail('${c.id}')">Gérer</button>
             <select class="filter-select" style="min-width:auto;padding:4px 8px" onchange="dashboard.updateClaimStatus('${c.id}', this.value)">
               ${['pending','approved','rejected','paid'].map(s => `<option value="${s}" ${s === c.status ? 'selected' : ''}>${this.formatStatus(s)}</option>`).join('')}
             </select>
@@ -176,6 +222,90 @@ class AdminDashboard {
     } catch (error) {
       if (this.handleAuthError(error)) return;
       this.showError('Erreur lors de la mise à jour du sinistre');
+    }
+  }
+
+  async viewClaimDetail(claimId) {
+    try {
+      const claims = this.claimsCache || await this.api.adminGetClaims() || [];
+      const c = claims.find(x => x.id === claimId);
+      if (!c) return;
+
+      const [files, messages] = await Promise.all([
+        this.api.getClaimFiles(claimId).catch(() => []),
+        this.api.getClaimMessages(claimId).catch(() => []),
+      ]);
+
+      const filesHtml = (files || []).length
+        ? (files || []).map(f => `
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #F3F4F6;">
+              <span>${(f.content_type || '').startsWith('video') ? '🎬' : '📷'} ${this.escape(f.name)}</span>
+              <button class="btn btn-ghost btn-sm" onclick="dashboard.downloadClaimMedia('${encodeURIComponent(f.storage_path)}', '${this.escape(f.name).replace(/'/g, "\\'")}')">Télécharger</button>
+            </div>`).join('')
+        : '<p style="color:#9CA3AF;font-size:13px;">Aucune pièce jointe.</p>';
+
+      const messagesHtml = (messages || []).length
+        ? (messages || []).map(m => `
+            <div style="padding:8px 12px;border-radius:8px;margin-bottom:8px;background:${m.sender === 'admin' ? 'rgba(15,118,110,0.08)' : '#F3F4F6'};">
+              <div style="font-size:11px;color:#6B7280;">${m.sender === 'admin' ? 'SURO (équipe)' : this.escape(m.sender_email || 'Client')} — ${new Date(m.created_at).toLocaleString('fr-FR')}</div>
+              <div style="font-size:14px;">${this.escape(m.body)}</div>
+            </div>`).join('')
+        : '<p style="color:#9CA3AF;font-size:13px;">Aucun message.</p>';
+
+      const modal = document.getElementById('detail-modal');
+      const body = document.getElementById('modal-body');
+
+      body.innerHTML = `
+        <h2>Sinistre — ${this.escape(c.claim_type || 'N/A')}</h2>
+        <div style="margin-top:12px;">
+          <p><strong>Contrat:</strong> ${(c.application_id || '').slice(0, 8)}…</p>
+          <p><strong>Survenu le:</strong> ${c.claim_date ? new Date(c.claim_date).toLocaleDateString('fr-FR') : '—'}</p>
+          <p><strong>Déclaré le:</strong> ${new Date(c.created_at).toLocaleDateString('fr-FR')}</p>
+          <p><strong>Statut:</strong> <span class="status-badge status-${c.status}">${this.formatStatus(c.status)}</span></p>
+        </div>
+        <div style="margin-top:12px;padding:12px;background:#F9FAFB;border-radius:8px;font-size:14px;">${this.escape(c.description || '')}</div>
+
+        <div style="margin-top:20px;">
+          <h3 style="font-size:15px;margin-bottom:8px;">📎 Pièces jointes du client</h3>
+          ${filesHtml}
+        </div>
+
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid #E5E7EB;">
+          <h3 style="font-size:15px;margin-bottom:8px;">💬 Conversation avec le client</h3>
+          <div id="admin-claim-messages" style="max-height:220px;overflow-y:auto;">${messagesHtml}</div>
+          <form id="admin-claim-msg-form" style="display:flex;gap:8px;margin-top:12px;">
+            <input type="text" id="admin-claim-msg-input" placeholder="Répondre au client…" style="flex:1;padding:10px 12px;border:1px solid #E5E7EB;border-radius:8px;font-size:14px;" autocomplete="off">
+            <button type="submit" class="btn btn-primary btn-sm">Envoyer</button>
+          </form>
+        </div>
+      `;
+
+      document.getElementById('admin-claim-msg-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const input = document.getElementById('admin-claim-msg-input');
+        const text = input.value.trim();
+        if (!text) return;
+        try {
+          await this.api.sendClaimMessage(claimId, text, 'admin');
+          this.viewClaimDetail(claimId);
+        } catch (err) {
+          this.showError('Message non envoyé');
+        }
+      };
+
+      modal.classList.add('open');
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      console.error('Error loading claim detail:', error);
+      this.showError('Erreur lors du chargement du sinistre');
+    }
+  }
+
+  async downloadClaimMedia(encodedPath, name) {
+    try {
+      await this.api.downloadClaimFile(decodeURIComponent(encodedPath), name);
+    } catch (e) {
+      this.showError('Fichier inaccessible');
     }
   }
 

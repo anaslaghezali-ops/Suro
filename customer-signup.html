@@ -160,6 +160,7 @@
             id="name"
             name="name"
             placeholder="Votre nom complet"
+            autocomplete="name"
             required
           >
           <div class="error-message" id="name-error"></div>
@@ -172,6 +173,7 @@
             id="email"
             name="email"
             placeholder="votre@email.com"
+            autocomplete="email"
             required
           >
           <div class="error-message" id="email-error"></div>
@@ -184,6 +186,7 @@
             id="phone"
             name="phone"
             placeholder="Votre numéro de téléphone"
+            autocomplete="tel"
             required
           >
           <div class="error-message" id="phone-error"></div>
@@ -196,6 +199,7 @@
             id="password"
             name="password"
             placeholder="Minimum 8 caractères"
+            autocomplete="new-password"
             required
           >
           <div class="error-message" id="password-error"></div>
@@ -208,6 +212,7 @@
             id="confirm-password"
             name="confirm-password"
             placeholder="Confirmez votre mot de passe"
+            autocomplete="new-password"
             required
           >
           <div class="error-message" id="confirm-error"></div>
@@ -227,7 +232,7 @@
     </div>
   </div>
 
-  <script src="js/services/api.js?v=10"></script>
+  <script src="js/services/api.js?v=11"></script>
   <script>
     const form = document.getElementById('signup-form');
     const spinner = document.getElementById('spinner');

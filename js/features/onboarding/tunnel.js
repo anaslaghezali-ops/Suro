@@ -851,6 +851,9 @@ class OnboardingForm {
         <p style="text-align: center; color: var(--color-neutral-600); margin-bottom: 24px;">
           Choisis ta méthode de paiement
         </p>
+        <p style="text-align: center; font-size: 12px; color: var(--color-neutral-600); margin-bottom: 20px;">
+          En payant, tu acceptes les <a href="conditions.html" target="_blank" style="color: var(--color-primary);">Conditions générales</a>.
+        </p>
 
         <div class="payment-methods" style="display: grid; gap: 12px; margin-bottom: 24px;">
           <button class="payment-method-btn" onclick="window.SURO_FORM.selectPaymentMethod('card', '${applicationId}')">

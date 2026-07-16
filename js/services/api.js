@@ -209,6 +209,33 @@ class API {
     return Promise.resolve();
   }
 
+  // Envoie l'email de réinitialisation (le lien redirige vers reset-password.html)
+  static requestPasswordReset(email, redirectTo) {
+    const q = redirectTo ? `?redirect_to=${encodeURIComponent(redirectTo)}` : '';
+    return this.sb(`/auth/v1/recover${q}`, {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  // Définit le nouveau mot de passe avec le token reçu par email
+  static async updatePasswordWithToken(accessToken, newPassword) {
+    const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ password: newPassword }),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.msg || err.error_description || err.message || `Erreur (${response.status})`);
+    }
+    return response.json();
+  }
+
   static getUser() {
     return this.sb('/auth/v1/user', { asUser: true });
   }

@@ -96,11 +96,13 @@ class CustomerDashboard {
       document.getElementById('stat-claims').textContent = claims.length;
       document.getElementById('stat-payments').textContent = paid.length;
 
-      const active = policies.find(p => p.status === 'active');
-      if (active) {
-        const renewal = new Date(new Date(active.created_at).getTime() + 365 * 24 * 60 * 60 * 1000);
-        document.getElementById('stat-next-renewal').textContent = renewal.toLocaleDateString('fr-FR');
-      }
+      // Prochaine échéance = la plus proche parmi les contrats actifs
+      const expiries = policies
+        .filter(p => p.status === 'active' && p.expires_at)
+        .map(p => new Date(p.expires_at))
+        .sort((a, b) => a - b);
+      document.getElementById('stat-next-renewal').textContent =
+        expiries.length ? expiries[0].toLocaleDateString('fr-FR') : '—';
 
       const tbody = document.getElementById('active-policies-tbody');
       const rows = policies.slice(0, 5);
@@ -285,6 +287,7 @@ class CustomerDashboard {
           <p><strong>Adresse de livraison:</strong> ${this.escape(p.address || '—')}</p>
           <p><strong>Statut:</strong> <span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></p>
           <p><strong>Souscrit le:</strong> ${new Date(p.created_at).toLocaleDateString('fr-FR')}</p>
+          ${p.expires_at ? `<p><strong>Échéance:</strong> ${new Date(p.expires_at).toLocaleDateString('fr-FR')}${this.isExpired(p) ? ' <span style="color:#EF4444;font-weight:600;">(expiré)</span>' : ''}</p>` : ''}
         </div>
 
         <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #E5E7EB;">
@@ -316,30 +319,36 @@ class CustomerDashboard {
     window.location.href = '../../index.html#souscrire';
   }
 
-  // Renouveler : pré-remplit le tunnel avec les infos du contrat existant
+  // Renouveler : PROLONGE le contrat existant d'un an (même contrat)
   async renewPolicy(policyId) {
     try {
       const policies = await this.fetchPolicies();
       const p = policies.find(x => x.id === policyId);
       if (!p) return;
 
-      const prefill = {
-        __renewal: true,
-        immatriculation: p.immatriculation,
-        marque: p.marque,
-        modele: p.modele,
-        annee: p.annee,
-        puissance: p.puissance,
-        coverage: p.coverage_type,
-        phone: p.customer_phone,
-        address: p.address,
-      };
-      localStorage.removeItem('suro-state'); // repart propre, la prefill fait foi
-      localStorage.setItem('suroTunnelPrefill', JSON.stringify(prefill));
-      window.location.href = '../../index.html#souscrire';
+      const premium = p.annual_premium
+        ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH`
+        : 'le montant de ta prime';
+      if (!confirm(`Renouveler ce contrat pour un an (${premium}) ?\nTon contrat sera prolongé, tu gardes le même numéro.`)) {
+        return;
+      }
+
+      const result = await this.api.renewPolicy(policyId);
+      const newExpiry = Array.isArray(result) ? result[0] : result;
+      const dateStr = newExpiry ? new Date(newExpiry).toLocaleDateString('fr-FR') : null;
+
+      alert(dateStr
+        ? `Contrat renouvelé ✓ Nouvelle échéance : ${dateStr}`
+        : 'Contrat renouvelé ✓');
+
+      closeModal();
+      await this.fetchPolicies(true); // recharge le cache
+      this.loadDashboard();
+      if (this.currentPage === 'policies') this.loadPolicies();
     } catch (error) {
-      console.error('Error preparing renewal:', error);
-      this.newSubscription();
+      if (this.handleAuthError(error)) return;
+      console.error('Error renewing policy:', error);
+      alert('Erreur lors du renouvellement : ' + (error.message || ''));
     }
   }
 
@@ -354,6 +363,10 @@ class CustomerDashboard {
 
   premiumLabel(p) {
     return p.annual_premium ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH/an` : '—';
+  }
+
+  isExpired(p) {
+    return p.expires_at && new Date(p.expires_at) < new Date();
   }
 
   formatStatus(status) {

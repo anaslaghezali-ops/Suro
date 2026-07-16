@@ -204,6 +204,15 @@ class API {
     );
   }
 
+  // Renouvellement : prolonge le contrat existant d'un an (retourne la nouvelle échéance)
+  static renewPolicy(policyId) {
+    return this.sb('/rest/v1/rpc/suro_renew_application', {
+      method: 'POST',
+      asUser: true,
+      body: JSON.stringify({ app_id: policyId }),
+    });
+  }
+
   static async downloadDocument(storagePath, fileName) {
     const session = this.getSession();
     const response = await fetch(

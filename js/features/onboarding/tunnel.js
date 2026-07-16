@@ -113,19 +113,38 @@ class OnboardingForm {
         required: true,
       },
       {
-        id: 'email',
-        label: 'Ton email? (Pour ta quittance)',
-        hint: 'On t\'enverras ta carte verte et tes documents',
-        type: 'email',
-        placeholder: 'Ex: vous@email.com',
+        id: 'account',
+        label: 'Crée ton espace client',
+        hint: 'Ton compte est créé avant le paiement — tu y retrouveras ton contrat, tes documents et tes sinistres',
+        type: 'group',
+        fields: [
+          {
+            id: 'email',
+            label: 'Ton email',
+            type: 'email',
+            placeholder: 'Ex: vous@email.com',
+            validate: (value) => {
+              if (!value) return 'L\'email est nécessaire pour ton espace client';
+              if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                return 'Adresse email invalide (ex: nom@domaine.com)';
+              }
+              return true;
+            },
+          },
+          {
+            id: 'password',
+            label: 'Ton mot de passe',
+            type: 'password',
+            placeholder: 'Minimum 8 caractères',
+            secret: true,
+            validate: (value) => {
+              if (!value) return 'Un mot de passe est nécessaire pour ton espace client';
+              if (value.length < 8) return 'Minimum 8 caractères';
+              return true;
+            },
+          },
+        ],
         required: true,
-        validate: (value) => {
-          if (!value) return 'L\'email est nécessaire pour recevoir tes documents';
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-            return 'Adresse email invalide (ex: nom@domaine.com)';
-          }
-          return true;
-        },
       },
       {
         id: 'phone',
@@ -211,7 +230,10 @@ class OnboardingForm {
     } else if (field.type === 'group') {
       formHTML += `<div class="form-group-fields">`;
       field.fields.forEach((sub) => {
-        const subValue = this.store.getState(`onboarding.data.${sub.id}`) || '';
+        // Les champs secrets (mot de passe) ne passent jamais par le store persisté
+        const subValue = sub.secret
+          ? (this.secrets && this.secrets[sub.id]) || ''
+          : this.store.getState(`onboarding.data.${sub.id}`) || '';
         formHTML += `
           <div class="form-subfield">
             <label class="form-sublabel" for="field-${sub.id}">${sub.label}</label>
@@ -555,7 +577,13 @@ class OnboardingForm {
           return;
         }
 
-        this.store.setState(`onboarding.data.${sub.id}`, val);
+        if (sub.secret) {
+          // Jamais dans le store (persisté en localStorage)
+          this.secrets = this.secrets || {};
+          this.secrets[sub.id] = val;
+        } else {
+          this.store.setState(`onboarding.data.${sub.id}`, val);
+        }
       });
 
       if (!allValid) return;
@@ -633,6 +661,25 @@ class OnboardingForm {
     }
   }
 
+  // Retourne à une étape précise et affiche une erreur sur un de ses champs
+  goToStepWithError(fieldId, subFieldId, message) {
+    const stepIndex = this.fields.findIndex(f => f.id === fieldId);
+    if (stepIndex === -1) return;
+
+    this.currentStep = stepIndex;
+    this.render();
+
+    setTimeout(() => {
+      const errorEl = document.querySelector(`#error-${subFieldId || fieldId}`);
+      if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.classList.add('show');
+      }
+      const input = document.querySelector(`#field-${subFieldId || fieldId}`);
+      if (input) input.focus();
+    }, 150);
+  }
+
   selectChoice(value) {
     const field = this.fields[this.currentStep];
     this.store.setState(`onboarding.data.${field.id}`, value);
@@ -658,8 +705,35 @@ class OnboardingForm {
       this.addLoadingStyles();
 
       const data = this.store.getState('onboarding.data');
+      const password = (this.secrets && this.secrets.password) || '';
 
-      // Submit application
+      // 1. Créer le compte client AVANT le paiement
+      // (si le client quitte après avoir payé, son contrat est déjà rattaché à son compte)
+      try {
+        const result = await this.api.signup(data.email, password, {
+          phone: data.phone || null,
+        });
+        this.accountStatus = result.session ? 'logged_in' : 'confirmation_required';
+      } catch (accountError) {
+        if (/already registered|already been registered/i.test(accountError.message || '')) {
+          // Un compte existe déjà : on tente la connexion avec le mot de passe fourni
+          try {
+            await this.api.login(data.email, password);
+            this.accountStatus = 'logged_in';
+          } catch (loginError) {
+            // Mauvais mot de passe pour un compte existant → retour à l'étape compte
+            this.goToStepWithError(
+              'account', 'password',
+              'Un compte existe déjà avec cet email — entre ton mot de passe habituel'
+            );
+            return;
+          }
+        } else {
+          throw accountError;
+        }
+      }
+
+      // 2. Créer le contrat (rattaché au compte par l'email)
       const application = await this.api.createApplication({
         product_slug: 'automobile',
         immatriculation: data.immatriculation,
@@ -675,7 +749,7 @@ class OnboardingForm {
 
       this.store.setState('onboarding.applicationId', application.application.id);
 
-      // Show payment options
+      // 3. Paiement
       this.showPaymentOptions(application.application.id);
     } catch (error) {
       tunnelWrapper.innerHTML = `
@@ -811,12 +885,14 @@ class OnboardingForm {
             <div>📮 Ils seront aussi envoyés à : <strong>${address}</strong></div>
           </div>
 
+          ${this.accountStatus === 'confirmation_required' ? `
+          <div style="margin-top: 12px; padding: 16px; background: rgba(249, 115, 22, 0.08); border-radius: 12px; font-size: 14px; color: var(--color-neutral-600); text-align: left;">
+            📬 Ton compte est créé — <strong>confirme ton email</strong> (lien envoyé à ${email}) pour accéder à ton espace client.
+          </div>` : ''}
+
           <div class="success-actions">
-            <button class="btn btn-primary" onclick="window.SURO_FORM.handleCreateAccount()">
-              Créer mon espace client →
-            </button>
-            <button class="btn btn-ghost" onclick="window.SURO_FORM.handleDashboard()">
-              J'ai déjà un compte
+            <button class="btn btn-primary" onclick="window.SURO_FORM.handleGoToSpace()">
+              Accéder à mon espace client →
             </button>
           </div>
 
@@ -830,9 +906,13 @@ class OnboardingForm {
     this.triggerConfetti();
   }
 
-  handleCreateAccount() {
-    const email = this.store.getState('onboarding.data.email') || '';
-    window.location.href = 'customer-signup.html' + (email ? '?email=' + encodeURIComponent(email) : '');
+  handleGoToSpace() {
+    if (this.accountStatus === 'logged_in') {
+      window.location.href = 'backoffice/customer/';
+    } else {
+      // Compte créé mais email non confirmé : passage par la connexion
+      window.location.href = 'customer-login.html';
+    }
   }
 
   handleDashboard() {

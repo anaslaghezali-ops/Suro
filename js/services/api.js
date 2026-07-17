@@ -461,6 +461,86 @@ class API {
     });
   }
 
+  // --- Paramètres applicatifs (contacts support, lisibles par tous) ---
+  static getSettings() {
+    return this.sb('/rest/v1/suro_settings?select=key,value');
+  }
+
+  static adminUpdateSetting(key, value) {
+    return this.sb(`/rest/v1/suro_settings?key=eq.${encodeURIComponent(key)}`, {
+      method: 'PATCH',
+      asUser: true,
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ value, updated_at: new Date().toISOString() }),
+    });
+  }
+
+  // --- Grille tarifaire (édition admin) ---
+  static adminGetPricing() {
+    return this.sb(
+      '/rest/v1/insurance_pricing?select=*&order=coverage_type.desc,cv_min.asc',
+      { asUser: true }
+    );
+  }
+
+  static adminUpdatePricing(id, annualPremium) {
+    return this.sb(`/rest/v1/insurance_pricing?id=eq.${id}`, {
+      method: 'PATCH',
+      asUser: true,
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ annual_premium: annualPremium }),
+    });
+  }
+
+  static adminGetFactors() {
+    return this.sb('/rest/v1/insurance_pricing_factors?select=*&order=key.asc', {
+      asUser: true,
+    });
+  }
+
+  static adminUpdateFactor(key, factor) {
+    return this.sb(`/rest/v1/insurance_pricing_factors?key=eq.${encodeURIComponent(key)}`, {
+      method: 'PATCH',
+      asUser: true,
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ factor }),
+    });
+  }
+
+  // --- Gestion des administrateurs ---
+  static adminListAdmins() {
+    return this.sb('/rest/v1/rpc/suro_list_admins', {
+      method: 'POST',
+      asUser: true,
+      body: JSON.stringify({}),
+    });
+  }
+
+  static adminAddAdmin(email) {
+    return this.sb('/rest/v1/rpc/suro_add_admin', {
+      method: 'POST',
+      asUser: true,
+      body: JSON.stringify({ p_email: email }),
+    });
+  }
+
+  static adminRemoveAdmin(email) {
+    return this.sb('/rest/v1/rpc/suro_remove_admin', {
+      method: 'POST',
+      asUser: true,
+      body: JSON.stringify({ p_email: email }),
+    });
+  }
+
+  // --- Journal d'activité ---
+  static adminRecentEvents(limit) {
+    return this.sb('/rest/v1/rpc/suro_recent_events', {
+      method: 'POST',
+      asUser: true,
+      body: JSON.stringify({ p_limit: limit || 50 }),
+    });
+  }
+
   static adminUpdateClaimStatus(claimId, status) {
     return this.sb(`/rest/v1/insurance_claims?id=eq.${claimId}`, {
       method: 'PATCH',

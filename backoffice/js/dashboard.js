@@ -70,7 +70,7 @@ class AdminDashboard {
       case 'claims': this.loadClaims(); break;
       case 'payments': this.loadPayments(); break;
       case 'customers': this.loadCustomers(); break;
-      case 'settings': break;
+      case 'settings': this.loadSettings(); break;
     }
   }
 
@@ -487,6 +487,220 @@ class AdminDashboard {
     }
   }
 
+  // ===== PARAMÈTRES =====
+
+  async loadSettings() {
+    this.loadPricingSection();
+    this.loadSupportSection();
+    this.loadAdminsSection();
+    this.loadLogsSection();
+  }
+
+  coverageName(t) {
+    return t === 'complete' ? 'Complète' : t === 'minimal' ? 'Minimale (RC)' : this.escape(t);
+  }
+
+  async loadPricingSection() {
+    const el = document.getElementById('pricing-body');
+    if (!el) return;
+    try {
+      const [pricing, factors] = await Promise.all([
+        this.api.adminGetPricing(),
+        this.api.adminGetFactors(),
+      ]);
+
+      const rowsHtml = (pricing || []).map(p => `
+        <tr>
+          <td>${this.coverageName(p.coverage_type)}</td>
+          <td>${p.cv_min}–${p.cv_max === 99 ? '∞' : p.cv_max} CV</td>
+          <td>
+            <input type="number" id="price-${p.id}" value="${Number(p.annual_premium)}" min="0" step="50"
+              style="width:110px;padding:6px 8px;border:1px solid var(--color-neutral-200);border-radius:6px;"> DH/an
+          </td>
+          <td><button class="btn btn-primary btn-sm" onclick="dashboard.savePricing('${p.id}')">Enregistrer</button></td>
+        </tr>`).join('');
+
+      const factorsHtml = (factors || []).map(f => `
+        <tr>
+          <td>${this.escape(f.description || f.key)}</td>
+          <td>
+            <input type="number" id="factor-${this.escape(f.key)}" value="${Number(f.factor)}" min="0" step="0.05"
+              style="width:90px;padding:6px 8px;border:1px solid var(--color-neutral-200);border-radius:6px;"> ×
+          </td>
+          <td><button class="btn btn-primary btn-sm" onclick="dashboard.saveFactor('${this.escape(f.key)}')">Enregistrer</button></td>
+        </tr>`).join('');
+
+      el.innerHTML = `
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead><tr><th>Couverture</th><th>Puissance</th><th>Prime annuelle</th><th></th></tr></thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+        <h4 style="margin:20px 0 8px;font-size:14px;">Facteurs multiplicateurs (couverture complète)</h4>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead><tr><th>Règle</th><th>Facteur</th><th></th></tr></thead>
+            <tbody>${factorsHtml}</tbody>
+          </table>
+        </div>`;
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      el.innerHTML = '<p class="text-center">Grille indisponible</p>';
+    }
+  }
+
+  async savePricing(id) {
+    const input = document.getElementById(`price-${id}`);
+    const value = parseFloat(input && input.value);
+    if (isNaN(value) || value < 0) { this.showError('Montant invalide'); return; }
+    try {
+      await this.api.adminUpdatePricing(id, value);
+      this.showSuccess('Tarif mis à jour');
+      alert('Tarif mis à jour ✓ Il s\'applique immédiatement aux nouveaux devis.');
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      this.showError('Erreur lors de la mise à jour du tarif');
+    }
+  }
+
+  async saveFactor(key) {
+    const input = document.getElementById(`factor-${key}`);
+    const value = parseFloat(input && input.value);
+    if (isNaN(value) || value < 0) { this.showError('Facteur invalide'); return; }
+    try {
+      await this.api.adminUpdateFactor(key, value);
+      alert('Facteur mis à jour ✓');
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      this.showError('Erreur lors de la mise à jour du facteur');
+    }
+  }
+
+  async loadSupportSection() {
+    const el = document.getElementById('support-body');
+    if (!el) return;
+    try {
+      const settings = await this.api.getSettings() || [];
+      const by = {};
+      settings.forEach(s => { by[s.key] = s.value; });
+
+      el.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:14px;max-width:420px;">
+          <label style="font-size:14px;font-weight:600;">Téléphone (format +2126XXXXXXXX)
+            <input type="tel" id="setting-support_phone" value="${this.escape(by.support_phone || '')}"
+              style="display:block;width:100%;margin-top:6px;padding:10px 12px;border:1px solid var(--color-neutral-200);border-radius:8px;">
+          </label>
+          <label style="font-size:14px;font-weight:600;">WhatsApp (format international sans +, ex: 2126XXXXXXXX)
+            <input type="text" id="setting-support_whatsapp" value="${this.escape(by.support_whatsapp || '')}"
+              style="display:block;width:100%;margin-top:6px;padding:10px 12px;border:1px solid var(--color-neutral-200);border-radius:8px;">
+          </label>
+          <button class="btn btn-primary" style="align-self:flex-start;" onclick="dashboard.saveSupport()">Enregistrer les contacts</button>
+        </div>`;
+    } catch (error) {
+      el.innerHTML = '<p class="text-center">Paramètres indisponibles</p>';
+    }
+  }
+
+  async saveSupport() {
+    const phone = (document.getElementById('setting-support_phone') || {}).value || '';
+    const wa = (document.getElementById('setting-support_whatsapp') || {}).value || '';
+    try {
+      await this.api.adminUpdateSetting('support_phone', phone.trim());
+      await this.api.adminUpdateSetting('support_whatsapp', wa.trim());
+      alert('Contacts mis à jour ✓ Visibles immédiatement dans l\'espace client.');
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      this.showError('Erreur lors de la mise à jour des contacts');
+    }
+  }
+
+  async loadAdminsSection() {
+    const el = document.getElementById('admins-body');
+    if (!el) return;
+    try {
+      const admins = await this.api.adminListAdmins() || [];
+      const rows = admins.map(a => `
+        <tr>
+          <td>${this.escape(a.email)}</td>
+          <td>${new Date(a.admin_since).toLocaleDateString('fr-FR')}</td>
+          <td><button class="btn btn-ghost btn-sm" style="color:#EF4444;" onclick="dashboard.removeAdmin('${this.escape(a.email)}')">Retirer</button></td>
+        </tr>`).join('');
+
+      el.innerHTML = `
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead><tr><th>Email</th><th>Admin depuis</th><th></th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+          <input type="email" id="new-admin-email" placeholder="email@exemple.com"
+            style="flex:1;min-width:220px;padding:10px 12px;border:1px solid var(--color-neutral-200);border-radius:8px;">
+          <button class="btn btn-primary" onclick="dashboard.addAdmin()">+ Ajouter un admin</button>
+        </div>`;
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      el.innerHTML = '<p class="text-center">Liste indisponible</p>';
+    }
+  }
+
+  async addAdmin() {
+    const input = document.getElementById('new-admin-email');
+    const email = (input && input.value || '').trim();
+    if (!email) { this.showError('Entre un email'); return; }
+    try {
+      await this.api.adminAddAdmin(email);
+      alert('Admin ajouté ✓');
+      this.loadAdminsSection();
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      this.showError(error.message || 'Erreur lors de l\'ajout');
+    }
+  }
+
+  async removeAdmin(email) {
+    if (!confirm(`Retirer les droits admin de ${email} ?`)) return;
+    try {
+      await this.api.adminRemoveAdmin(email);
+      alert('Droits retirés ✓');
+      this.loadAdminsSection();
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      this.showError(error.message || 'Erreur lors du retrait');
+    }
+  }
+
+  async loadLogsSection() {
+    const el = document.getElementById('logs-body');
+    if (!el) return;
+    try {
+      const events = await this.api.adminRecentEvents(50) || [];
+      if (!events.length) {
+        el.innerHTML = '<p class="text-center">Aucun événement enregistré.</p>';
+        return;
+      }
+      el.innerHTML = `
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead><tr><th>Quand</th><th>Événement</th><th>Étape</th><th>Détails</th></tr></thead>
+            <tbody>
+              ${events.map(e => `
+                <tr>
+                  <td style="white-space:nowrap;">${new Date(e.created_at).toLocaleString('fr-FR')}</td>
+                  <td><strong>${this.escape(e.event)}</strong></td>
+                  <td>${this.escape(e.step || '—')}</td>
+                  <td style="font-size:12px;color:var(--color-neutral-600);">${e.meta ? this.escape(JSON.stringify(e.meta)) : '—'}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      el.innerHTML = '<p class="text-center">Journal indisponible</p>';
+    }
+  }
+
   // --- Helpers ---
   setText(id, value) {
     const el = document.getElementById(id);
@@ -569,6 +783,3 @@ function closeModal() {
   document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
 }
 
-function manageProducts() {
-  alert('Gestion des produits et tarifs : à venir. Pour l\'instant, ajuste les prix dans la table insurance_pricing de Supabase.');
-}

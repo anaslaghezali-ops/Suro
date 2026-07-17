@@ -30,11 +30,25 @@ class CustomerDashboard {
     this.loadDashboard();
   }
 
-  setupSupportLinks() {
+  async setupSupportLinks() {
+    let phoneNumber = SUPPORT_PHONE;
+    let waNumber = SUPPORT_WHATSAPP;
+
+    // Contacts configurés par l'équipe dans l'admin (Paramètres → Contacts support)
+    try {
+      const settings = await this.api.getSettings() || [];
+      const by = {};
+      settings.forEach(s => { by[s.key] = s.value; });
+      if (by.support_phone) phoneNumber = by.support_phone;
+      if (by.support_whatsapp) waNumber = by.support_whatsapp;
+    } catch (e) {
+      /* fallback sur les constantes */
+    }
+
     const phone = document.getElementById('sos-phone');
     const wa = document.getElementById('sos-whatsapp');
-    if (phone) phone.href = 'tel:' + SUPPORT_PHONE;
-    if (wa) wa.href = 'https://wa.me/' + SUPPORT_WHATSAPP + '?text=' + encodeURIComponent('Bonjour SURO, j\'ai une urgence sinistre.');
+    if (phone) phone.href = 'tel:' + phoneNumber;
+    if (wa) wa.href = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent('Bonjour SURO, j\'ai une urgence sinistre.');
   }
 
   // Redirige vers la connexion si le token a expiré

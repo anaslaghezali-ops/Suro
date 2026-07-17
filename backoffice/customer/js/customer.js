@@ -24,6 +24,10 @@ class CustomerDashboard {
       return;
     }
 
+    if (window.SuroNotifications) {
+      window.SuroNotifications.mount({ audience: 'customer', container: document.getElementById('notif-mount') });
+    }
+
     this.setupNavigation();
     this.setupSupportLinks();
     this.loadProfileHeader();

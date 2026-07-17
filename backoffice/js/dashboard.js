@@ -30,6 +30,10 @@ class AdminDashboard {
     const nameEl = document.querySelector('.user-name');
     if (nameEl) nameEl.textContent = session.email || 'Admin SURO';
 
+    if (window.SuroNotifications) {
+      window.SuroNotifications.mount({ audience: 'admin', container: document.getElementById('notif-mount') });
+    }
+
     this.setupNavigation();
     this.loadDashboard();
   }
@@ -337,27 +341,20 @@ class AdminDashboard {
 
   async loadCustomers() {
     try {
-      const apps = await this.fetchApplications();
-      const seen = new Set();
-      const customers = [];
-      apps.forEach(a => {
-        if (!seen.has(a.customer_email)) {
-          seen.add(a.customer_email);
-          customers.push(a);
-        }
-      });
+      // Vrais comptes clients (inscrits), avec ou sans contrat
+      const customers = await this.api.adminListCustomers() || [];
 
       const tbody = document.getElementById('customers-tbody') || this.createCustomersTable();
       if (!tbody) return;
       tbody.innerHTML = customers.length ? customers.map(c => `
         <tr>
-          <td>${this.escape(c.customer_email)}</td>
-          <td>${this.escape(c.customer_email)}</td>
-          <td>${this.escape(c.customer_phone || '—')}</td>
-          <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
-          <td><span class="status-badge status-active">Actif</span></td>
+          <td>${this.escape(c.name || '—')} ${c.is_admin ? '<span class="status-badge status-active" style="margin-left:6px;">admin</span>' : ''}</td>
+          <td>${this.escape(c.email)}</td>
+          <td>${this.escape(c.phone || '—')}</td>
+          <td>${c.registered_at ? new Date(c.registered_at).toLocaleDateString('fr-FR') : '—'}</td>
+          <td>${c.contracts} contrat(s)</td>
         </tr>
-      `).join('') : '<tr><td colspan="5" class="text-center">Aucun client</td></tr>';
+      `).join('') : '<tr><td colspan="5" class="text-center">Aucun client inscrit</td></tr>';
     } catch (error) {
       if (this.handleAuthError(error)) return;
       console.error('Error loading customers:', error);
@@ -390,26 +387,45 @@ class AdminDashboard {
             </div>`).join('')
         : '<p style="color:#9CA3AF;font-size:13px;">Aucun document déposé pour ce client.</p>';
 
+      const field = (label, id, value, type) => `
+        <label style="display:block;font-size:12px;font-weight:600;color:#4B5563;margin-bottom:12px;">
+          ${label}
+          <input type="${type || 'text'}" id="edit-${id}" value="${this.escape(value == null ? '' : value)}"
+            style="display:block;width:100%;margin-top:4px;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px;">
+        </label>`;
+
       body.innerHTML = `
         <h2>${this.vehicleLabel(app)}</h2>
-        <div style="margin-top: 16px;">
-          <p><strong>Email:</strong> ${this.escape(app.customer_email)}</p>
-          <p><strong>Téléphone:</strong> ${this.escape(app.customer_phone || '—')}</p>
-          <p><strong>Immatriculation:</strong> ${this.escape(app.immatriculation || '—')}</p>
-          <p><strong>Couverture:</strong> ${this.coverageLabel(app.coverage_type)}</p>
-          <p><strong>Prime annuelle:</strong> ${app.annual_premium ? Number(app.annual_premium).toLocaleString('fr-FR') + ' DH/an' : '—'}</p>
-          <p><strong>Adresse de livraison:</strong> ${this.escape(app.address || '—')}</p>
-          <p><strong>Statut:</strong> <span class="status-badge status-${app.status}">${this.formatStatus(app.status)}</span></p>
-          <p><strong>Créée le:</strong> ${new Date(app.created_at).toLocaleDateString('fr-FR')}</p>
-          ${answersHtml ? `<h3 style="margin-top:16px;font-size:15px;">Infos véhicule</h3>${answersHtml}` : ''}
+        <p style="color:#6B7280;font-size:13px;margin-top:4px;">${this.escape(app.customer_email)} · créé le ${new Date(app.created_at).toLocaleDateString('fr-FR')}</p>
+
+        <h3 style="margin-top:20px;font-size:15px;">✏️ Modifier le contrat</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px;margin-top:12px;">
+          ${field('Immatriculation', 'immatriculation', app.immatriculation)}
+          ${field('Téléphone', 'customer_phone', app.customer_phone, 'tel')}
+          ${field('Marque', 'marque', app.marque)}
+          ${field('Modèle', 'modele', app.modele)}
+          ${field('Année', 'annee', app.annee, 'number')}
+          ${field('Puissance (CV)', 'puissance', app.puissance, 'number')}
+        </div>
+        <label style="display:block;font-size:12px;font-weight:600;color:#4B5563;margin-bottom:12px;">
+          Couverture
+          <select id="edit-coverage_type" style="display:block;width:100%;margin-top:4px;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px;">
+            <option value="minimal" ${app.coverage_type === 'minimal' ? 'selected' : ''}>Minimale (RC)</option>
+            <option value="complete" ${app.coverage_type === 'complete' ? 'selected' : ''}>Complète</option>
+          </select>
+        </label>
+        ${field('Adresse de livraison', 'address', app.address)}
+        ${field('Prime annuelle (DH)', 'annual_premium', app.annual_premium, 'number')}
+        <button class="btn btn-primary" onclick="dashboard.saveApplicationEdit('${app.id}')">💾 Enregistrer les modifications</button>
+
+        <div style="margin-top: 20px; padding-top:16px; border-top:1px solid #E5E7EB; display: flex; gap: 12px; align-items:center;">
+          <select id="status-select" class="filter-select">
+            ${['nouvelle','active','expired','cancelled'].map(s => `<option value="${s}" ${s === app.status ? 'selected' : ''}>${this.formatStatus(s)}</option>`).join('')}
+          </select>
+          <button class="btn btn-secondary" onclick="dashboard.updateApplicationStatus('${app.id}')">Changer le statut</button>
         </div>
 
-        <div style="margin-top: 20px; display: flex; gap: 12px; align-items:center;">
-          <select id="status-select" class="filter-select">
-            ${['nouvelle','active','cancelled'].map(s => `<option value="${s}" ${s === app.status ? 'selected' : ''}>${this.formatStatus(s)}</option>`).join('')}
-          </select>
-          <button class="btn btn-primary" onclick="dashboard.updateApplicationStatus('${app.id}')">Mettre à jour le statut</button>
-        </div>
+        ${answersHtml ? `<details style="margin-top:16px;"><summary style="cursor:pointer;font-size:13px;color:#6B7280;">Données de souscription initiales</summary><div style="margin-top:8px;">${answersHtml}</div></details>` : ''}
 
         <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #E5E7EB;">
           <h3 style="font-size:15px;margin-bottom:12px;">📄 Documents du client</h3>
@@ -419,7 +435,7 @@ class AdminDashboard {
             <button class="btn btn-primary" id="doc-upload-btn" onclick="dashboard.uploadDocument('${applicationId}')">
               Déposer un document
             </button>
-            <p style="font-size:12px;color:#9CA3AF;margin-top:8px;">Le client verra ce document dans son espace, onglet « Mes Documents ».</p>
+            <p style="font-size:12px;color:#9CA3AF;margin-top:8px;">Le client verra ce document dans son espace. Toute modification lui envoie une notification.</p>
           </div>
         </div>
       `;
@@ -458,6 +474,32 @@ class AdminDashboard {
       this.showError('Erreur lors du dépôt : ' + error.message);
       btn.disabled = false;
       btn.textContent = 'Déposer un document';
+    }
+  }
+
+  async saveApplicationEdit(applicationId) {
+    const get = (id) => (document.getElementById('edit-' + id) || {}).value;
+    const fields = {
+      immatriculation: get('immatriculation') || null,
+      customer_phone: get('customer_phone') || null,
+      marque: get('marque') || null,
+      modele: get('modele') || null,
+      annee: parseInt(get('annee'), 10) || null,
+      puissance: parseInt(get('puissance'), 10) || null,
+      coverage_type: get('coverage_type') || null,
+      address: get('address') || null,
+      annual_premium: parseFloat(get('annual_premium')) || null,
+    };
+    try {
+      await this.api.adminUpdateApplication(applicationId, fields);
+      this.showSuccess('Contrat mis à jour');
+      alert('Contrat mis à jour ✓ Le client a reçu une notification.');
+      closeModal();
+      this.fetchApplications(true);
+      if (this.currentPage === 'applications') this.loadApplications();
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      this.showError('Erreur lors de la mise à jour : ' + (error.message || ''));
     }
   }
 
@@ -739,7 +781,7 @@ class AdminDashboard {
       <div class="section-header"><h3>Tous les clients</h3></div>
       <div class="table-responsive">
         <table class="admin-table">
-          <thead><tr><th>Client</th><th>Email</th><th>Téléphone</th><th>Depuis</th><th>Statut</th></tr></thead>
+          <thead><tr><th>Client</th><th>Email</th><th>Téléphone</th><th>Inscrit le</th><th>Contrats</th></tr></thead>
           <tbody id="customers-tbody"><tr><td colspan="5" class="text-center">Chargement…</td></tr></tbody>
         </table>
       </div>`;

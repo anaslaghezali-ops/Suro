@@ -58,7 +58,7 @@ function App() {
 
   return html`
     <${Layout} role=${role} route=${activeId} session=${session}>
-      <${View} role=${role} caps=${caps} />
+      <${View} role=${role} caps=${caps} isSuperAdmin=${role === 'super_admin'} />
     <//>
     <${CommandPalette} role=${role} />
   `;

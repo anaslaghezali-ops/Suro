@@ -775,7 +775,8 @@ class OnboardingForm {
           this.accountStatus = result.session ? 'logged_in' : 'confirmation_required';
           this.api.track('account_created', null, { status: this.accountStatus });
         } catch (accountError) {
-          if (/already registered|already been registered/i.test(accountError.message || '')) {
+          const accMsg = accountError.message || '';
+          if (/already registered|already been registered/i.test(accMsg)) {
             // Un compte existe déjà : on tente la connexion avec le mot de passe fourni
             try {
               await this.api.login(email, password);
@@ -790,6 +791,15 @@ class OnboardingForm {
               );
               return;
             }
+          } else if (/email/i.test(accMsg) && /invalid|valid|format|not allowed/i.test(accMsg)) {
+            // Email refusé par Supabase (ex: a@a.com, adresse de test/non délivrable)
+            // → on renvoie DIRECTEMENT au champ email, sans rien effacer.
+            this.api.track('account_email_error');
+            this.goToStepWithError(
+              'account', 'email',
+              'Cet email n\'est pas accepté — utilise une vraie adresse (ex: prenom.nom@gmail.com).'
+            );
+            return;
           } else {
             throw accountError;
           }
@@ -816,17 +826,39 @@ class OnboardingForm {
       // 3. Paiement
       this.showPaymentOptions(application.application.id);
     } catch (error) {
-      this.api.track('tunnel_error', 'submit', { message: String(error.message || '').slice(0, 200) });
+      const msg = String(error.message || '');
+      this.api.track('tunnel_error', 'submit', { message: msg.slice(0, 200) });
+
+      // Erreur d'email/compte détectée tardivement → retour au champ email,
+      // en conservant toutes les infos déjà saisies.
+      if (!this.loggedIn && /email/i.test(msg) && /invalid|valid|format|not allowed/i.test(msg)) {
+        this.goToStepWithError(
+          'account', 'email',
+          'Cet email n\'est pas accepté — utilise une vraie adresse (ex: prenom.nom@gmail.com).'
+        );
+        return;
+      }
+
+      // Autre erreur : on GARDE les données saisies et on propose de réessayer
+      // sans repartir de zéro.
       tunnelWrapper.innerHTML = `
         <div style="text-align: center; padding: 32px;">
           <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
           <p style="font-size: 16px; color: var(--color-error);">Erreur: ${error.message}</p>
-          <button class="btn btn-primary" onclick="window.SURO_FORM.reset()" style="margin-top: 16px;">
-            Recommencer
-          </button>
+          <p style="font-size: 13px; color: var(--color-neutral-600); margin-top: 8px;">Tes informations sont conservées.</p>
+          <div style="display:flex; gap:12px; justify-content:center; margin-top:16px; flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="window.SURO_FORM.retryLastStep()">Réessayer</button>
+            <button class="btn btn-ghost" onclick="window.SURO_FORM.reset()">Tout recommencer</button>
+          </div>
         </div>
       `;
     }
+  }
+
+  // Revient au dernier écran de saisie sans effacer les données déjà remplies
+  retryLastStep() {
+    this.currentStep = this.fields.length - 1;
+    this.render();
   }
 
   showPaymentOptions(applicationId) {
@@ -913,12 +945,15 @@ class OnboardingForm {
       this.showCompletion(applicationId);
     } catch (error) {
       this.api.track('payment_error', null, { method });
+      // Le compte et le contrat existent déjà : on réessaie le PAIEMENT
+      // (surtout pas un reset() qui créerait un doublon de contrat).
       tunnelWrapper.innerHTML = `
         <div style="text-align: center; padding: 32px;">
           <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
           <p style="font-size: 16px; color: var(--color-error);">Erreur de paiement</p>
-          <button class="btn btn-primary" onclick="window.SURO_FORM.reset()" style="margin-top: 16px;">
-            Recommencer
+          <p style="font-size: 13px; color: var(--color-neutral-600); margin-top: 8px;">Ton contrat est déjà enregistré, il ne reste que le paiement.</p>
+          <button class="btn btn-primary" onclick="window.SURO_FORM.showPaymentOptions('${applicationId}')" style="margin-top: 16px;">
+            Réessayer le paiement
           </button>
         </div>
       `;

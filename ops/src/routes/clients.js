@@ -104,7 +104,7 @@ function ClientDetail({ client, caps, isSuperAdmin, onClose, onUpdated, onDelete
               </label>
             </div>
             <div style="display:flex;gap:8px;margin-top:12px">
-              <button class="btn-o primary sm" disabled=${saving} onClick=${saveProfile}>${saving ? 'Enregistrement…' : '💾 Enregistrer'}</button>
+              <button class="btn-o primary sm" disabled=${saving} onClick=${saveProfile}>${saving ? 'Enregistrement…' : 'Enregistrer'}</button>
               <button class="btn-o sm" onClick=${() => setEditing(false)}>Annuler</button>
             </div>
           </div>
@@ -115,7 +115,7 @@ function ClientDetail({ client, caps, isSuperAdmin, onClose, onUpdated, onDelete
             <div class="kpi ${openClaims ? 'attn' : ''}"><div class="label">Sinistres ouverts</div><div class="value">${openClaims}</div></div>
           </div>
           <div style="margin-top:18px">
-            <div style="font-size:12px;font-weight:600;color:var(--color-neutral-600);margin-bottom:8px">🚗 VÉHICULES (${vehicles.length})</div>
+            <div style="font-size:12px;font-weight:600;color:var(--color-neutral-600);margin-bottom:8px">VÉHICULES (${vehicles.length})</div>
             ${vehicles.length === 0 ? html`<p class="muted">Aucun véhicule.</p>` :
               vehicles.map((a) => html`<div class="field-row"><div class="v">${vehicleLabel(a)}</div><div class="k">${a.immatriculation || '—'}</div></div>`)}
           </div>`;
@@ -130,8 +130,8 @@ function ClientDetail({ client, caps, isSuperAdmin, onClose, onUpdated, onDelete
             <div class="field-row" style="border:none"><div class="k">Inscrit le</div><div class="v">${fmtDate(client.registered_at)}</div></div>
           </div>
           <div style="display:flex;flex-direction:column;gap:6px">
-            ${canEdit ? html`<button class="btn-o sm" onClick=${() => setEditing(true)}>✎ Éditer</button>` : null}
-            ${isSuperAdmin ? html`<button class="btn-o danger sm" disabled=${deleting} onClick=${deleteClient}>🗑 Supprimer</button>` : null}
+            ${canEdit ? html`<button class="btn-o sm" onClick=${() => setEditing(true)}>Éditer</button>` : null}
+            ${isSuperAdmin ? html`<button class="btn-o danger sm" disabled=${deleting} onClick=${deleteClient}>Supprimer</button>` : null}
           </div>
         </div>
         <div class="kpi-grid" style="margin-top:16px">

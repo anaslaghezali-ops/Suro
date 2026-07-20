@@ -153,7 +153,7 @@ function Detail({ app, caps, onClose, onSaved }) {
         ${canUpload ? html`
           <div style="margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--color-neutral-200)">
             <label class="btn-o primary sm" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
-              ${uploading ? 'Envoi…' : '⬆ Déposer un document'}
+              ${uploading ? 'Envoi…' : 'Déposer un document'}
               <input type="file" style="display:none" disabled=${uploading} onChange=${handleUpload}
                 accept="image/*,application/pdf" />
             </label>

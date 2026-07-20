@@ -104,7 +104,7 @@ export function Documents({ caps }) {
   return html`
     <div class="page-head">
       <h1>Documents</h1>
-      <p>Bibliothèque des documents transmis par les clients. Cliquez pour prévisualiser et valider.</p>
+      <p>File de vérification des pièces reçues (carte grise, permis, RIB…). L'équipe ouvre chaque document, le prévisualise, puis le valide ou le refuse avec un motif — le client est notifié automatiquement.</p>
     </div>
     <div class="card">
       <${SavedViews} views=${views} active=${activeView} onChange=${setActiveView} />

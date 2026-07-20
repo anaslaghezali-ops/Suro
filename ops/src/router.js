@@ -25,7 +25,13 @@ export function currentRoute() {
   return ROUTES[h] ? h : 'dashboard';
 }
 
-export function navigate(id) { location.hash = '#/' + id; }
+// Second segment du hash (ex: #/subscriptions/<id> → '<id>')
+export function routeParam() {
+  return (location.hash || '').replace(/^#\/?/, '').split('/')[1] || null;
+}
+
+// navigate('subscriptions') ou navigate('subscriptions/<id>')
+export function navigate(path) { location.hash = '#/' + path; }
 
 export function useRoute() {
   const [r, setR] = useState(currentRoute());
@@ -35,4 +41,14 @@ export function useRoute() {
     return () => window.removeEventListener('hashchange', on);
   }, []);
   return r;
+}
+
+export function useRouteParam() {
+  const [p, setP] = useState(routeParam());
+  useEffect(() => {
+    const on = () => setP(routeParam());
+    window.addEventListener('hashchange', on);
+    return () => window.removeEventListener('hashchange', on);
+  }, []);
+  return p;
 }

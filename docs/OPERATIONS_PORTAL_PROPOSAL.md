@@ -351,8 +351,12 @@ Migration `20260720_ops_phase0_foundations.sql` appliquée (voir `docs/migration
 ### 13.4sexies Polish — Command Palette ✅ FAIT
 - **Command Palette** (⌘K / Ctrl-K, ou clic sur la barre de recherche) : filtrage instantané des destinations autorisées par le rôle, navigation clavier (↑↓, Entrée, Échap). Vérifié navigateur : 25/25.
 
+### 13.4septies Palette — recherche d'entités + deep-links ✅ FAIT
+- La Command Palette cherche aussi les **souscriptions** (email/immat/véhicule/n° police) et **clients** (nom/email) et **saute directement au dossier**.
+- **Deep-links** : `#/subscriptions/<id>` ouvre le dossier (fiches bookmarkables/partageables). Vérifié navigateur : 29/29.
+
 ### 13.5 Prochaines étapes proposées
-- **Polish (suite)** : vues sauvegardées, actions groupées, recherche d'entités (dossiers/clients) dans la palette.
+- **Polish (suite)** : vues sauvegardées, actions groupées (multi-sélection), fiche client 360 dédiée.
 - **Cache-busting modules** : stamp de version aux imports ESM `/ops` (éviter le hard-refresh aux mises à jour).
 - **Cleanup** : retirer l'admin legacy `/backoffice` une fois la config tarifaire reprise (avec le courtier).
 - **Polish** : Command Palette (Cmd-K), vues sauvegardées, actions groupées.

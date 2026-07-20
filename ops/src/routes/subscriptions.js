@@ -1,7 +1,8 @@
 import { html } from 'htm/preact';
-import { useState } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
+import { useRouteParam, navigate } from '../router.js';
 import { DataTable } from '../components/DataTable.js';
 import { SlideOver, Badge, Spinner, Empty, toast } from '../components/ui.js';
 import { can } from '../lib/permissions.js';
@@ -131,6 +132,17 @@ export function Subscriptions({ role }) {
   const { data, loading, error, reload } = useAsync(() => api.applications().catch(() => []), []);
   const [statusFilter, setStatusFilter] = useState('');
   const [selected, setSelected] = useState(null);
+  const param = useRouteParam();
+
+  // Deep-link : #/subscriptions/<id> ouvre directement le dossier
+  useEffect(() => {
+    if (param && data) {
+      const found = data.find((a) => a.id === param || a.id.startsWith(param));
+      if (found) setSelected(found);
+    }
+  }, [param, data]);
+
+  const closeDetail = () => { setSelected(null); if (param) navigate('subscriptions'); };
 
   if (loading) return html`<div style="padding:40px"><${Spinner}/></div>`;
   if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;
@@ -167,7 +179,7 @@ export function Subscriptions({ role }) {
     </div>
 
     ${selected ? html`<${Detail} app=${selected} role=${role}
-      onClose=${() => setSelected(null)}
-      onSaved=${() => { setSelected(null); reload(); }} />` : null}
+      onClose=${closeDetail}
+      onSaved=${() => { closeDetail(); reload(); }} />` : null}
   `;
 }

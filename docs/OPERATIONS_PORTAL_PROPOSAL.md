@@ -330,8 +330,13 @@ Migration `20260720_ops_phase0_foundations.sql` appliquée (voir `docs/migration
 - **Tarification préservée** : lien vers l'admin legacy (`/backoffice/#settings`) depuis le stub Paramètres ; aucun écran tarifaire touché.
 - **Vérifié au navigateur** (Chromium headless, API mockée) : `/ops` 8/8, `/app` 5/5, 0 erreur (hors avatar externe bloqué par le bac à sable).
 
-### 13.4 Prochaines étapes proposées
-- **Phase 3** : Documents (aperçu + validation/refus, statut déjà en base).
+### 13.4bis Phase 3 — ✅ FAIT (Documents)
+- RPC `suro_review_document(id, status, reason)` (SECURITY DEFINER) : contrôle de rôle (super_admin/admin/operations), maj `status`/`reviewed_by`/`reviewed_at`/`reject_reason`, **audit** + **notification client** automatiques.
+- API : `getDocumentBlobUrl()` (aperçu inline via blob authentifié) côté couche partagée ; `allDocuments`/`reviewDocument`/`documentBlobUrl`/`downloadDocument` côté Ops.
+- Écran **Documents** : bibliothèque (recherche/filtre par statut), slide-over avec **aperçu image/PDF**, téléchargement, **Valider / Refuser** (motif obligatoire au refus).
+- Vérifié au navigateur : 11/11, 0 erreur.
+
+### 13.5 Prochaines étapes proposées
 - **Phase 5** : Utilisateurs (CRUD staff + rôles via nouveau RPC `suro_list_staff`), Paramètres.
 - **Polish** : Command Palette (Cmd-K), vues sauvegardées, actions groupées.
 - **Cleanup** : retirer l'admin legacy `/backoffice` une fois la config tarifaire reprise (avec le courtier).

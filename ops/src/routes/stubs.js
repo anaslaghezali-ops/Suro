@@ -4,16 +4,6 @@ import { Stub } from '../components/ui.js';
 /* Écrans prévus dans les phases suivantes — placeholders clairs pour que la
    navigation soit complète dès maintenant. */
 
-export function Documents() {
-  return html`<div>
-    <div class="page-head"><h1>Documents</h1><p>Bibliothèque des documents transmis par les clients.</p></div>
-    <${Stub} title="Module Documents — Phase 3">
-      Aperçu, téléchargement, validation/refus, filtres et recherche. Le socle base
-      (statut, reviewer, motif de refus) est déjà en place.
-    <//>
-  </div>`;
-}
-
 export function Users() {
   return html`<div>
     <div class="page-head"><h1>Utilisateurs</h1><p>Gestion des collaborateurs et de leurs rôles.</p></div>

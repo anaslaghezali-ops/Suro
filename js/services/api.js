@@ -284,6 +284,24 @@ class API {
     });
   }
 
+  // Renvoie un object URL (blob) pour aperçu inline d'un document (bucket privé).
+  // L'appelant doit révoquer l'URL via URL.revokeObjectURL après usage.
+  static async getDocumentBlobUrl(storagePath) {
+    const session = this.getSession();
+    const response = await fetch(
+      `${SUPABASE_URL}/storage/v1/object/authenticated/suro-documents/${storagePath}`,
+      {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${session ? session.access_token : SUPABASE_KEY}`,
+        },
+      }
+    );
+    if (!response.ok) throw new Error('Document inaccessible');
+    const blob = await response.blob();
+    return { url: window.URL.createObjectURL(blob), type: blob.type };
+  }
+
   static async downloadDocument(storagePath, fileName) {
     const session = this.getSession();
     const response = await fetch(

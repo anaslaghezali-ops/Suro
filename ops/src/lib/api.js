@@ -33,4 +33,11 @@ export const api = {
   // --- mutations souscriptions ---
   updateApplication: (id, fields) => SB().adminUpdateApplication(id, fields),
   updateApplicationStatus: (id, status) => SB().adminUpdateApplicationStatus(id, status),
+
+  // --- documents ---
+  allDocuments: () => SB().adminGetDocuments(),
+  reviewDocument: (id, status, reason) =>
+    rpc('suro_review_document', { p_id: id, p_status: status, p_reason: reason || null }),
+  documentBlobUrl: (storagePath) => SB().getDocumentBlobUrl(storagePath),
+  downloadDocument: (storagePath, name) => SB().downloadDocument(storagePath, name),
 };

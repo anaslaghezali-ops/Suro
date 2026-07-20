@@ -59,6 +59,7 @@ class OnboardingForm {
             type: 'text',
             autocomplete: 'off',
             placeholder: 'Ex: 7737-A-76',
+            fullWidth: true,
             validate: (value) => {
               if (!value) return 'L\'immatriculation est nécessaire';
               const cleaned = value.replace(/[\s-]/g, '');
@@ -180,36 +181,42 @@ class OnboardingForm {
         required: true,
       },
       {
-        id: 'phone',
-        label: 'Et ton numéro? (Pour les urgences)',
-        hint: 'On t\'appellera uniquement en cas de sinistre',
-        type: 'tel',
-        autocomplete: 'tel',
-        placeholder: 'Ex: +212 6 XX XX XX XX',
+        id: 'contact',
+        label: 'Tes coordonnées',
+        hint: 'Pour te joindre en cas de sinistre et t\'envoyer tes documents',
+        type: 'group',
+        fields: [
+          {
+            id: 'phone',
+            label: 'Téléphone',
+            type: 'tel',
+            autocomplete: 'tel',
+            placeholder: 'Ex: +212 6 XX XX XX XX',
+            validate: (value) => {
+              if (!value) return 'Un numéro de contact est nécessaire';
+              if (!/^[\+]?[\d\s\-\(\)]{10,}$/.test(value.replace(/\s/g, ''))) {
+                return 'Numéro invalide (ex: +212 6 XX XX XX XX)';
+              }
+              return true;
+            },
+          },
+          {
+            id: 'address',
+            label: 'Adresse de livraison',
+            inputType: 'textarea',
+            autocomplete: 'street-address',
+            placeholder: 'Ex: 12 Rue Atlas, Quartier Maârif, Casablanca',
+            fullWidth: true,
+            validate: (value) => {
+              if (!value) return 'L\'adresse de livraison est nécessaire';
+              if (value.trim().length < 10) {
+                return 'Adresse trop courte — précise la rue et la ville';
+              }
+              return true;
+            },
+          },
+        ],
         required: true,
-        validate: (value) => {
-          if (!value) return 'Un numéro de contact est nécessaire';
-          if (!/^[\+]?[\d\s\-\(\)]{10,}$/.test(value.replace(/\s/g, ''))) {
-            return 'Numéro invalide (ex: +212 6 XX XX XX XX ou 06 XX XX XX XX)';
-          }
-          return true;
-        },
-      },
-      {
-        id: 'address',
-        label: 'Où veux-tu recevoir tes documents?',
-        hint: 'Ta carte verte et tes documents officiels seront envoyés à cette adresse',
-        type: 'text',
-        autocomplete: 'street-address',
-        placeholder: 'Ex: 12 Rue Atlas, Quartier Maârif, Casablanca',
-        required: true,
-        validate: (value) => {
-          if (!value) return 'L\'adresse de livraison est nécessaire';
-          if (value.trim().length < 10) {
-            return 'Adresse trop courte — précise la rue et la ville';
-          }
-          return true;
-        },
       },
     ];
 
@@ -225,8 +232,7 @@ class OnboardingForm {
       vehicle: 'Véhicule',
       coverage: 'Couverture',
       account: 'Compte',
-      phone: 'Contact',
-      address: 'Adresse',
+      contact: 'Coordonnées',
     };
     return this.fields.map((f) => labels[f.id] || f.id);
   }
@@ -244,7 +250,7 @@ class OnboardingForm {
     const stepLabels = this.getStepLabels();
     const stepperHTML = stepLabels.map((label, i) => {
       const state = i < this.currentStep ? 'done' : i === this.currentStep ? 'active' : '';
-      return `<div class="stepper-item ${state}"><span class="stepper-dot">${i < this.currentStep ? '✓' : i + 1}</span><span class="stepper-label">${label}</span></div>`;
+      return `<div class="stepper-item ${state}"><span class="stepper-dot">${i < this.currentStep ? '<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>' : i + 1}</span><span class="stepper-label">${label}</span></div>`;
     }).join('');
 
     let formHTML = `
@@ -260,6 +266,7 @@ class OnboardingForm {
 
     if (field.type === 'choice') {
       const quote = this.store.getState('onboarding.quote') || {};
+      const selectedValue = this.store.getState(`onboarding.data.${field.id}`) || '';
       formHTML += `
         <p class="form-sublabel">${field.sublabel || ''}</p>
         <div class="form-choices">
@@ -268,8 +275,9 @@ class OnboardingForm {
             const priceHTML = price
               ? `<div class="choice-price">${Number(price).toLocaleString('fr-FR')} <span class="choice-price-unit">DH/an</span></div>`
               : '';
+            const selected = selectedValue === choice.value ? ' selected' : '';
             return `
-            <button type="button" class="choice-btn choice-card" data-value="${choice.value}" onclick="window.SURO_FORM.selectChoice('${choice.value}')">
+            <button type="button" class="choice-btn choice-card${selected}" data-value="${choice.value}" onclick="window.SURO_FORM.selectChoice('${choice.value}')">
               ${choice.tag ? `<span class="choice-tag">${choice.tag}</span>` : ''}
               <div class="choice-body">
                 <div class="choice-content">
@@ -283,18 +291,19 @@ class OnboardingForm {
             </button>`;
           }).join('')}
         </div>
+        <span class="form-error" id="error-${field.id}"></span>
       `;
     } else if (field.type === 'group') {
-      formHTML += `<div class="form-group-fields">`;
+      const gridClass = field.id === 'vehicle' ? ' form-group-fields--grid' : '';
+      formHTML += `<div class="form-group-fields${gridClass}">`;
       field.fields.forEach((sub) => {
-        // Les champs secrets (mot de passe) ne passent jamais par le store persisté
         const subValue = sub.secret
           ? (this.secrets && this.secrets[sub.id]) || ''
           : this.store.getState(`onboarding.data.${sub.id}`) || '';
-        formHTML += `
-          <div class="form-subfield">
-            <label class="form-sublabel" for="field-${sub.id}">${sub.label}</label>
-            <input
+        const fullClass = sub.fullWidth ? ' form-subfield--full' : '';
+        const inputHTML = sub.inputType === 'textarea'
+          ? `<textarea id="field-${sub.id}" class="form-textarea" placeholder="${sub.placeholder}" autocomplete="${sub.autocomplete || 'off'}">${subValue}</textarea>`
+          : `<input
               type="${sub.type}"
               id="field-${sub.id}"
               class="form-input"
@@ -302,7 +311,11 @@ class OnboardingForm {
               value="${subValue}"
               autocomplete="${sub.autocomplete || 'off'}"
               ${sub.type === 'number' ? 'inputmode="numeric"' : ''}
-            />
+            />`;
+        formHTML += `
+          <div class="form-subfield${fullClass}">
+            <label class="form-sublabel" for="field-${sub.id}">${sub.label}</label>
+            ${inputHTML}
             <span class="form-error" id="error-${sub.id}"></span>
           </div>
         `;
@@ -348,309 +361,16 @@ class OnboardingForm {
         if (input) input.focus();
       }, 100);
     }
-
-    this.addStyles();
   }
 
-  addStyles() {
-    if (document.querySelector('style[data-form-styles]')) return;
+  openFocusMode() {
+    document.body.classList.add('tunnel-focus');
+    const card = document.getElementById('tunnel-card');
+    if (card) card.scrollTop = 0;
+  }
 
-    const style = document.createElement('style');
-    style.setAttribute('data-form-styles', 'true');
-    style.textContent = `
-      .form-stepper {
-        display: flex;
-        justify-content: space-between;
-        gap: 4px;
-        margin-bottom: 20px;
-        overflow-x: auto;
-        padding-bottom: 4px;
-      }
-
-      .stepper-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        flex: 1;
-        min-width: 0;
-        opacity: 0.45;
-        transition: opacity 200ms ease;
-      }
-
-      .stepper-item.active,
-      .stepper-item.done { opacity: 1; }
-
-      .stepper-dot {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        border: 2px solid var(--color-border);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        font-weight: 600;
-        color: var(--color-neutral-600);
-        background: var(--color-surface);
-        transition: all 200ms ease;
-      }
-
-      .stepper-item.active .stepper-dot {
-        border-color: var(--color-primary);
-        background: var(--color-primary);
-        color: white;
-      }
-
-      .stepper-item.done .stepper-dot {
-        border-color: var(--color-primary);
-        background: var(--color-primary-ghost);
-        color: var(--color-primary);
-        font-size: 12px;
-      }
-
-      .stepper-label {
-        font-size: 10px;
-        font-weight: 500;
-        color: var(--color-neutral-600);
-        text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
-      }
-
-      .stepper-item.active .stepper-label {
-        color: var(--color-neutral-900);
-        font-weight: 600;
-      }
-
-      .form-progress { margin-bottom: 24px; }
-
-      .progress-bar {
-        height: 3px;
-        background: var(--color-neutral-200);
-        border-radius: 2px;
-        overflow: hidden;
-      }
-
-      .progress-fill {
-        height: 100%;
-        background: var(--color-primary);
-        transition: width 300ms ease;
-        border-radius: 2px;
-      }
-
-      .form-step {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-      }
-
-      .form-title {
-        font-size: 20px;
-        font-weight: 600;
-        color: var(--color-neutral-900);
-        margin: 0;
-        line-height: 1.3;
-      }
-
-      .form-hint-text,
-      .form-sublabel {
-        font-size: 14px;
-        color: var(--color-neutral-600);
-        margin: -8px 0 0 0;
-        font-weight: 400;
-      }
-
-      .form-input {
-        width: 100%;
-        padding: 12px 14px;
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-md);
-        font-size: 16px;
-        font-family: var(--font-body);
-        background: var(--color-surface);
-        color: var(--color-neutral-900);
-        transition: border-color 150ms ease, box-shadow 150ms ease;
-        box-sizing: border-box;
-      }
-
-      .form-input:focus {
-        outline: none;
-        border-color: var(--color-primary);
-        box-shadow: var(--shadow-focus);
-      }
-
-      .choice-price {
-        font-size: 22px;
-        font-weight: 800;
-        color: var(--color-primary);
-        margin: 4px 0 6px;
-        font-variant-numeric: tabular-nums;
-      }
-
-      .choice-price-unit {
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--color-neutral-600);
-      }
-
-      .form-group-fields {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-
-      .form-subfield {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .form-sublabel {
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--color-neutral-900);
-      }
-
-      .form-choices {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .choice-btn {
-        display: block;
-        width: 100%;
-        padding: 0;
-        border: 1.5px solid var(--color-border);
-        border-radius: var(--radius-lg);
-        background: var(--color-surface);
-        cursor: pointer;
-        transition: all 200ms ease;
-        text-align: left;
-        font-family: var(--font-body);
-        position: relative;
-      }
-
-      .choice-body {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        padding: 16px;
-      }
-
-      .choice-content { flex: 1; min-width: 0; }
-
-      .choice-label {
-        font-weight: 600;
-        font-size: 15px;
-        color: var(--color-neutral-900);
-      }
-
-      .choice-desc {
-        font-size: 13px;
-        color: var(--color-neutral-600);
-        margin-top: 4px;
-      }
-
-      .choice-details {
-        list-style: none;
-        margin: 10px 0 0;
-        padding: 0;
-        font-size: 12px;
-        color: var(--color-neutral-600);
-      }
-
-      .choice-details li {
-        padding: 3px 0 3px 16px;
-        position: relative;
-      }
-
-      .choice-details li::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 10px;
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--color-primary-light);
-      }
-
-      .choice-tag {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        background: var(--color-primary);
-        color: white;
-        font-size: 10px;
-        font-weight: 600;
-        padding: 3px 8px;
-        border-radius: var(--radius-sm);
-        letter-spacing: 0.03em;
-        text-transform: uppercase;
-      }
-
-      .choice-btn:hover {
-        border-color: var(--color-primary);
-        box-shadow: var(--shadow-sm);
-      }
-
-      .choice-radio {
-        width: 20px;
-        height: 20px;
-        min-width: 20px;
-        border: 2px solid var(--color-neutral-300);
-        border-radius: 50%;
-        margin-top: 2px;
-        transition: all 200ms ease;
-      }
-
-      .choice-btn.selected {
-        border-color: var(--color-primary);
-        background: var(--color-primary-ghost);
-        box-shadow: var(--shadow-focus);
-      }
-
-      .choice-btn.selected .choice-radio {
-        border-color: var(--color-primary);
-        background: var(--color-primary);
-        box-shadow: inset 0 0 0 3px white;
-      }
-
-      .form-error {
-        font-size: 13px;
-        color: var(--color-error);
-        display: none;
-      }
-
-      .form-error.show { display: block; }
-
-      .form-actions {
-        display: flex;
-        flex-direction: column-reverse;
-        gap: 10px;
-        margin-top: 8px;
-      }
-
-      .form-actions .btn { height: 48px; font-size: 15px; }
-
-      @media (min-width: 480px) {
-        .form-actions {
-          flex-direction: row;
-        }
-        .form-actions .btn-primary { flex: 1; }
-        .form-actions .btn-ghost { flex: 0 0 auto; }
-      }
-
-      @media (max-width: 480px) {
-        .stepper-label { display: none; }
-        .form-title { font-size: 18px; }
-      }
-    `;
-    document.head.appendChild(style);
+  closeFocusMode() {
+    document.body.classList.remove('tunnel-focus');
   }
 
   async validateField(fieldId, value) {
@@ -803,11 +523,21 @@ class OnboardingForm {
     this.store.setState(`onboarding.data.${field.id}`, value);
     this.api.track('choice_selected', field.id, { value });
 
-    // Update UI
-    document.querySelectorAll('.choice-btn').forEach(btn => {
+    document.querySelectorAll('.choice-btn').forEach((btn) => {
       btn.classList.remove('selected');
     });
-    document.querySelector(`[data-value="${value}"]`).classList.add('selected');
+    const selectedBtn = document.querySelector(`[data-value="${value}"]`);
+    if (selectedBtn) selectedBtn.classList.add('selected');
+
+    const errorEl = document.querySelector(`#error-${field.id}`);
+    if (errorEl) {
+      errorEl.textContent = '';
+      errorEl.classList.remove('show');
+    }
+
+    if (field.id === 'coverage') {
+      setTimeout(() => this.nextStep(), 300);
+    }
   }
 
   async submit() {
@@ -816,12 +546,11 @@ class OnboardingForm {
 
     try {
       tunnelWrapper.innerHTML = `
-        <div style="text-align: center; padding: 48px 32px;">
-          <div class="loading-spinner"></div>
-          <p style="font-size: 16px; color: var(--color-neutral-600); margin-top: 24px;">Traitement de votre demande...</p>
+        <div class="tunnel-state">
+          <div class="tunnel-spinner"></div>
+          <p>Traitement de votre demande...</p>
         </div>
       `;
-      this.addLoadingStyles();
 
       const data = this.store.getState('onboarding.data');
 
@@ -908,11 +637,13 @@ class OnboardingForm {
       // Autre erreur : on GARDE les données saisies et on propose de réessayer
       // sans repartir de zéro.
       tunnelWrapper.innerHTML = `
-        <div style="text-align: center; padding: 32px;">
-          <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
-          <p style="font-size: 16px; color: var(--color-error);">Erreur: ${error.message}</p>
-          <p style="font-size: 13px; color: var(--color-neutral-600); margin-top: 8px;">Tes informations sont conservées.</p>
-          <div style="display:flex; gap:12px; justify-content:center; margin-top:16px; flex-wrap:wrap;">
+        <div class="tunnel-state">
+          <div class="tunnel-error-icon">
+            <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </div>
+          <p class="tunnel-error-msg">Erreur : ${error.message}</p>
+          <p class="tunnel-error-hint">Tes informations sont conservées.</p>
+          <div class="tunnel-error-actions">
             <button class="btn btn-primary" onclick="window.SURO_FORM.retryLastStep()">Réessayer</button>
             <button class="btn btn-ghost" onclick="window.SURO_FORM.reset()">Tout recommencer</button>
           </div>
@@ -936,67 +667,67 @@ class OnboardingForm {
     const coverage = this.store.getState('onboarding.data.coverage');
     const premium = quote[coverage];
     const amountHTML = premium
-      ? `<div style="text-align: center; margin-bottom: 24px; padding: 16px; background: var(--color-neutral-50, #F9FAFB); border-radius: 12px;">
-           <div style="font-size: 13px; color: var(--color-neutral-600);">Prime annuelle — ${coverage === 'complete' ? 'Couverture complète' : 'Couverture minimale'}</div>
-           <div style="font-size: 28px; font-weight: 800; color: var(--color-primary);">${Number(premium).toLocaleString('fr-FR')} DH<span style="font-size: 14px; font-weight: 500;">/an</span></div>
+      ? `<div class="payment-amount">
+           <div class="payment-amount-label">Prime annuelle — ${coverage === 'complete' ? 'Couverture complète' : 'Couverture minimale'}</div>
+           <div class="payment-amount-value">${Number(premium).toLocaleString('fr-FR')} DH<span>/an</span></div>
          </div>`
       : '';
 
     tunnelWrapper.innerHTML = `
       <div class="payment-section">
-        <h3 style="margin-bottom: 24px; text-align: center; font-size: 20px; font-weight: 600;">Choisir une méthode de paiement</h3>
+        <h3>Choisir une méthode de paiement</h3>
         ${amountHTML}
-        <p style="text-align: center; color: var(--color-neutral-600); margin-bottom: 24px;">
-          Choisis ta méthode de paiement
-        </p>
-        <p style="text-align: center; font-size: 12px; color: var(--color-neutral-600); margin-bottom: 20px;">
-          En payant, tu acceptes les <a href="conditions.html" target="_blank" style="color: var(--color-primary);">Conditions générales</a>.
+        <p class="payment-legal">
+          En payant, tu acceptes les <a href="conditions.html" target="_blank">Conditions générales</a>.
         </p>
 
-        <div class="payment-methods" style="display: grid; gap: 12px; margin-bottom: 24px;">
-          <button class="payment-method-btn" onclick="window.SURO_FORM.selectPaymentMethod('card', '${applicationId}')">
-            <span style="font-size: 24px;">💳</span>
-            <div style="flex: 1;">
-              <div style="font-weight: 600;">Carte Bancaire</div>
-              <div style="font-size: 12px; opacity: 0.7;">Visa, Mastercard, Amex</div>
+        <div class="payment-methods">
+          <button type="button" class="payment-method-btn" onclick="window.SURO_FORM.selectPaymentMethod('card', '${applicationId}')">
+            <span class="payment-method-icon">
+              <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+            </span>
+            <div>
+              <div class="payment-method-label">Carte bancaire</div>
+              <div class="payment-method-desc">Visa, Mastercard, Amex</div>
             </div>
-            <span style="font-size: 20px;">→</span>
+            <span class="payment-method-arrow">→</span>
           </button>
 
-          <button class="payment-method-btn" onclick="window.SURO_FORM.selectPaymentMethod('mtn', '${applicationId}')">
-            <span style="font-size: 24px;">📱</span>
-            <div style="flex: 1;">
-              <div style="font-weight: 600;">MTN Mobile Money</div>
-              <div style="font-size: 12px; opacity: 0.7;">Paiement par SMS</div>
+          <button type="button" class="payment-method-btn" onclick="window.SURO_FORM.selectPaymentMethod('mtn', '${applicationId}')">
+            <span class="payment-method-icon">
+              <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+            </span>
+            <div>
+              <div class="payment-method-label">MTN Mobile Money</div>
+              <div class="payment-method-desc">Paiement par SMS</div>
             </div>
-            <span style="font-size: 20px;">→</span>
+            <span class="payment-method-arrow">→</span>
           </button>
 
-          <button class="payment-method-btn" onclick="window.SURO_FORM.selectPaymentMethod('bank', '${applicationId}')">
-            <span style="font-size: 24px;">🏦</span>
-            <div style="flex: 1;">
-              <div style="font-weight: 600;">Virement Bancaire</div>
-              <div style="font-size: 12px; opacity: 0.7;">Transfert direct</div>
+          <button type="button" class="payment-method-btn" onclick="window.SURO_FORM.selectPaymentMethod('bank', '${applicationId}')">
+            <span class="payment-method-icon">
+              <svg viewBox="0 0 24 24"><path d="M3 21h18M4 18h16M6 18V9M10 18V9M14 18V9M18 18V9M2 10l10-5 10 5"/></svg>
+            </span>
+            <div>
+              <div class="payment-method-label">Virement bancaire</div>
+              <div class="payment-method-desc">Transfert direct</div>
             </div>
-            <span style="font-size: 20px;">→</span>
+            <span class="payment-method-arrow">→</span>
           </button>
         </div>
       </div>
     `;
-
-    this.addPaymentStyles();
   }
 
   async selectPaymentMethod(method, applicationId) {
     this.api.track('payment_method_selected', null, { method });
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     tunnelWrapper.innerHTML = `
-      <div style="text-align: center; padding: 48px 32px;">
-        <div class="loading-spinner"></div>
-        <p style="font-size: 16px; color: var(--color-neutral-600); margin-top: 24px;">Traitement du paiement...</p>
+      <div class="tunnel-state">
+        <div class="tunnel-spinner"></div>
+        <p>Traitement du paiement...</p>
       </div>
     `;
-    this.addLoadingStyles();
 
     try {
       const quote = this.store.getState('onboarding.quote') || {};
@@ -1014,13 +745,17 @@ class OnboardingForm {
       // Le compte et le contrat existent déjà : on réessaie le PAIEMENT
       // (surtout pas un reset() qui créerait un doublon de contrat).
       tunnelWrapper.innerHTML = `
-        <div style="text-align: center; padding: 32px;">
-          <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
-          <p style="font-size: 16px; color: var(--color-error);">Erreur de paiement</p>
-          <p style="font-size: 13px; color: var(--color-neutral-600); margin-top: 8px;">Ton contrat est déjà enregistré, il ne reste que le paiement.</p>
-          <button class="btn btn-primary" onclick="window.SURO_FORM.showPaymentOptions('${applicationId}')" style="margin-top: 16px;">
-            Réessayer le paiement
-          </button>
+        <div class="tunnel-state">
+          <div class="tunnel-error-icon">
+            <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </div>
+          <p class="tunnel-error-msg">Erreur de paiement</p>
+          <p class="tunnel-error-hint">Ton contrat est déjà enregistré, il ne reste que le paiement.</p>
+          <div class="tunnel-error-actions">
+            <button class="btn btn-primary" onclick="window.SURO_FORM.showPaymentOptions('${applicationId}')">
+              Réessayer le paiement
+            </button>
+          </div>
         </div>
       `;
     }
@@ -1042,9 +777,10 @@ class OnboardingForm {
 
     tunnelWrapper.innerHTML = `
       <div class="success-container">
-        <div class="confetti" id="confetti"></div>
         <div class="success-section">
-          <div class="success-icon">✓</div>
+          <div class="success-icon-wrap">
+            <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
           <h2 class="success-heading">C'est bon, t'es couvert</h2>
           <p class="success-description">Ta souscription est confirmée${premium ? ` — ${Number(premium).toLocaleString('fr-FR')} DH/an` : ''}.</p>
 
@@ -1054,30 +790,28 @@ class OnboardingForm {
             <div class="contract-card-holder">${holder}</div>
           </div>
 
-          <div style="margin-top: 24px; padding: 16px; background: rgba(15, 118, 110, 0.06); border-radius: 12px; font-size: 14px; color: var(--color-neutral-600); text-align: left;">
-            <div style="margin-bottom: 8px;">📄 <strong>Tes documents officiels</strong> (carte verte, attestation) seront préparés par nos équipes et mis à disposition dans ton espace client.</div>
-            <div>📮 Ils seront aussi envoyés à : <strong>${address}</strong></div>
+          <div class="success-info">
+            <strong>Tes documents officiels</strong> (carte verte, attestation) seront préparés par nos équipes et mis à disposition dans ton espace client.
+            ${address ? `<br><br>Envoi postal à : <strong>${address}</strong>` : ''}
           </div>
 
           ${this.accountStatus === 'confirmation_required' ? `
-          <div style="margin-top: 12px; padding: 16px; background: rgba(249, 115, 22, 0.08); border-radius: 12px; font-size: 14px; color: var(--color-neutral-600); text-align: left;">
-            📬 Ton compte est créé — <strong>confirme ton email</strong> (lien envoyé à ${email}) pour accéder à ton espace client.
+          <div class="success-info success-info--warn">
+            Ton compte est créé — <strong>confirme ton email</strong> (lien envoyé à ${email}) pour accéder à ton espace client.
           </div>` : ''}
 
           <div class="success-actions">
-            <button class="btn btn-primary" onclick="window.SURO_FORM.handleGoToSpace()">
-              Accéder à mon espace client →
+            <button class="btn btn-primary btn-block" onclick="window.SURO_FORM.handleGoToSpace()">
+              Accéder à mon espace client
             </button>
           </div>
 
-          <p style="margin-top: 32px; font-size: 12px; color: var(--color-neutral-600); text-align: center;">
-            Questions? On est là → <strong>support@suro.ma</strong>
+          <p class="success-foot">
+            Questions ? <strong>support@suro.ma</strong>
           </p>
         </div>
       </div>
     `;
-    this.addSuccessStyles();
-    this.triggerConfetti();
   }
 
   handleGoToSpace() {
@@ -1093,237 +827,13 @@ class OnboardingForm {
     window.location.href = 'customer-login.html';
   }
 
-  addSuccessStyles() {
-    if (document.querySelector('style[data-success-styles]')) return;
-
-    const style = document.createElement('style');
-    style.setAttribute('data-success-styles', 'true');
-    style.textContent = `
-      .success-container {
-        position: relative;
-        overflow: hidden;
-      }
-
-      .success-section {
-        animation: slideInUp 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-
-      @keyframes slideInUp {
-        from {
-          opacity: 0;
-          transform: translateY(40px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .success-icon {
-        animation: scaleAndBounce 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-
-      @keyframes scaleAndBounce {
-        0% {
-          transform: scale(0) rotate(-180deg);
-          opacity: 0;
-        }
-        60% {
-          transform: scale(1.1) rotate(20deg);
-          opacity: 1;
-        }
-        80% {
-          transform: scale(0.95) rotate(-5deg);
-        }
-        100% {
-          transform: scale(1) rotate(0deg);
-          opacity: 1;
-        }
-      }
-
-      .contract-card {
-        animation: scaleIn 500ms 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
-      }
-
-      @keyframes scaleIn {
-        from {
-          opacity: 0;
-          transform: scale(0.8);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
-      }
-
-      .success-actions {
-        animation: fadeInUp 500ms 400ms ease both;
-      }
-
-      @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .confetti {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        pointer-events: none;
-      }
-
-      .confetti-piece {
-        position: absolute;
-        width: 8px;
-        height: 8px;
-        background: var(--color-accent);
-        opacity: 1;
-      }
-
-      .confetti-piece.blue {
-        background: var(--color-primary);
-      }
-
-      .confetti-piece.gold {
-        background: #FDB022;
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  triggerConfetti() {
-    const confettiContainer = document.getElementById('confetti');
-    if (!confettiContainer) return;
-
-    const colors = ['blue', 'gold', 'var(--color-accent)'];
-    const pieceCount = 50;
-
-    for (let i = 0; i < pieceCount; i++) {
-      const piece = document.createElement('div');
-      piece.className = 'confetti-piece ' + colors[Math.floor(Math.random() * 3)];
-
-      const startX = Math.random() * 100;
-      const delay = Math.random() * 200;
-      const duration = 2000 + Math.random() * 1000;
-      const angle = (Math.random() - 0.5) * 60 + 90;
-      const velocity = 3 + Math.random() * 4;
-
-      piece.style.left = startX + '%';
-      piece.style.top = '-10px';
-      piece.style.animation = `confettiFall ${duration}ms linear ${delay}ms infinite`;
-      piece.style.setProperty('--angle', angle + 'deg');
-      piece.style.setProperty('--velocity', velocity);
-
-      confettiContainer.appendChild(piece);
-    }
-
-    // Add keyframes for confetti fall
-    if (!document.querySelector('style[data-confetti-fall]')) {
-      const style = document.createElement('style');
-      style.setAttribute('data-confetti-fall', 'true');
-      style.textContent = `
-        @keyframes confettiFall {
-          0% {
-            transform: translateY(0) rotateZ(0deg);
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(600px) rotateZ(720deg);
-            opacity: 0;
-          }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  }
-
-  addLoadingStyles() {
-    if (document.querySelector('style[data-loading-styles]')) return;
-
-    const style = document.createElement('style');
-    style.setAttribute('data-loading-styles', 'true');
-    style.textContent = `
-      .loading-spinner {
-        width: 60px;
-        height: 60px;
-        margin: 0 auto;
-        position: relative;
-      }
-
-      .loading-spinner::before {
-        content: '';
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        border: 4px solid var(--color-neutral-200);
-        border-top-color: var(--color-primary);
-        border-radius: 50%;
-        animation: spin 1.2s linear infinite;
-      }
-
-      .loading-spinner::after {
-        content: '';
-        position: absolute;
-        width: 80%;
-        height: 80%;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        border: 3px solid var(--color-neutral-100);
-        border-right-color: var(--color-accent);
-        border-radius: 50%;
-        animation: spin-reverse 1.8s linear infinite;
-      }
-
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-
-      @keyframes spin-reverse {
-        to { transform: rotate(-360deg); }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  addPaymentStyles() {
-    if (document.querySelector('style[data-payment-styles]')) return;
-
-    const style = document.createElement('style');
-    style.setAttribute('data-payment-styles', 'true');
-    style.textContent = `
-      .payment-method-btn {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 16px;
-        border: 1px solid var(--color-neutral-200);
-        border-radius: var(--radius-lg);
-        background: white;
-        cursor: pointer;
-        transition: all 150ms ease;
-        text-align: left;
-      }
-
-      .payment-method-btn:hover {
-        border-color: var(--color-primary);
-        box-shadow: var(--shadow-md);
-        transform: translateY(-2px);
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
   attachListeners() {
-    // Keyboard support
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.body.classList.contains('tunnel-focus')) {
+        this.closeFocusMode();
+      }
+    });
+
     document.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         const field = this.fields[this.currentStep];

@@ -404,7 +404,7 @@ class AdminDashboard {
       const docsHtml = (documents || []).length
         ? (documents || []).map(d => `
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #F3F4F6;">
-              <span>📄 ${this.escape(d.name)}</span>
+              <span>${this.escape(d.name)}</span>
               <button class="btn btn-ghost btn-sm" onclick="dashboard.deleteDocument('${d.id}', '${encodeURIComponent(d.storage_path)}', '${applicationId}')" style="color:#EF4444">Supprimer</button>
             </div>`).join('')
         : '<p style="color:#9CA3AF;font-size:13px;">Aucun document déposé pour ce client.</p>';
@@ -515,7 +515,7 @@ class AdminDashboard {
     try {
       await this.api.adminUpdateApplication(applicationId, fields);
       this.showSuccess('Contrat mis à jour');
-      alert('Contrat mis à jour ✓ Le client a reçu une notification.');
+      this.showSuccess('Contrat mis à jour — le client a reçu une notification.');
       closeModal();
       this.fetchApplications(true);
       if (this.currentPage === 'applications') this.loadApplications();
@@ -526,7 +526,7 @@ class AdminDashboard {
   }
 
   async deleteDocument(docId, encodedPath, applicationId) {
-    if (!confirm('Supprimer ce document ? Le client n\'y aura plus accès.')) return;
+    if (!(await (window.SuroToast ? window.SuroToast.confirm('Supprimer ce document ? Le client n\'y aura plus accès.', { title: 'Supprimer', okLabel: 'Supprimer' }) : Promise.resolve(confirm('Supprimer ce document ?'))))) return;
     try {
       await this.api.adminDeleteDocument({ id: docId, storage_path: decodeURIComponent(encodedPath) });
       this.showSuccess('Document supprimé');
@@ -621,7 +621,7 @@ class AdminDashboard {
     try {
       await this.api.adminUpdatePricing(id, value);
       this.showSuccess('Tarif mis à jour');
-      alert('Tarif mis à jour ✓ Il s\'applique immédiatement aux nouveaux devis.');
+      this.showSuccess('Tarif mis à jour — il s\'applique immédiatement aux nouveaux devis.');
     } catch (error) {
       if (this.handleAuthError(error)) return;
       this.showError('Erreur lors de la mise à jour du tarif');
@@ -634,7 +634,7 @@ class AdminDashboard {
     if (isNaN(value) || value < 0) { this.showError('Facteur invalide'); return; }
     try {
       await this.api.adminUpdateFactor(key, value);
-      alert('Facteur mis à jour ✓');
+      this.showSuccess('Facteur mis à jour');
     } catch (error) {
       if (this.handleAuthError(error)) return;
       this.showError('Erreur lors de la mise à jour du facteur');
@@ -672,7 +672,7 @@ class AdminDashboard {
     try {
       await this.api.adminUpdateSetting('support_phone', phone.trim());
       await this.api.adminUpdateSetting('support_whatsapp', wa.trim());
-      alert('Contacts mis à jour ✓ Visibles immédiatement dans l\'espace client.');
+      this.showSuccess('Contacts mis à jour — visibles immédiatement dans l\'espace client.');
     } catch (error) {
       if (this.handleAuthError(error)) return;
       this.showError('Erreur lors de la mise à jour des contacts');
@@ -715,7 +715,7 @@ class AdminDashboard {
     if (!email) { this.showError('Entre un email'); return; }
     try {
       await this.api.adminAddAdmin(email);
-      alert('Admin ajouté ✓');
+      this.showSuccess('Admin ajouté');
       this.loadAdminsSection();
     } catch (error) {
       if (this.handleAuthError(error)) return;
@@ -724,10 +724,10 @@ class AdminDashboard {
   }
 
   async removeAdmin(email) {
-    if (!confirm(`Retirer les droits admin de ${email} ?`)) return;
+    if (!(await (window.SuroToast ? window.SuroToast.confirm(`Retirer les droits admin de ${email} ?`, { title: 'Retirer les droits' }) : Promise.resolve(confirm(`Retirer les droits admin de ${email} ?`))))) return;
     try {
       await this.api.adminRemoveAdmin(email);
-      alert('Droits retirés ✓');
+      this.showSuccess('Droits retirés');
       this.loadAdminsSection();
     } catch (error) {
       if (this.handleAuthError(error)) return;
@@ -811,8 +811,14 @@ class AdminDashboard {
     return document.getElementById('customers-tbody');
   }
 
-  showError(message) { alert(message); }
-  showSuccess(message) { console.log(message); }
+  showError(message) {
+    if (window.SuroToast) window.SuroToast.show(message, 'err');
+    else alert(message);
+  }
+  showSuccess(message) {
+    if (window.SuroToast) window.SuroToast.show(message, 'ok');
+    else console.log(message);
+  }
 }
 
 // Initialize
@@ -836,8 +842,11 @@ function closeSidebar() {
   if (overlay) overlay.classList.remove('open');
 }
 
-function logout() {
-  if (confirm('Êtes-vous sûr de vouloir vous déconnecter?')) {
+async function logout() {
+  const ok = window.SuroToast
+    ? await window.SuroToast.confirm('Êtes-vous sûr de vouloir vous déconnecter ?', { title: 'Déconnexion', okLabel: 'Se déconnecter' })
+    : confirm('Êtes-vous sûr de vouloir vous déconnecter?');
+  if (ok) {
     window.SURO_API.logout();
     window.location.href = ADMIN_LOGIN_PAGE;
   }

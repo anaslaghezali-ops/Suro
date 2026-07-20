@@ -36,9 +36,8 @@
 
 .btn-primary:hover:not(:disabled) {
   background: var(--color-primary-hover);
-  transform: translateY(-3px) scale(1.01);
-  box-shadow: var(--shadow-premium);
-  transition: var(--transition-smooth);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 /* Secondary / Ghost */
@@ -51,9 +50,6 @@
 .btn-ghost:hover:not(:disabled) {
   background: var(--color-neutral-100);
   border-color: var(--color-primary);
-  transform: translateY(-3px) scale(1.01);
-  box-shadow: var(--shadow-elevated);
-  transition: var(--transition-smooth);
 }
 
 /* Sizes */

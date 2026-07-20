@@ -336,7 +336,11 @@ Migration `20260720_ops_phase0_foundations.sql` appliquée (voir `docs/migration
 - Écran **Documents** : bibliothèque (recherche/filtre par statut), slide-over avec **aperçu image/PDF**, téléchargement, **Valider / Refuser** (motif obligatoire au refus).
 - Vérifié au navigateur : 11/11, 0 erreur.
 
+### 13.4ter Phase 5 (Utilisateurs) — ✅ FAIT
+- RPC `suro_list_staff()` / `suro_set_staff(email, role)` / `suro_remove_staff(email)` (SECURITY DEFINER, réservés super_admin), **audit** + **garde anti-verrouillage** (impossible de retirer/rétrograder le dernier super_admin). Anciennes fonctions admin conservées pour le legacy.
+- Écran **Utilisateurs** (super_admin uniquement) : ajout/mise à jour d'un collaborateur (email + rôle), liste staff avec changement de rôle inline et retrait. Vérifié navigateur : 14/14.
+
 ### 13.5 Prochaines étapes proposées
-- **Phase 5** : Utilisateurs (CRUD staff + rôles via nouveau RPC `suro_list_staff`), Paramètres.
+- **Paramètres** : infos plateforme, contacts support (existant), modèles emails/notifications.
 - **Polish** : Command Palette (Cmd-K), vues sauvegardées, actions groupées.
 - **Cleanup** : retirer l'admin legacy `/backoffice` une fois la config tarifaire reprise (avec le courtier).

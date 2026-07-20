@@ -34,6 +34,11 @@ export const api = {
   updateApplication: (id, fields) => SB().adminUpdateApplication(id, fields),
   updateApplicationStatus: (id, status) => SB().adminUpdateApplicationStatus(id, status),
 
+  // --- staff (super_admin) ---
+  listStaff: () => rpc('suro_list_staff'),
+  setStaff: (email, role) => rpc('suro_set_staff', { p_email: email, p_role: role }),
+  removeStaff: (email) => rpc('suro_remove_staff', { p_email: email }),
+
   // --- documents ---
   allDocuments: () => SB().adminGetDocuments(),
   reviewDocument: (id, status, reason) =>

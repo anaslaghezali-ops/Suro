@@ -9,17 +9,27 @@ const authRoutes = require('./routes/auth');
 const contractsRoutes = require('./routes/contracts');
 const claimsRoutes = require('./routes/claims');
 const contactRoutes = require('./routes/contact');
+const productsRoutes = require('./routes/products');
+const applicationsRoutes = require('./routes/applications');
+const vehiclesRoutes = require('./routes/vehicles');
+const adminRoutes = require('./routes/admin');
+const customerRoutes = require('./routes/customer');
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('../frontend'));
+app.use(express.static('../'));
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/contracts', contractsRoutes);
 app.use('/api/claims', claimsRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/products', productsRoutes);
+app.use('/api/applications', applicationsRoutes);
+app.use('/api/vehicles', vehiclesRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/customer', customerRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

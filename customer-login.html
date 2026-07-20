@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SURO — Connexion Client</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .auth-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 40px 32px;
+      box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .auth-logo {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--color-primary);
+      margin-bottom: 8px;
+    }
+
+    .auth-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--color-neutral-900);
+      margin-bottom: 8px;
+    }
+
+    .auth-subtitle {
+      font-size: 14px;
+      color: var(--color-neutral-600);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: var(--color-neutral-900);
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--color-neutral-200);
+      border-radius: var(--radius-md);
+      font-size: 16px;
+      font-family: inherit;
+      transition: all 200ms ease;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+    }
+
+    .form-group input::placeholder {
+      color: var(--color-neutral-400);
+    }
+
+    .error-message {
+      color: var(--color-error);
+      font-size: 13px;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .remember-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+
+    .remember-group input[type="checkbox"] {
+      width: auto;
+      margin-right: 6px;
+    }
+
+    .forget-password {
+      color: var(--color-primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 200ms ease;
+    }
+
+    .forget-password:hover {
+      text-decoration: underline;
+    }
+
+    .form-group button {
+      width: 100%;
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 14px;
+      color: var(--color-neutral-600);
+    }
+
+    .auth-footer a {
+      color: var(--color-primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 200ms ease;
+    }
+
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .loading-spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+
+    .btn-loading {
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 640px) {
+      .auth-card {
+        padding: 32px 20px;
+      }
+
+      .auth-title {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo">SURO</div>
+        <h1 class="auth-title">Connexion</h1>
+        <p class="auth-subtitle">Accédez à votre espace client</p>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="email">Adresse Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="votre@email.com"
+            autocomplete="email"
+            required
+          >
+          <div class="error-message" id="email-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Mot de Passe</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Votre mot de passe"
+            autocomplete="current-password"
+            required
+          >
+          <div class="error-message" id="password-error"></div>
+        </div>
+
+        <div class="remember-group">
+          <label>
+            <input type="checkbox" name="remember" value="true">
+            <span>Se souvenir de moi</span>
+          </label>
+          <a href="reset-password.html" class="forget-password">Mot de passe oublié?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="position: relative; overflow: hidden;">
+          <span class="loading-spinner" id="spinner"></span>
+          <span id="button-text">Se Connecter</span>
+        </button>
+
+        <div class="error-message" id="form-error"></div>
+      </form>
+
+      <div class="auth-footer">
+        Pas encore inscrit? <a href="/customer-signup.html">Créer un compte</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/services/api.js?v=14"></script>
+  <script>
+    const form = document.getElementById('login-form');
+    const spinner = document.getElementById('spinner');
+    const buttonText = document.getElementById('button-text');
+    const formError = document.getElementById('form-error');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Clear errors
+      document.querySelectorAll('.error-message').forEach(el => {
+        el.classList.remove('show');
+        el.textContent = '';
+      });
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      // Show loading state
+      spinner.style.display = 'inline-block';
+      buttonText.textContent = 'Connexion en cours...';
+      form.querySelector('button').disabled = true;
+
+      try {
+        await window.SURO_API.login(email, password);
+
+        // Redirect to dashboard
+        window.location.href = 'backoffice/customer/';
+      } catch (error) {
+        let message = error.message || 'Erreur de connexion';
+        if (/invalid login credentials/i.test(message)) {
+          message = 'Email ou mot de passe incorrect';
+        } else if (/email not confirmed/i.test(message)) {
+          message = 'Confirme ton email avant de te connecter (vérifie ta boîte mail)';
+        }
+        formError.textContent = message;
+        formError.classList.add('show');
+      } finally {
+        spinner.style.display = 'none';
+        buttonText.textContent = 'Se Connecter';
+        form.querySelector('button').disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

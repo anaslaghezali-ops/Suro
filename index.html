@@ -1,258 +1,423 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SURO - Assurance Auto Digitalisée</title>
-    <link rel="stylesheet" href="css/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="T'es couvert en 5 min. Assurance auto, simple et directe.">
+  <title>SURO — Assurance Protection</title>
+  <link rel="stylesheet" href="css/tokens.css?v=16">
+  <link rel="stylesheet" href="css/components.css?v=16">
+  <link rel="stylesheet" href="css/main.css?v=16">
 </head>
 <body>
-    <!-- HEADER -->
-    <header class="header">
-        <div class="header-container">
-            <a href="#" class="logo">
-                <svg viewBox="0 0 40 40">
-                    <rect width="40" height="40" rx="8" fill="#3b82f6"/>
-                    <circle cx="20" cy="16" r="4" fill="white"/>
-                    <path d="M12 24c0-4 3-7 8-7s8 3 8 7" stroke="white" stroke-width="2" fill="none"/>
-                </svg>
-                <span>SURO</span>
-            </a>
-            <nav class="nav">
-                <a href="#" data-page="home">Accueil</a>
-                <a href="#" data-page="offers">Offres</a>
-                <a href="#" data-page="faq">FAQ</a>
-                <a href="#" data-page="contact">Contact</a>
-            </nav>
-            <button class="btn btn-primary" data-page="dashboard">Espace Client</button>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">SURO</div>
+      <nav class="nav">
+        <a href="#" class="active">Auto</a>
+        <a href="#" style="opacity: 0.5;">Habitation</a>
+        <a href="#" style="opacity: 0.5;">Voyage</a>
+        <a href="#" style="opacity: 0.5;">Santé</a>
+      </nav>
+      <div class="header-actions">
+        <a href="customer-login.html" class="btn btn-primary btn-sm" style="text-decoration: none;">Mon espace</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Assurance auto<br>en 5 minutes</h1>
+        <h2>Zéro prise de tête</h2>
+        <p class="hero-description">Pas de formulaire compliqué. Pas de jargon d'assureur. On analyse ta voiture, on te propose une couverture fair. Première quittance demain.</p>
+
+        <button class="btn btn-primary btn-lg btn-pulse" onclick="window.SURO_API&&window.SURO_API.track('cta_hero_click');document.querySelector('.tunnel-section').scrollIntoView({behavior: 'smooth'})">
+          ✓ Obtenir ma couverture en 5 min
+        </button>
+        <p style="font-size: 12px; color: var(--color-neutral-600); margin-top: 16px;">
+          ⭐ 5234 clients assurés • ✓ Processus 100% sécurisé
+        </p>
+      </div>
+    </section>
+
+    <!-- WHY SURO -->
+    <section class="section section-light">
+      <div class="section-content">
+        <h2 class="section-title">Pourquoi SURO?</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Rapide</h3>
+            <p>5 minutes seulement. Pas de paperasse, pas d'attente.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">💰</div>
+            <h3>Transparent</h3>
+            <p>Prix transparent et personnalisé selon ta couverture. Aucune surprise, aucun frais caché.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🛡️</div>
+            <h3>Couverture complète</h3>
+            <p>Vol, Incendie, RC, Assistance 24/7. Tout inclus.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📱</div>
+            <h3>100% Digital</h3>
+            <p>Souscris depuis ton téléphone. Carte verte dans ton email.</p>
+          </div>
         </div>
-    </header>
+      </div>
+    </section>
 
-    <main>
-        <!-- HOME PAGE -->
-        <section id="home" class="active">
-            <div class="hero">
-                <div class="container">
-                    <h1>Assurance Auto en 5 Minutes</h1>
-                    <p style="font-size:20px;margin-bottom:2rem;">100% digitalisée, sans agence, sans attente</p>
-                    <div class="hero-buttons">
-                        <button class="btn btn-primary btn-large">Souscrire</button>
-                        <button class="btn btn-large" style="background:white;color:#3b82f6;border:2px solid #3b82f6;">Voir offres</button>
-                    </div>
-                    <div class="hero-features">
-                        <div>✓ 5 minutes</div>
-                        <div>✓ Sans agence</div>
-                        <div>✓ 24/7</div>
-                    </div>
-                </div>
+    <!-- TRUST SIGNALS -->
+    <section class="section section-trust">
+      <div class="section-content">
+        <h2 class="section-title section-title-trust">Nous sommes certifiés & sécurisés</h2>
+        <div class="trust-grid">
+          <div class="trust-badge">
+            <div class="trust-icon">🏛️</div>
+            <div class="trust-label">Agréé CNIA</div>
+            <div class="trust-desc">Société d'assurance agréée par le marché marocain</div>
+          </div>
+          <div class="trust-badge">
+            <div class="trust-icon">🔒</div>
+            <div class="trust-label">Sécurisé SSL</div>
+            <div class="trust-desc">Tes données protégées par chiffrement 256-bit</div>
+          </div>
+          <div class="trust-badge">
+            <div class="trust-icon">⚡</div>
+            <div class="trust-label">Traitement rapide</div>
+            <div class="trust-desc">Carte verte émise en moins de 24h</div>
+          </div>
+          <div class="trust-badge">
+            <div class="trust-icon">📱</div>
+            <div class="trust-label">100% Digital</div>
+            <div class="trust-desc">Pas de paperasse, tout depuis ton téléphone</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="section section-testimonials">
+      <div class="section-content">
+        <h2 class="section-title">Des milliers de Marocains nous font confiance</h2>
+        <div class="testimonials-grid">
+          <div class="testimonial-card">
+            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+            <p class="testimonial-text">"J'ai reçu ma carte verte en 3 minutes. Aucune prise de tête, c'était exactement ce qu'il fallait."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">SM</div>
+              <div>
+                <div class="testimonial-name">Samir M.</div>
+                <div class="testimonial-role">Casablanca, Maroc</div>
+              </div>
             </div>
+          </div>
 
-            <!-- STATS -->
-            <section class="stats">
-                <div class="stats-grid">
-                    <div class="stat">
-                        <div class="stat-number">50K+</div>
-                        <p class="stat-label">Clients</p>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number">2K+</div>
-                        <p class="stat-label">Sinistres</p>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number">4.8/5</div>
-                        <p class="stat-label">Note</p>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number">24/7</div>
-                        <p class="stat-label">Support</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- FEATURES -->
-            <section class="features">
-                <h2>Pourquoi SURO?</h2>
-                <div class="features-grid">
-                    <div class="feature">
-                        <div class="feature-icon">⚡</div>
-                        <h3>Rapide</h3>
-                        <p class="text-muted">Souscrivez en 5 minutes</p>
-                    </div>
-                    <div class="feature">
-                        <div class="feature-icon">💰</div>
-                        <h3>Transparent</h3>
-                        <p class="text-muted">Pas de frais cachés</p>
-                    </div>
-                    <div class="feature">
-                        <div class="feature-icon">📱</div>
-                        <h3>Digital</h3>
-                        <p class="text-muted">100% en ligne</p>
-                    </div>
-                    <div class="feature">
-                        <div class="feature-icon">🛡️</div>
-                        <h3>Sécurisé</h3>
-                        <p class="text-muted">Partenaire Sanlam</p>
-                    </div>
-                </div>
-            </section>
-        </section>
-
-        <!-- OFFERS PAGE -->
-        <section id="offers" class="offers">
-            <h2>Nos Offres</h2>
-            <div class="offers-grid">
-                <div class="offer-card">
-                    <h3>RC</h3>
-                    <p class="offer-price">1 200 DH</p>
-                    <button class="btn btn-primary">Choisir</button>
-                </div>
-                <div class="offer-card recommended">
-                    <div class="offer-badge">Recommandé</div>
-                    <h3>Tiers</h3>
-                    <p class="offer-price">3 500 DH</p>
-                    <button class="btn btn-primary">Choisir</button>
-                </div>
-                <div class="offer-card">
-                    <h3>Tous risques</h3>
-                    <p class="offer-price">5 500 DH</p>
-                    <button class="btn btn-primary">Choisir</button>
-                </div>
+          <div class="testimonial-card">
+            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+            <p class="testimonial-text">"Le meilleur prix du marché. J'ai comparé avec 3 autres assureurs, SURO gagne haut la main."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">FB</div>
+              <div>
+                <div class="testimonial-name">Fatima B.</div>
+                <div class="testimonial-role">Fès, Maroc</div>
+              </div>
             </div>
-        </section>
+          </div>
 
-        <!-- FAQ PAGE -->
-        <section id="faq" class="faq">
-            <h2>FAQ</h2>
-            <div class="faq-container">
-                <details class="faq-item">
-                    <summary>Combien de temps pour souscrire?</summary>
-                    <p>La souscription prend environ 5 minutes en moyenne. C'est rapide et simple!</p>
-                </details>
-                <details class="faq-item">
-                    <summary>Quels documents me faut-il?</summary>
-                    <p>Vous avez besoin de votre immatriculation et vos documents d'identité.</p>
-                </details>
-                <details class="faq-item">
-                    <summary>Puis-je modifier mon contrat?</summary>
-                    <p>Oui, vous pouvez modifier votre couverture à tout moment dans votre espace client.</p>
-                </details>
-                <details class="faq-item">
-                    <summary>Comment faire un sinistre?</summary>
-                    <p>Connectez-vous à votre espace client et cliquez sur "Déclarer un sinistre".</p>
-                </details>
+          <div class="testimonial-card">
+            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+            <p class="testimonial-text">"L'assistance 24/7 m'a sauvé la vie lors d'un accident. Réponse en 10 minutes, ils étaient là en 30."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">KA</div>
+              <div>
+                <div class="testimonial-name">Karim A.</div>
+                <div class="testimonial-role">Rabat, Maroc</div>
+              </div>
             </div>
-        </section>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <!-- CONTACT PAGE -->
-        <section id="contact" class="contact">
-            <h2>Nous Contacter</h2>
-            <div class="contact-container">
-                <div class="contact-info">
-                    <strong>Email:</strong> <a href="mailto:support@suro.ma">support@suro.ma</a>
-                </div>
-                <div class="contact-info">
-                    <strong>Tél:</strong> <a href="tel:+212522123456">+212 5 22 12 34 56</a>
-                </div>
-                <div class="contact-info">
-                    <strong>Adresse:</strong> Casablanca, Maroc
-                </div>
+    <!-- GUARANTEES -->
+    <section class="section section-light">
+      <div class="section-content">
+        <h2 class="section-title">Nos garanties</h2>
+        <div class="guarantees-grid">
+          <div class="guarantee-item">
+            <div class="guarantee-icon">💰</div>
+            <h3>Meilleur prix garantie</h3>
+            <p>Nous vous remboursons la différence si vous trouvez moins cher ailleurs</p>
+          </div>
+          <div class="guarantee-item">
+            <div class="guarantee-icon">⏱️</div>
+            <h3>Résiliation sans frais</h3>
+            <p>Tu peux arrêter quand tu veux, sans pénalité ni engagement</p>
+          </div>
+          <div class="guarantee-item">
+            <div class="guarantee-icon">✨</div>
+            <h3>Satisfaction 100%</h3>
+            <p>30 jours pour te faire rembourser intégralement si tu n'es pas satisfait</p>
+          </div>
+          <div class="guarantee-item">
+            <div class="guarantee-icon">🚗</div>
+            <h3>Assistance immédiate</h3>
+            <p>En cas de problème, on t'envoie un expert en moins d'une heure</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section">
+      <div class="section-content">
+        <h2 class="section-title">Comment ça marche?</h2>
+        <div class="steps-grid">
+          <div class="step">
+            <div class="step-number">1</div>
+            <h3>Immatriculation</h3>
+            <p>Tu nous donnes le numéro de ta voiture.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <h3>Couverture</h3>
+            <p>On te propose la meilleure assurance pour ton véhicule.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <h3>Paiement</h3>
+            <p>Tu payes. Première quittance demain matin.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">4</div>
+            <h3>Couvert</h3>
+            <p>Carte verte dans ton email. T'es assuré.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOCIAL PROOF -->
+    <section class="section">
+      <div class="section-content">
+        <h2 class="section-title">Ils nous font confiance</h2>
+        <div class="social-proof-stats">
+          <div class="stat-card">
+            <div class="stat-number" data-target="5234">0</div>
+            <div class="stat-label">Clients assurés</div>
+            <div class="stat-subtext">cette année</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" data-target="4.8">0</div>
+            <div class="stat-label">Note moyenne</div>
+            <div class="stat-subtext">sur 5 étoiles</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" data-target="98">0</div>
+            <div class="stat-label">Satisfaction</div>
+            <div class="stat-subtext">clients heureux %</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" data-target="2.5">0</div>
+            <div class="stat-label">Temps moyen</div>
+            <div class="stat-subtext">pour s'assurer (min)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPARISON -->
+    <section class="section section-comparison">
+      <div class="section-content">
+        <h2 class="section-title">Pourquoi SURO plutôt que les autres?</h2>
+        <div class="comparison-table-wrapper">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Critère</th>
+                <th>SURO <span class="comparison-badge">⭐ MEILLEUR</span></th>
+                <th>Concurrents</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="comparison-row-yes">
+                <td class="comparison-feature">Temps de souscription</td>
+                <td><strong>5 minutes</strong></td>
+                <td>20-40 minutes</td>
+              </tr>
+              <tr>
+                <td class="comparison-feature">Formulaire simplifié</td>
+                <td><span class="comparison-check">✓</span></td>
+                <td><span class="comparison-cross">✗</span></td>
+              </tr>
+              <tr class="comparison-row-yes">
+                <td class="comparison-feature">Tarification transparente</td>
+                <td><strong>Oui</strong></td>
+                <td>Frais cachés possibles</td>
+              </tr>
+              <tr>
+                <td class="comparison-feature">Assistance 24/7</td>
+                <td><span class="comparison-check">✓</span></td>
+                <td><span class="comparison-check">✓</span></td>
+              </tr>
+              <tr class="comparison-row-yes">
+                <td class="comparison-feature">Résiliation sans frais</td>
+                <td><span class="comparison-check">✓</span></td>
+                <td><span class="comparison-cross">✗</span></td>
+              </tr>
+              <tr>
+                <td class="comparison-feature">100% Digital</td>
+                <td><span class="comparison-check">✓</span></td>
+                <td>Partiellement</td>
+              </tr>
+              <tr class="comparison-row-yes">
+                <td class="comparison-feature">Carte verte instant</td>
+                <td><strong>2 minutes</strong></td>
+                <td>24-48 heures</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ SECTION -->
+    <section class="section section-faq">
+      <div class="section-content">
+        <h2 class="section-title">Questions fréquentes</h2>
+        <div class="faq-grid">
+          <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+              <span>Comment fonctionne le processus d'assurance?</span>
+              <span class="faq-toggle">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>Tu remplis un formulaire de 4 questions (2 minutes), tu choisis ta couverture, tu payes, et hop! Ta carte verte est prête à l'emploi. Zéro prise de tête.</p>
             </div>
-        </section>
+          </div>
 
-        <!-- AUTH PAGE -->
-        <section id="auth">
-            <div class="auth-container">
-                <h2>Connexion</h2>
-                <form id="loginForm" class="form-group">
-                    <input type="email" id="loginEmail" class="form-input" placeholder="Email" required>
-                    <input type="password" id="loginPassword" class="form-input" placeholder="Mot de passe" required>
-                    <button type="submit" class="btn btn-primary btn-large" style="width:100%;">Se connecter</button>
-                </form>
-                <div class="auth-switch">
-                    <p>Pas encore inscrit? <a onclick="document.getElementById('loginForm').style.display='none'; document.getElementById('signupForm').style.display='grid';">S'inscrire</a></p>
-                </div>
-
-                <form id="signupForm" class="form-group" style="display:none;">
-                    <input type="text" name="first_name" class="form-input" placeholder="Prénom" required>
-                    <input type="text" name="last_name" class="form-input" placeholder="Nom" required>
-                    <input type="email" name="email" class="form-input" placeholder="Email" required>
-                    <input type="tel" name="phone" class="form-input" placeholder="Téléphone">
-                    <input type="password" name="password" class="form-input" placeholder="Mot de passe" required>
-                    <button type="submit" class="btn btn-primary btn-large" style="width:100%;">S'inscrire</button>
-                </form>
-                <div class="auth-switch" id="switchToLogin" style="display:none;">
-                    <p>Déjà inscrit? <a onclick="document.getElementById('signupForm').style.display='none'; document.getElementById('loginForm').style.display='grid'; document.getElementById('switchToLogin').style.display='none';">Se connecter</a></p>
-                </div>
+          <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+              <span>Qu'est-ce qui est inclus dans la couverture complète?</span>
+              <span class="faq-toggle">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>Vol et vandalisme, Dégâts et incendie, Responsabilité civile illimitée, Assistance 24/7 (dépannage, remorquage), Zéro franchise.</p>
             </div>
-        </section>
+          </div>
 
-        <!-- SUBSCRIBE PAGE -->
-        <section id="subscribe">
-            <div class="subscribe-container">
-                <h1>Souscrire une Assurance</h1>
-                <form id="subscribeForm" class="subscribe-form">
-                    <div class="form-section">
-                        <h3>Véhicule</h3>
-                        <input type="text" name="registration_number" class="form-input" placeholder="Immatriculation" required>
-                        <input type="text" name="make" class="form-input" placeholder="Marque" required>
-                        <input type="text" name="model" class="form-input" placeholder="Modèle" required>
-                        <input type="number" name="year" class="form-input" placeholder="Année" required>
-                    </div>
-
-                    <div class="form-section">
-                        <h3>Plan d'assurance</h3>
-                        <div class="plan-options">
-                            <label class="plan-option">
-                                <input type="radio" name="plan_id" value="rc" required>
-                                <span>RC Obligatoire - 1 200 DH/an</span>
-                            </label>
-                            <label class="plan-option">
-                                <input type="radio" name="plan_id" value="tiers" checked>
-                                <span>Tiers - 3 500 DH/an</span>
-                            </label>
-                            <label class="plan-option">
-                                <input type="radio" name="plan_id" value="tous-risques">
-                                <span>Tous Risques - 5 500 DH/an</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-large" style="width:100%;">Souscrire</button>
-                </form>
+          <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+              <span>Puis-je annuler mon assurance quand je veux?</span>
+              <span class="faq-toggle">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>Oui, sans frais et sans engagement. Tu peux résilier quand tu veux, sans pénalité. On fait simple chez SURO.</p>
             </div>
-        </section>
+          </div>
 
-        <!-- DASHBOARD PAGE -->
-        <section id="dashboard">
-            <div class="dashboard-container">
-                <div class="dashboard-header">
-                    <h1>Mon Espace SURO</h1>
-                    <button class="btn btn-secondary" onclick="app.logout()">Déconnexion</button>
-                </div>
-                <div class="dashboard-grid">
-                    <div class="dashboard-card">
-                        <h3>📋 Mes contrats</h3>
-                        <div data-section="contracts" class="no-data">Chargement...</div>
-                    </div>
-                    <div class="dashboard-card">
-                        <h3>🛟 Mes sinistres</h3>
-                        <div data-section="claims" class="no-data">Chargement...</div>
-                    </div>
-                    <div class="dashboard-card">
-                        <h3>⚙️ Actions</h3>
-                        <button class="btn btn-primary" data-page="subscribe" style="width:100%;margin-bottom:0.75rem;">➕ Nouvelle assurance</button>
-                        <button class="btn btn-secondary" style="width:100%;">📋 Déclarer sinistre</button>
-                    </div>
-                </div>
+          <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+              <span>Combien de temps avant de recevoir ma carte verte?</span>
+              <span class="faq-toggle">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>Immédiatement! Tu télécharges ta carte verte en PDF dès la fin du paiement. Elle t'est aussi envoyée par email. La première quittance arrive demain.</p>
             </div>
-        </section>
-    </main>
+          </div>
 
-    <!-- FOOTER -->
-    <footer>
-        <p>&copy; 2026 SURO - Assurance Auto Digitalisée | Partenaire: Sanlam Maroc</p>
-    </footer>
+          <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+              <span>Mes données sont-elles sécurisées?</span>
+              <span class="faq-toggle">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>100%. Nous utilisons le chiffrement SSL 256-bit et respectons la norme PCI-DSS. Tes données ne sont jamais stockées localement et sont traitées par des serveurs sécurisés.</p>
+            </div>
+          </div>
 
-    <script src="app.js"></script>
+          <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+              <span>Comment fonctionne l'assistance 24/7?</span>
+              <span class="faq-toggle">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>En cas de sinistre, appelle notre hotline 24/7 (numéro sur ta carte verte). Un expert t'est envoyé dans le délai le plus court. Nous traitons aussi les cas urgents par SMS/WhatsApp.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FORM SECTION -->
+    <section class="tunnel-section" id="souscrire">
+      <div class="tunnel-wrapper">
+        <!-- Formulaire multi-étapes rendu par tunnel.js -->
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER MINIMALE -->
+  <footer class="footer">
+    <p>© 2026 SURO. <a href="conditions.html">Conditions</a> • <a href="confidentialite.html">Confidentialité</a> • <a href="mailto:support@suro.ma">Contact</a></p>
+  </footer>
+
+  <!-- CTA STICKY MOBILE : visible tant que le tunnel n'est pas à l'écran -->
+  <div class="sticky-cta" id="sticky-cta">
+    <button class="btn btn-primary" onclick="window.SURO_API&&window.SURO_API.track('cta_sticky_click');document.querySelector('.tunnel-section').scrollIntoView({behavior: 'smooth'})">
+      Voir mon prix →
+    </button>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="js/store.js?v=16"></script>
+  <script src="js/services/api.js?v=16"></script>
+  <script src="js/features/onboarding/tunnel.js?v=16"></script>
+  <script>
+    // Masque le CTA sticky quand le tunnel est visible (mobile)
+    (function () {
+      const cta = document.getElementById('sticky-cta');
+      const tunnel = document.querySelector('.tunnel-section');
+      if (!cta || !tunnel || !('IntersectionObserver' in window)) return;
+      new IntersectionObserver(function (entries) {
+        cta.classList.toggle('hidden', entries[0].isIntersecting);
+      }, { threshold: 0.15 }).observe(tunnel);
+    })();
+  </script>
+  <script>
+    // Animate stats counter on scroll into view
+    const observerOptions = { threshold: 0.3 };
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !entry.target.dataset.animated) {
+          entry.target.dataset.animated = 'true';
+          const target = parseFloat(entry.target.dataset.target);
+          const element = entry.target;
+          const duration = 2000;
+          const start = 0;
+          const increment = target / (duration / 16);
+          let current = 0;
+
+          const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+              element.textContent = target.toLocaleString('fr-FR');
+              clearInterval(timer);
+            } else {
+              element.textContent = Math.floor(current).toLocaleString('fr-FR');
+            }
+          }, 16);
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.stat-number').forEach(el => observer.observe(el));
+  </script>
 </body>
 </html>

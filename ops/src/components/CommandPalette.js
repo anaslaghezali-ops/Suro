@@ -52,7 +52,7 @@ export function CommandPalette({ role }) {
     const clients = (data.customers || []).filter((c) =>
       [c.name, c.email, c.phone].map((x) => String(x || '').toLowerCase()).join(' ').includes(needle)
     ).slice(0, 5).map((c) => ({
-      key: 'cli-' + c.email, icon: '☺', label: c.name ? `${c.name} · ${c.email}` : c.email, hint: 'Client', go: 'clients',
+      key: 'cli-' + c.email, icon: '☺', label: c.name ? `${c.name} · ${c.email}` : c.email, hint: 'Client', go: 'clients/' + encodeURIComponent(c.email),
     }));
     entityItems = [...subs, ...clients];
   }

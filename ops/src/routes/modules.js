@@ -11,23 +11,7 @@ function Page({ title, subtitle, children }) {
 }
 function Loading() { return html`<div style="padding:40px"><${Spinner}/></div>`; }
 
-/* ---------------- CLIENTS ---------------- */
-export function Clients() {
-  const { data, loading, error } = useAsync(() => api.customers().catch(() => []), []);
-  if (loading) return html`<${Loading}/>`;
-  if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;
-  const columns = [
-    { key: 'name', label: 'Nom', sortable: true, render: (c) => c.name || html`<span class="muted">—</span>` },
-    { key: 'email', label: 'Email', sortable: true },
-    { key: 'phone', label: 'Téléphone', render: (c) => c.phone || html`<span class="muted">—</span>` },
-    { key: 'contracts', label: 'Contrats', sortable: true },
-    { key: 'registered_at', label: 'Inscrit le', sortable: true, render: (c) => fmtDate(c.registered_at) },
-    { key: 'is_admin', label: '', render: (c) => c.is_admin ? html`<${Badge} tone="blue">staff<//>` : null },
-  ];
-  return html`<${Page} title="Clients" subtitle="Comptes clients inscrits (avec ou sans contrat).">
-    <div class="card"><${DataTable} columns=${columns} rows=${data || []} searchKeys=${['name', 'email', 'phone']} /></div>
-  <//>`;
-}
+/* Clients : voir routes/clients.js (fiche client 360). */
 
 /* ---------------- CONTRATS (souscriptions actives/expirées) ---------------- */
 export function Contracts() {

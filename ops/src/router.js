@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'preact/hooks';
 import { Dashboard } from './routes/dashboard.js';
 import { Subscriptions } from './routes/subscriptions.js';
-import { Clients, Contracts, Payments, Audit } from './routes/modules.js';
+import { Contracts, Payments, Audit } from './routes/modules.js';
+import { Clients } from './routes/clients.js';
 import { Claims } from './routes/claims.js';
 import { Documents } from './routes/documents.js';
 import { Users } from './routes/users.js';

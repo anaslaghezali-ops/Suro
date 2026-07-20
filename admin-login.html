@@ -87,7 +87,7 @@
     </div>
   </div>
 
-  <script src="js/services/api.js?v=14"></script>
+  <script src="js/services/api.js?v=17"></script>
   <script>
     const form = document.getElementById('login-form');
     const spinner = document.getElementById('spinner');
@@ -116,15 +116,15 @@
       try {
         await window.SURO_API.login(email, password);
 
-        // Vérifie que ce compte est bien admin
-        const admin = await window.SURO_API.isAdmin();
-        if (!admin) {
+        // Vérifie que ce compte fait partie de l'équipe SURO (tout rôle)
+        const staff = await window.SURO_API.isStaff();
+        if (!staff) {
           await window.SURO_API.logout();
-          showError('Ce compte n\'a pas les droits administrateur.');
+          showError('Ce compte n\'a pas accès à l\'espace équipe.');
           return;
         }
 
-        window.location.href = 'backoffice/';
+        window.location.href = 'ops/';
       } catch (error) {
         let message = error.message || 'Erreur de connexion';
         if (/invalid login credentials/i.test(message)) {

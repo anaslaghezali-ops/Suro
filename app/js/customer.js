@@ -3,7 +3,7 @@
  * Fonctionne en hébergement statique (GitHub Pages).
  */
 
-const LOGIN_PAGE = '../../customer-login.html';
+const LOGIN_PAGE = '../customer-login.html';
 
 // ⚠️ À personnaliser par l'équipe SURO : numéros officiels du support
 const SUPPORT_PHONE = '+212600000000';
@@ -360,7 +360,7 @@ class CustomerDashboard {
   newSubscription() {
     localStorage.removeItem('suroTunnelPrefill');
     localStorage.removeItem('suro-state'); // repart d'un tunnel propre
-    window.location.href = '../../index.html#souscrire';
+    window.location.href = '../index.html#souscrire';
   }
 
   // Renouveler : PROLONGE le contrat existant d'un an (même contrat)

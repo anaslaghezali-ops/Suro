@@ -432,6 +432,20 @@ class API {
     }
   }
 
+  // Membre de l'équipe SURO (tout rôle : super_admin, admin, operations, support)
+  static async isStaff() {
+    try {
+      const result = await this.sb('/rest/v1/rpc/is_suro_staff', {
+        method: 'POST',
+        asUser: true,
+        body: JSON.stringify({}),
+      });
+      return result === true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   static adminGetApplications() {
     return this.sb('/rest/v1/insurance_applications?select=*&order=created_at.desc', {
       asUser: true,

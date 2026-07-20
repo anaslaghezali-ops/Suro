@@ -1016,7 +1016,7 @@ class OnboardingForm {
 
   handleGoToSpace() {
     if (this.accountStatus === 'logged_in') {
-      window.location.href = 'backoffice/customer/';
+      window.location.href = 'app/';
     } else {
       // Compte créé mais email non confirmé : passage par la connexion
       window.location.href = 'customer-login.html';

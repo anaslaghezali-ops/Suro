@@ -322,8 +322,16 @@ Migration `20260720_ops_phase0_foundations.sql` appliquée (voir `docs/migration
 - **Souscriptions** : colonnes `assigned_to`, `policy_number` (unique si présent).
 - **Advisors sécurité** vérifiés : pas de régression ; les warnings `security_definer_function_executable` suivent le pattern déjà présent sur tous les RPC du projet et chaque fonction est protégée par un garde interne.
 
-### 13.3 Prochaine étape — Phase 1 (socle Ops, no-build)
-1. Vendoriser `preact`, `preact/hooks`, `htm` dans `/ops/vendor/` + `importmap` dans `ops/index.html`.
-2. Layout Ops + router client (hash ou History API) + garde `is_suro_staff` + menu piloté par `suro_current_role()`.
-3. Composants socle : `DataTable`, `SlideOver`, `CommandPalette`, `StatusBadge`, `RoleGuard`.
-4. Enchaîner sur le module **Souscriptions** (Phase 2).
+### 13.3 Phase 1 — ✅ FAIT (socle Ops + séparation des portails)
+- **No-build** : Preact + hooks + htm **vendorisés** (`ops/vendor/preact-htm-standalone.module.js`, 13 KB) + `importmap`.
+- **Socle** : layout `/ops`, router hash, garde `is_suro_staff`, menu piloté par `suro_current_role()`, composants `DataTable` / `SlideOver` / `Badge` / `Toast`, hook `useAsync`.
+- **Écrans** : Dashboard (KPIs + file « à traiter » + activité), **Souscriptions** (liste + fiche dossier slide-over éditable), Clients / Contrats / Paiements / Sinistres / Journal (fonctionnels), Documents / Utilisateurs / Paramètres (stubs Phases 3/5).
+- **Séparation** : portail client déplacé `backoffice/customer/` → **`/app/`** (autonome, CSS copié), redirection depuis l'ancienne URL. `admin-login` vérifie désormais `is_suro_staff` et redirige vers **`/ops/`**. Tunnel/login/signup repointés vers `/app/`.
+- **Tarification préservée** : lien vers l'admin legacy (`/backoffice/#settings`) depuis le stub Paramètres ; aucun écran tarifaire touché.
+- **Vérifié au navigateur** (Chromium headless, API mockée) : `/ops` 8/8, `/app` 5/5, 0 erreur (hors avatar externe bloqué par le bac à sable).
+
+### 13.4 Prochaines étapes proposées
+- **Phase 3** : Documents (aperçu + validation/refus, statut déjà en base).
+- **Phase 5** : Utilisateurs (CRUD staff + rôles via nouveau RPC `suro_list_staff`), Paramètres.
+- **Polish** : Command Palette (Cmd-K), vues sauvegardées, actions groupées.
+- **Cleanup** : retirer l'admin legacy `/backoffice` une fois la config tarifaire reprise (avec le courtier).

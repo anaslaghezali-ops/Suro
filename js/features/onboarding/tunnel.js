@@ -426,13 +426,8 @@ class OnboardingForm {
       let allValid = true;
       field.fields.forEach((sub) => {
         const input = document.querySelector(`#field-${sub.id}`);
-        const subErrorEl = document.querySelector(`#error-${sub.id}`);
         const val = input ? input.value.trim() : '';
-
-        if (subErrorEl) {
-          subErrorEl.textContent = '';
-          subErrorEl.classList.remove('show');
-        }
+        this.clearFieldError(sub.id);
 
         const validation = sub.validate ? sub.validate(val) : true;
         if (validation !== true) {

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SURO — Operations</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=16">
+  <link rel="stylesheet" href="styles/ops.css?v=3">
+
+  <!-- No-build : Preact + hooks + htm vendorisés, exposés via import map -->
+  <script type="importmap">
+  {
+    "imports": {
+      "preact": "./vendor/preact-htm-standalone.module.js",
+      "preact/hooks": "./vendor/preact-htm-standalone.module.js",
+      "htm/preact": "./vendor/preact-htm-standalone.module.js"
+    }
+  }
+  </script>
+
+  <!-- Réutilise la couche d'accès existante (window.SURO_API) -->
+  <script src="../js/services/api.js?v=18"></script>
+</head>
+<body>
+  <div id="ops-root"></div>
+  <script type="module" src="./src/main.js?v=10"></script>
+</body>
+</html>

@@ -284,6 +284,24 @@ class API {
     });
   }
 
+  // Renvoie un object URL (blob) pour aperçu inline d'un document (bucket privé).
+  // L'appelant doit révoquer l'URL via URL.revokeObjectURL après usage.
+  static async getDocumentBlobUrl(storagePath) {
+    const session = this.getSession();
+    const response = await fetch(
+      `${SUPABASE_URL}/storage/v1/object/authenticated/suro-documents/${storagePath}`,
+      {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${session ? session.access_token : SUPABASE_KEY}`,
+        },
+      }
+    );
+    if (!response.ok) throw new Error('Document inaccessible');
+    const blob = await response.blob();
+    return { url: window.URL.createObjectURL(blob), type: blob.type };
+  }
+
   static async downloadDocument(storagePath, fileName) {
     const session = this.getSession();
     const response = await fetch(
@@ -422,6 +440,20 @@ class API {
   static async isAdmin() {
     try {
       const result = await this.sb('/rest/v1/rpc/is_suro_admin', {
+        method: 'POST',
+        asUser: true,
+        body: JSON.stringify({}),
+      });
+      return result === true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Membre de l'équipe SURO (tout rôle : super_admin, admin, operations, support)
+  static async isStaff() {
+    try {
+      const result = await this.sb('/rest/v1/rpc/is_suro_staff', {
         method: 'POST',
         asUser: true,
         body: JSON.stringify({}),

@@ -1,10 +1,9 @@
-/* RBAC front — reflète la matrice §5.3 de la proposition.
-   Rappel : la sécurité RÉELLE est appliquée par RLS côté Supabase.
-   Ce module ne fait que piloter l'affichage (menus, boutons). */
+/* RBAC front — piloté par les privilèges configurables (table suro_role_privileges,
+   lus via l'RPC suro_my_privileges). La sécurité RÉELLE est appliquée par RLS/RPC. */
 
 export const ALL = ['super_admin', 'admin', 'operations', 'support'];
 
-// Menu latéral (ordre = ordre d'affichage), filtré par rôle.
+// Menu latéral (ordre d'affichage), filtré par rôle.
 export const NAV = [
   { id: 'dashboard',     label: 'Dashboard',     icon: '▦', roles: ALL },
   { id: 'subscriptions', label: 'Souscriptions', icon: '▤', roles: ALL },
@@ -14,28 +13,35 @@ export const NAV = [
   { id: 'payments',      label: 'Paiements',     icon: '⛁', roles: ALL },
   { id: 'claims',        label: 'Sinistres',     icon: '⚠', roles: ALL },
   { id: 'users',         label: 'Utilisateurs',  icon: '⚑', roles: ['super_admin'] },
+  { id: 'privileges',    label: 'Privilèges',    icon: '⚿', roles: ['super_admin'] },
   { id: 'settings',      label: 'Paramètres',    icon: '⚙', roles: ['super_admin', 'admin'] },
   { id: 'audit',         label: "Journal d'activité", icon: '☷', roles: ['super_admin', 'admin', 'operations'] },
 ];
 
-// Capacités d'action (pour afficher/masquer les boutons d'écriture).
-const CAP = {
-  'subscription.edit':   ['super_admin', 'admin', 'operations'],
-  'document.review':     ['super_admin', 'admin', 'operations'],
-  'payment.action':      ['super_admin', 'admin'],
-  'claim.handle':        ['super_admin', 'admin', 'operations', 'support'],
-  'staff.manage':        ['super_admin'],
-  'settings.edit':       ['super_admin', 'admin'],
-  'audit.view':          ['super_admin', 'admin', 'operations'],
-};
+// Capacités configurables par le Super Admin (pour Admin / Opérations / Support).
+export const CAPABILITIES = [
+  { id: 'contract.edit',   label: 'Modifier les contrats',            hint: 'Véhicule, prime, couverture, statut…' },
+  { id: 'client.edit',     label: 'Modifier les clients',             hint: 'Nom, téléphone du compte client' },
+  { id: 'document.review', label: 'Valider / refuser les documents',  hint: 'Traiter les pièces reçues' },
+  { id: 'document.upload', label: 'Déposer des documents',            hint: 'Envoyer attestation, carte verte…' },
+  { id: 'claim.handle',    label: 'Traiter les sinistres & messages', hint: 'Statuts, réponses au client' },
+  { id: 'settings.edit',   label: 'Modifier les paramètres',          hint: 'Contacts support, plateforme' },
+];
+
+// Capacités réservées au Super Admin (non délégables) — informationnel.
+export const SUPERADMIN_ONLY = [
+  { id: 'client.delete', label: 'Supprimer un client' },
+  { id: 'staff.manage',  label: 'Gérer les collaborateurs' },
+  { id: 'privileges.manage', label: 'Gérer les privilèges' },
+];
 
 export function navFor(role) {
   return NAV.filter((n) => n.roles.includes(role));
 }
 
-export function can(role, capability) {
-  const allowed = CAP[capability];
-  return !!allowed && allowed.includes(role);
+// caps = tableau de capacités de l'utilisateur (renvoyé par suro_my_privileges).
+export function can(caps, capability) {
+  return Array.isArray(caps) && caps.includes(capability);
 }
 
 export function roleLabel(role) {

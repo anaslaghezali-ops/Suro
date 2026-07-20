@@ -7,6 +7,7 @@ import { Claims } from './routes/claims.js';
 import { Documents } from './routes/documents.js';
 import { Users } from './routes/users.js';
 import { Settings } from './routes/settings.js';
+import { Privileges } from './routes/privileges.js';
 
 export const ROUTES = {
   dashboard: Dashboard,
@@ -19,6 +20,7 @@ export const ROUTES = {
   users: Users,
   settings: Settings,
   audit: Audit,
+  privileges: Privileges,
 };
 
 export function currentRoute() {

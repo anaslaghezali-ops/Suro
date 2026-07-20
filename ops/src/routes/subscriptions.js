@@ -43,13 +43,32 @@ const EDITABLE = [
 ];
 
 /* Fiche dossier (slide-over) */
-function Detail({ app, role, onClose, onSaved }) {
+function Detail({ app, caps, onClose, onSaved }) {
   const [tab, setTab] = useState('infos');
   const [form, setForm] = useState({ ...app });
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState(app.status);
-  const editable = can(role, 'subscription.edit');
+  const [uploading, setUploading] = useState(false);
+  const editable = can(caps, 'contract.edit');
+  const canUpload = can(caps, 'document.upload');
   const docs = useAsync(() => api.documents(app.id).catch(() => []), [app.id]);
+
+  const handleUpload = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      await api.uploadDocument(app, file);
+      await api.logAction('upload', 'document', app.id, { name: file.name }).catch(() => {});
+      toast('Document déposé', 'ok');
+      docs.reload();
+    } catch (err) {
+      toast('Échec du dépôt : ' + (err.message || ''), 'err');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -131,6 +150,15 @@ function Detail({ app, role, onClose, onSaved }) {
       ` : null}
 
       ${tab === 'documents' ? html`
+        ${canUpload ? html`
+          <div style="margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--color-neutral-200)">
+            <label class="btn-o primary sm" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+              ${uploading ? 'Envoi…' : '⬆ Déposer un document'}
+              <input type="file" style="display:none" disabled=${uploading} onChange=${handleUpload}
+                accept="image/*,application/pdf" />
+            </label>
+          </div>
+        ` : null}
         ${docs.loading ? html`<${Spinner}/>` :
           (!docs.data || docs.data.length === 0) ? html`<${Empty}>Aucun document pour ce dossier.<//>` : html`
           <div style="display:flex;flex-direction:column">
@@ -143,14 +171,14 @@ function Detail({ app, role, onClose, onSaved }) {
                 </div>`;
             })}
           </div>
-          <p class="muted" style="margin-top:14px;font-size:12.5px">La validation/refus des documents arrive dans le module Documents (Phase 3).</p>
+          <p class="muted" style="margin-top:14px;font-size:12.5px">La validation/refus des documents se fait dans le module Documents.</p>
         `}
       ` : null}
     <//>
   `;
 }
 
-export function Subscriptions({ role }) {
+export function Subscriptions({ caps }) {
   const { data, loading, error, reload } = useAsync(async () => {
     const [apps, docs] = await Promise.all([
       api.applications().catch(() => []),
@@ -220,7 +248,7 @@ export function Subscriptions({ role }) {
       />
     </div>
 
-    ${selected ? html`<${Detail} app=${selected} role=${role}
+    ${selected ? html`<${Detail} app=${selected} caps=${caps}
       onClose=${closeDetail}
       onSaved=${() => { closeDetail(); reload(); }} />` : null}
   `;

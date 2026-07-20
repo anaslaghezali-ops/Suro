@@ -10,7 +10,7 @@ import { fmtDate } from '../lib/format.js';
 const ROLES = ['super_admin', 'admin', 'operations', 'support'];
 const roleTone = (r) => ({ super_admin: 'blue', admin: 'green', operations: 'amber', support: 'gray' }[r] || 'gray');
 
-export function Users() {
+export function Users({ caps }) {
   const { data, loading, error, reload } = useAsync(() => api.listStaff().catch((e) => { throw e; }), []);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('operations');

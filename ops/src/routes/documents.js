@@ -37,10 +37,10 @@ function Preview({ doc }) {
   return html`<${Empty}>Aperçu non disponible pour ce type de fichier. Utilisez « Télécharger ».<//>`;
 }
 
-function Detail({ doc, role, onClose, onReviewed }) {
+function Detail({ doc, caps, onClose, onReviewed }) {
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
-  const canReview = can(role, 'document.review');
+  const canReview = can(caps, 'document.review');
   const st = docStatus(doc.status);
 
   const review = async (status) => {
@@ -80,7 +80,7 @@ function Detail({ doc, role, onClose, onReviewed }) {
   `;
 }
 
-export function Documents({ role }) {
+export function Documents({ caps }) {
   const { data, loading, error, reload } = useAsync(() => api.allDocuments().catch(() => []), []);
   const [activeView, setActiveView] = useState('');
   const [selected, setSelected] = useState(null);
@@ -111,7 +111,7 @@ export function Documents({ role }) {
       <${DataTable} key=${activeView} columns=${columns} rows=${rows} searchKeys=${['name', 'customer_email']}
         onRowClick=${(d) => setSelected(d)} />
     </div>
-    ${selected ? html`<${Detail} doc=${selected} role=${role}
+    ${selected ? html`<${Detail} doc=${selected} caps=${caps}
       onClose=${() => setSelected(null)}
       onReviewed=${() => { setSelected(null); reload(); }} />` : null}
   `;

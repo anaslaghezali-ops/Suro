@@ -4,14 +4,21 @@ import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
 import { useRouteParam, navigate } from '../router.js';
 import { DataTable } from '../components/DataTable.js';
-import { SlideOver, Badge, Spinner, Empty } from '../components/ui.js';
+import { SlideOver, Badge, Spinner, Empty, toast } from '../components/ui.js';
 import { fmtDate, fmtMoney, coverageLabel, vehicleLabel, subStatus, paymentStatus, docStatus } from '../lib/format.js';
+import { can } from '../lib/permissions.js';
 
 const claimTone = (s) => ({ pending: 'amber', approved: 'green', rejected: 'red', paid: 'blue' }[s] || 'gray');
 
 /* Fiche client 360 : recoupe véhicules, contrats, paiements, documents, sinistres */
-function ClientDetail({ client, onClose }) {
+function ClientDetail({ client, caps, isSuperAdmin, onClose, onUpdated, onDeleted }) {
   const [tab, setTab] = useState('profil');
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ name: client.name || '', phone: client.phone || '' });
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const canEdit = can(caps, 'client.edit');
+
   const { data, loading } = useAsync(async () => {
     const [apps, payments, docs, claims] = await Promise.all([
       api.applications().catch(() => []),
@@ -29,6 +36,35 @@ function ClientDetail({ client, onClose }) {
       claims: (claims || []).filter((c) => appIds.has(c.application_id)),
     };
   }, [client.email]);
+
+  const saveProfile = async () => {
+    setSaving(true);
+    try {
+      await api.updateCustomer(client.email, form.name || null, form.phone || null);
+      toast('Profil mis à jour', 'ok');
+      setEditing(false);
+      if (onUpdated) onUpdated();
+    } catch (e) {
+      toast('Erreur : ' + (e.message || ''), 'err');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteClient = async () => {
+    if (!confirm(`Supprimer définitivement le compte ${client.email} ?\n\nCette action est irréversible et supprime toutes les données associées.`)) return;
+    setDeleting(true);
+    try {
+      await api.deleteCustomer(client.email);
+      toast('Client supprimé', 'ok');
+      onClose();
+      if (onDeleted) onDeleted();
+    } catch (e) {
+      toast('Erreur : ' + (e.message || ''), 'err');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const tabs = [
     { id: 'profil', label: 'Profil' },
@@ -52,19 +88,58 @@ function ClientDetail({ client, onClose }) {
       // Véhicules uniques
       const seen = new Set(); const vehicles = [];
       d.apps.forEach((a) => { const k = (a.immatriculation || vehicleLabel(a)); if (!seen.has(k)) { seen.add(k); vehicles.push(a); } });
-      return html`
-        <div class="field-row"><div class="k">Nom</div><div class="v">${client.name || '—'}</div></div>
-        <div class="field-row"><div class="k">Email</div><div class="v">${client.email}</div></div>
-        <div class="field-row"><div class="k">Téléphone</div><div class="v">${client.phone || '—'}</div></div>
-        <div class="field-row"><div class="k">Inscrit le</div><div class="v">${fmtDate(client.registered_at)}</div></div>
 
+      if (editing) {
+        return html`
+          <div style="padding-bottom:16px;border-bottom:1px solid var(--color-neutral-200);margin-bottom:16px">
+            <div style="font-size:12px;font-weight:600;color:var(--color-neutral-600);margin-bottom:12px">MODIFIER LE PROFIL</div>
+            <div class="form-grid">
+              <label>
+                <span>Nom</span>
+                <input class="ops-input" value=${form.name} onInput=${(e) => setForm({...form, name: e.target.value})} />
+              </label>
+              <label>
+                <span>Téléphone</span>
+                <input class="ops-input" type="tel" value=${form.phone} onInput=${(e) => setForm({...form, phone: e.target.value})} />
+              </label>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button class="btn-o primary sm" disabled=${saving} onClick=${saveProfile}>${saving ? 'Enregistrement…' : '💾 Enregistrer'}</button>
+              <button class="btn-o sm" onClick=${() => setEditing(false)}>Annuler</button>
+            </div>
+          </div>
+          <div class="kpi-grid" style="margin-top:16px">
+            <div class="kpi"><div class="label">Contrats actifs</div><div class="value">${active}</div></div>
+            <div class="kpi"><div class="label">Total payé</div><div class="value" style="font-size:20px">${fmtMoney(totalPaid)}</div></div>
+            <div class="kpi ${pendingDocs ? 'attn' : ''}"><div class="label">Docs à vérifier</div><div class="value">${pendingDocs}</div></div>
+            <div class="kpi ${openClaims ? 'attn' : ''}"><div class="label">Sinistres ouverts</div><div class="value">${openClaims}</div></div>
+          </div>
+          <div style="margin-top:18px">
+            <div style="font-size:12px;font-weight:600;color:var(--color-neutral-600);margin-bottom:8px">🚗 VÉHICULES (${vehicles.length})</div>
+            ${vehicles.length === 0 ? html`<p class="muted">Aucun véhicule.</p>` :
+              vehicles.map((a) => html`<div class="field-row"><div class="v">${vehicleLabel(a)}</div><div class="k">${a.immatriculation || '—'}</div></div>`)}
+          </div>`;
+      }
+
+      return html`
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--color-neutral-200)">
+          <div style="flex:1">
+            <div class="field-row" style="border:none"><div class="k">Nom</div><div class="v">${form.name || '—'}</div></div>
+            <div class="field-row" style="border:none"><div class="k">Email</div><div class="v">${client.email}</div></div>
+            <div class="field-row" style="border:none"><div class="k">Téléphone</div><div class="v">${form.phone || '—'}</div></div>
+            <div class="field-row" style="border:none"><div class="k">Inscrit le</div><div class="v">${fmtDate(client.registered_at)}</div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            ${canEdit ? html`<button class="btn-o sm" onClick=${() => setEditing(true)}>✎ Éditer</button>` : null}
+            ${isSuperAdmin ? html`<button class="btn-o danger sm" disabled=${deleting} onClick=${deleteClient}>🗑 Supprimer</button>` : null}
+          </div>
+        </div>
         <div class="kpi-grid" style="margin-top:16px">
           <div class="kpi"><div class="label">Contrats actifs</div><div class="value">${active}</div></div>
           <div class="kpi"><div class="label">Total payé</div><div class="value" style="font-size:20px">${fmtMoney(totalPaid)}</div></div>
           <div class="kpi ${pendingDocs ? 'attn' : ''}"><div class="label">Docs à vérifier</div><div class="value">${pendingDocs}</div></div>
           <div class="kpi ${openClaims ? 'attn' : ''}"><div class="label">Sinistres ouverts</div><div class="value">${openClaims}</div></div>
         </div>
-
         <div style="margin-top:18px">
           <div style="font-size:12px;font-weight:600;color:var(--color-neutral-600);margin-bottom:8px">VÉHICULES (${vehicles.length})</div>
           ${vehicles.length === 0 ? html`<p class="muted">Aucun véhicule.</p>` :
@@ -121,8 +196,8 @@ function ClientDetail({ client, onClose }) {
     <//>`;
 }
 
-export function Clients() {
-  const { data, loading, error } = useAsync(() => api.customers().catch(() => []), []);
+export function Clients({ caps, isSuperAdmin }) {
+  const { data, loading, error, reload } = useAsync(() => api.customers().catch(() => []), []);
   const [selected, setSelected] = useState(null);
   const param = useRouteParam();
 
@@ -157,6 +232,6 @@ export function Clients() {
       <${DataTable} columns=${columns} rows=${data || []} searchKeys=${['name', 'email', 'phone']}
         onRowClick=${(c) => setSelected(c)} />
     </div>
-    ${selected ? html`<${ClientDetail} client=${selected} onClose=${close} />` : null}
+    ${selected ? html`<${ClientDetail} client=${selected} caps=${caps} isSuperAdmin=${isSuperAdmin} onClose=${close} onUpdated=${reload} onDeleted=${reload} />` : null}
   `;
 }

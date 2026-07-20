@@ -315,23 +315,32 @@ class AdminDashboard {
 
   async loadPayments() {
     try {
-      const apps = await this.fetchApplications();
-      const paid = apps.filter(a => a.paid_at);
-      const revenue = paid.reduce((sum, a) => sum + (Number(a.annual_premium) || 0), 0);
+      // Historique réel : une ligne par paiement (initial + renouvellements)
+      const [payments, apps] = await Promise.all([
+        this.api.adminGetPayments().catch(() => []),
+        this.fetchApplications(),
+      ]);
 
-      this.setText('payments-total', paid.length);
+      const byId = {};
+      (apps || []).forEach(a => { byId[a.id] = a; });
+
+      const revenue = (payments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+
+      this.setText('payments-total', (payments || []).length);
       this.setText('payments-revenue', `${revenue.toLocaleString('fr-FR')} DH`);
 
       const tbody = document.getElementById('payments-tbody');
-      tbody.innerHTML = paid.length ? paid.map(a => `
+      tbody.innerHTML = (payments || []).length ? payments.map(p => {
+        const kindLabel = p.kind === 'renewal' ? 'Renouvellement' : 'Souscription';
+        return `
         <tr>
-          <td>${this.escape(a.customer_email)}</td>
-          <td>${a.annual_premium ? Number(a.annual_premium).toLocaleString('fr-FR') + ' DH' : '—'}</td>
-          <td>${this.coverageLabel(a.coverage_type)}</td>
-          <td>${new Date(a.paid_at).toLocaleDateString('fr-FR')}</td>
+          <td>${this.escape(p.customer_email)}</td>
+          <td>${p.amount != null ? Number(p.amount).toLocaleString('fr-FR') + ' DH' : '—'}</td>
+          <td>${kindLabel}</td>
+          <td>${new Date(p.paid_at).toLocaleDateString('fr-FR')}</td>
           <td><span class="status-badge status-active">Payé</span></td>
-        </tr>
-      `).join('') : '<tr><td colspan="5" class="text-center">Aucun paiement</td></tr>';
+        </tr>`;
+      }).join('') : '<tr><td colspan="5" class="text-center">Aucun paiement</td></tr>';
     } catch (error) {
       if (this.handleAuthError(error)) return;
       console.error('Error loading payments:', error);

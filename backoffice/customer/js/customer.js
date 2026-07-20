@@ -119,12 +119,13 @@ class CustomerDashboard {
     try {
       const policies = await this.fetchPolicies(true);
       const claims = await this.api.getMyClaims() || [];
-      const paid = policies.filter(p => p.paid_at);
+      // Nombre réel de paiements (initial + renouvellements), pas de contrats
+      const payments = await this.api.getMyPayments().catch(() => []);
 
       document.getElementById('stat-active-policies').textContent =
         policies.filter(p => p.status === 'active').length;
       document.getElementById('stat-claims').textContent = claims.length;
-      document.getElementById('stat-payments').textContent = paid.length;
+      document.getElementById('stat-payments').textContent = (payments || []).length;
 
       // Prochaine échéance = la plus proche parmi les contrats actifs
       const expiries = policies
@@ -224,26 +225,34 @@ class CustomerDashboard {
 
   async loadPayments() {
     try {
-      const policies = await this.fetchPolicies();
-      // Montrer tous les contrats avec statut active/renewal ou paid_at
-      const paid = policies.filter(p => p.paid_at || p.status === 'active');
-      // Trier par date de paiement (plus récent d'abord)
-      paid.sort((a, b) => new Date(b.paid_at || b.created_at) - new Date(a.paid_at || a.created_at));
+      // Historique réel : une ligne par paiement (initial ET chaque renouvellement)
+      const [payments, policies] = await Promise.all([
+        this.api.getMyPayments().catch(() => []),
+        this.fetchPolicies(),
+      ]);
 
-      const total = paid.reduce((sum, p) => sum + (Number(p.annual_premium) || 0), 0);
+      // Associer chaque paiement à son contrat (pour afficher le véhicule)
+      const byId = {};
+      (policies || []).forEach(p => { byId[p.id] = p; });
+
+      const total = (payments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
 
       document.getElementById('payment-total').textContent = `${total.toLocaleString('fr-FR')} DH`;
-      document.getElementById('payment-count').textContent = paid.length;
+      document.getElementById('payment-count').textContent = (payments || []).length;
 
       const tbody = document.getElementById('payments-tbody');
-      tbody.innerHTML = paid.length ? paid.map(p => `
+      tbody.innerHTML = (payments || []).length ? payments.map(pay => {
+        const policy = byId[pay.application_id];
+        const contractLabel = policy ? this.vehicleLabel(policy) : 'Contrat auto';
+        const kindLabel = pay.kind === 'renewal' ? 'Renouvellement' : 'Souscription';
+        return `
         <tr>
-          <td data-label="Montant">${this.premiumLabel(p)}</td>
-          <td data-label="Contrat">${this.vehicleLabel(p)}</td>
-          <td data-label="Date">${p.paid_at ? new Date(p.paid_at).toLocaleDateString('fr-FR') : new Date(p.created_at).toLocaleDateString('fr-FR')}</td>
-          <td data-label="Statut"><span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></td>
-        </tr>
-      `).join('') : '<tr><td colspan="4" class="text-center">Aucun paiement effectué</td></tr>';
+          <td data-label="Montant">${pay.amount != null ? `${Number(pay.amount).toLocaleString('fr-FR')} DH` : '—'}</td>
+          <td data-label="Contrat">${this.escape(contractLabel)} <span style="color:#9CA3AF;font-size:12px;">(${kindLabel})</span></td>
+          <td data-label="Date">${new Date(pay.paid_at).toLocaleDateString('fr-FR')}</td>
+          <td data-label="Statut"><span class="status-badge status-active">Payé</span></td>
+        </tr>`;
+      }).join('') : '<tr><td colspan="4" class="text-center">Aucun paiement effectué</td></tr>';
     } catch (error) {
       if (this.handleAuthError(error)) return;
       console.error('Error loading payments:', error);

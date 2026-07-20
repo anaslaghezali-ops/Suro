@@ -261,6 +261,13 @@ class API {
     });
   }
 
+  // Historique complet des paiements du client (initial + chaque renouvellement)
+  static getMyPayments() {
+    return this.sb('/rest/v1/suro_payments?select=*&order=paid_at.desc', {
+      asUser: true,
+    });
+  }
+
   static getDocumentsForPolicy(policyId) {
     return this.sb(
       `/rest/v1/insurance_documents?application_id=eq.${policyId}&select=*&order=created_at.desc`,
@@ -468,6 +475,13 @@ class API {
 
   static adminGetClaims() {
     return this.sb('/rest/v1/insurance_claims?select=*&order=created_at.desc', {
+      asUser: true,
+    });
+  }
+
+  // Historique complet des paiements (tous clients) pour l'admin
+  static adminGetPayments() {
+    return this.sb('/rest/v1/suro_payments?select=*&order=paid_at.desc', {
       asUser: true,
     });
   }

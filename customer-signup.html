@@ -3,304 +3,156 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SURO — Inscription Client</title>
-  <link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/components.css">
-  <style>
-    body {
-      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .auth-container {
-      width: 100%;
-      max-width: 420px;
-    }
-
-    .auth-card {
-      background: white;
-      border-radius: var(--radius-lg);
-      padding: 40px 32px;
-      box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
-    }
-
-    .auth-header {
-      text-align: center;
-      margin-bottom: 32px;
-    }
-
-    .auth-logo {
-      font-size: 36px;
-      font-weight: 800;
-      color: var(--color-primary);
-      margin-bottom: 8px;
-    }
-
-    .auth-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--color-neutral-900);
-      margin-bottom: 8px;
-    }
-
-    .auth-subtitle {
-      font-size: 14px;
-      color: var(--color-neutral-600);
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-group label {
-      display: block;
-      font-weight: 600;
-      color: var(--color-neutral-900);
-      margin-bottom: 8px;
-      font-size: 14px;
-    }
-
-    .form-group input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 1px solid var(--color-neutral-200);
-      border-radius: var(--radius-md);
-      font-size: 16px;
-      font-family: inherit;
-      transition: all 200ms ease;
-    }
-
-    .form-group input:focus {
-      outline: none;
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
-    }
-
-    .form-group input::placeholder {
-      color: var(--color-neutral-400);
-    }
-
-    .error-message {
-      color: var(--color-error);
-      font-size: 13px;
-      margin-top: 6px;
-      display: none;
-    }
-
-    .error-message.show {
-      display: block;
-    }
-
-    .form-group button {
-      width: 100%;
-    }
-
-    .auth-footer {
-      text-align: center;
-      margin-top: 24px;
-      font-size: 14px;
-      color: var(--color-neutral-600);
-    }
-
-    .auth-footer a {
-      color: var(--color-primary);
-      text-decoration: none;
-      font-weight: 600;
-      transition: all 200ms ease;
-    }
-
-    .auth-footer a:hover {
-      text-decoration: underline;
-    }
-
-    .loading-spinner {
-      display: none;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-right: 8px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 640px) {
-      .auth-card {
-        padding: 32px 20px;
-      }
-
-      .auth-title {
-        font-size: 20px;
-      }
-    }
-  </style>
+  <title>SURO — Inscription</title>
+  <meta name="description" content="Créez votre compte client SURO.">
+  <link rel="stylesheet" href="css/auth.css?v=1">
 </head>
 <body>
-  <div class="auth-container">
-    <div class="auth-card">
-      <div class="auth-header">
-        <div class="auth-logo">SURO</div>
-        <h1 class="auth-title">Inscription</h1>
-        <p class="auth-subtitle">Créez votre compte client</p>
+  <div class="auth-layout">
+    <aside class="auth-brand">
+      <a href="index.html" class="auth-brand-logo">SURO</a>
+      <div class="auth-brand-content">
+        <h1>Rejoins des milliers<br>de conducteurs assurés.</h1>
+        <p>Crée ton compte en 30 secondes et accède à ton espace dès ta première souscription.</p>
+        <ul class="auth-brand-features">
+          <li>
+            <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+            Souscription 100% en ligne
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+            Documents accessibles à tout moment
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+            Renouvellement en un clic
+          </li>
+        </ul>
       </div>
+      <p class="auth-brand-footer">© 2026 SURO</p>
+    </aside>
 
-      <form id="signup-form">
-        <div class="form-group">
-          <label for="name">Nom Complet</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            placeholder="Votre nom complet"
-            autocomplete="name"
-            required
-          >
-          <div class="error-message" id="name-error"></div>
+    <main class="auth-panel">
+      <div class="auth-card">
+        <a href="index.html" class="auth-back">
+          <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Retour au site
+        </a>
+
+        <div class="auth-header">
+          <h1 class="auth-title">Créer un compte</h1>
+          <p class="auth-subtitle">Ton espace client SURO</p>
         </div>
 
-        <div class="form-group">
-          <label for="email">Adresse Email</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            placeholder="votre@email.com"
-            autocomplete="email"
-            required
-          >
-          <div class="error-message" id="email-error"></div>
+        <form id="signup-form" class="auth-form">
+          <div class="form-group">
+            <label for="name">Nom complet</label>
+            <input type="text" id="name" name="name" placeholder="Prénom et nom" autocomplete="name" required>
+            <div class="field-error" id="name-error"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="vous@email.com" autocomplete="email" required>
+            <div class="field-error" id="email-error"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Téléphone</label>
+            <input type="tel" id="phone" name="phone" placeholder="+212 6 XX XX XX XX" autocomplete="tel" required>
+            <div class="field-error" id="phone-error"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <div class="password-wrap">
+              <input type="password" id="password" name="password" placeholder="Minimum 8 caractères" autocomplete="new-password" required>
+              <button type="button" class="password-toggle" onclick="togglePassword(this)" aria-label="Afficher le mot de passe">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="field-error" id="password-error"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="confirm-password">Confirmer le mot de passe</label>
+            <div class="password-wrap">
+              <input type="password" id="confirm-password" name="confirm-password" placeholder="Répète ton mot de passe" autocomplete="new-password" required>
+              <button type="button" class="password-toggle" onclick="togglePassword(this)" aria-label="Afficher le mot de passe">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="field-error" id="confirm-error"></div>
+          </div>
+
+          <p class="auth-legal">
+            En créant ton compte, tu acceptes les
+            <a href="conditions.html" target="_blank" rel="noopener">Conditions</a>
+            et la
+            <a href="confidentialite.html" target="_blank" rel="noopener">Politique de confidentialité</a>.
+          </p>
+
+          <button type="submit" class="btn btn-primary">
+            <span class="loading-spinner"></span>
+            <span data-btn-text>Créer mon compte</span>
+          </button>
+
+          <div class="error-message" id="form-error"></div>
+        </form>
+
+        <div class="auth-footer">
+          Déjà inscrit ? <a href="customer-login.html">Se connecter</a>
         </div>
-
-        <div class="form-group">
-          <label for="phone">Téléphone</label>
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            placeholder="Votre numéro de téléphone"
-            autocomplete="tel"
-            required
-          >
-          <div class="error-message" id="phone-error"></div>
-        </div>
-
-        <div class="form-group">
-          <label for="password">Mot de Passe</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            placeholder="Minimum 8 caractères"
-            autocomplete="new-password"
-            required
-          >
-          <div class="error-message" id="password-error"></div>
-        </div>
-
-        <div class="form-group">
-          <label for="confirm-password">Confirmer le Mot de Passe</label>
-          <input
-            type="password"
-            id="confirm-password"
-            name="confirm-password"
-            placeholder="Confirmez votre mot de passe"
-            autocomplete="new-password"
-            required
-          >
-          <div class="error-message" id="confirm-error"></div>
-        </div>
-
-        <p style="font-size: 12px; color: var(--color-neutral-600); margin-bottom: 16px;">
-          En créant ton compte, tu acceptes les
-          <a href="conditions.html" target="_blank" style="color: var(--color-primary);">Conditions</a>
-          et la <a href="confidentialite.html" target="_blank" style="color: var(--color-primary);">Politique de confidentialité</a>.
-        </p>
-
-        <button type="submit" class="btn btn-primary">
-          <span class="loading-spinner" id="spinner"></span>
-          <span id="button-text">Créer mon Compte</span>
-        </button>
-
-        <div class="error-message" id="form-error"></div>
-      </form>
-
-      <div class="auth-footer">
-        Vous avez déjà un compte? <a href="/customer-login.html">Se connecter</a>
       </div>
-    </div>
+    </main>
   </div>
 
-  <script src="js/services/api.js?v=17"></script>
+  <script src="js/services/api.js?v=19"></script>
+  <script src="js/auth.js?v=1"></script>
   <script>
-    const form = document.getElementById('signup-form');
-    const spinner = document.getElementById('spinner');
-    const buttonText = document.getElementById('button-text');
-    const formError = document.getElementById('form-error');
-
-    // Pré-remplir l'email depuis le tunnel (?email=...)
     const params = new URLSearchParams(window.location.search);
     if (params.get('email')) {
       document.getElementById('email').value = params.get('email');
     }
 
-    form.addEventListener('submit', async (e) => {
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      clearErrors();
 
-      // Clear errors
-      document.querySelectorAll('.error-message').forEach(el => {
-        el.classList.remove('show');
-        el.textContent = '';
-      });
-
-      const name = document.getElementById('name').value;
-      const phone = document.getElementById('phone').value;
-      const email = document.getElementById('email').value;
+      const btn = e.target.querySelector('button[type="submit"]');
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirm-password').value;
 
-      // Validate password
       if (password.length < 8) {
-        document.getElementById('password-error').textContent = 'Minimum 8 caractères requis';
-        document.getElementById('password-error').classList.add('show');
+        showFieldError('password-error', 'Minimum 8 caractères');
         return;
       }
-
       if (password !== confirmPassword) {
-        document.getElementById('confirm-error').textContent = 'Les mots de passe ne correspondent pas';
-        document.getElementById('confirm-error').classList.add('show');
+        showFieldError('confirm-error', 'Les mots de passe ne correspondent pas');
         return;
       }
 
-      // Show loading state
-      spinner.style.display = 'inline-block';
-      buttonText.textContent = 'Création en cours...';
-      form.querySelector('button').disabled = true;
+      setLoading(btn, true, 'Création…', 'Créer mon compte');
 
       try {
         const result = await window.SURO_API.signup(email, password, { name, phone });
 
         if (result.session) {
-          // Connecté directement
           window.location.href = 'app/';
         } else {
-          // Confirmation par email requise
-          form.innerHTML = `
-            <div style="text-align: center; padding: 24px 0;">
-              <div style="font-size: 40px; margin-bottom: 12px;">📬</div>
-              <p style="font-weight: 600; margin-bottom: 8px;">Vérifie ta boîte mail</p>
-              <p style="font-size: 14px; color: #4B5563;">
-                On t'a envoyé un lien de confirmation à <strong>${email}</strong>.<br>
-                Clique dessus puis connecte-toi.
-              </p>
-              <a href="customer-login.html" class="btn btn-primary" style="display: inline-block; margin-top: 16px; text-decoration: none;">Aller à la connexion</a>
+          const card = document.querySelector('.auth-card');
+          card.innerHTML = `
+            <div class="success-block">
+              <div class="success-icon">
+                <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <h2>Vérifie ta boîte mail</h2>
+              <p>On t'a envoyé un lien de confirmation à <strong>${email}</strong>.</p>
+              <p class="hint">Clique dessus, puis connecte-toi.</p>
+              <a href="customer-login.html" class="btn btn-primary btn-block" style="margin-top:20px;text-decoration:none;">Aller à la connexion</a>
             </div>
           `;
         }
@@ -309,11 +161,8 @@
         if (/already registered/i.test(message)) {
           message = 'Un compte existe déjà avec cet email — connecte-toi';
         }
-        formError.textContent = message;
-        formError.classList.add('show');
-        spinner.style.display = 'none';
-        buttonText.textContent = 'Créer mon Compte';
-        form.querySelector('button').disabled = false;
+        showFormError('form-error', message);
+        setLoading(btn, false, 'Création…', 'Créer mon compte');
       }
     });
   </script>

@@ -50,7 +50,7 @@ function ContactSettings({ editable }) {
       </div>
       ${editable ? html`
         <div style="margin-top:14px">
-          <button class="btn-o primary" disabled=${busy} onClick=${save}>${busy ? 'Enregistrement…' : '💾 Enregistrer'}</button>
+          <button class="btn-o primary" disabled=${busy} onClick=${save}>${busy ? 'Enregistrement…' : 'Enregistrer'}</button>
         </div>` : html`<p class="muted" style="margin-top:12px">Lecture seule.</p>`}
     </div>
   `;
@@ -74,7 +74,7 @@ export function Settings({ role }) {
     </div>
 
     <div class="card">
-      <div class="card-head"><h3>📞 Contacts support / urgence</h3></div>
+      <div class="card-head"><h3>Contacts support / urgence</h3></div>
       <${ContactSettings} editable=${editable} />
     </div>
 
@@ -86,7 +86,7 @@ export function Settings({ role }) {
     </div>
 
     <div class="card">
-      <div class="card-head"><h3>💰 Tarification</h3></div>
+      <div class="card-head"><h3>Tarification</h3></div>
       <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <div class="muted" style="font-size:12.5px">Conservée dans l'admin existant, inchangée (hors périmètre de refonte).</div>
         <a class="btn-o" href="../backoffice/#settings" target="_blank" rel="noopener">Ouvrir la config tarifaire ↗</a>

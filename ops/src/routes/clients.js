@@ -66,7 +66,7 @@ function ClientDetail({ client, onClose }) {
         </div>
 
         <div style="margin-top:18px">
-          <div style="font-size:12px;font-weight:600;color:var(--color-neutral-600);margin-bottom:8px">🚗 VÉHICULES (${vehicles.length})</div>
+          <div style="font-size:12px;font-weight:600;color:var(--color-neutral-600);margin-bottom:8px">VÉHICULES (${vehicles.length})</div>
           ${vehicles.length === 0 ? html`<p class="muted">Aucun véhicule.</p>` :
             vehicles.map((a) => html`<div class="field-row"><div class="v">${vehicleLabel(a)}</div><div class="k">${a.immatriculation || '—'}</div></div>`)}
         </div>`;
@@ -100,7 +100,7 @@ function ClientDetail({ client, onClose }) {
       if (!d.docs.length) return html`<${Empty}>Aucun document.<//>`;
       return html`<div>${d.docs.map((doc) => { const s = docStatus(doc.status || 'pending'); return html`
         <div class="field-row" style="grid-template-columns:1fr auto;align-items:center">
-          <div class="v">📄 ${doc.name}</div><${Badge} tone=${s.tone}>${s.label}<//>
+          <div class="v">${doc.name}</div><${Badge} tone=${s.tone}>${s.label}<//>
         </div>`; })}</div>`;
     }
 

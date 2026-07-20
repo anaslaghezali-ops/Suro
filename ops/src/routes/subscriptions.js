@@ -115,7 +115,7 @@ function Detail({ app, role, onClose, onSaved }) {
 
         ${editable ? html`
           <div style="margin-top:16px;display:flex;gap:10px">
-            <button class="btn-o primary" disabled=${saving} onClick=${save}>${saving ? 'Enregistrement…' : '💾 Enregistrer'}</button>
+            <button class="btn-o primary" disabled=${saving} onClick=${save}>${saving ? 'Enregistrement…' : 'Enregistrer'}</button>
           </div>
 
           <div style="margin-top:22px;padding-top:16px;border-top:1px solid var(--color-neutral-200)">
@@ -138,7 +138,7 @@ function Detail({ app, role, onClose, onSaved }) {
               const ds = docStatus(d.status);
               return html`
                 <div class="field-row" style="grid-template-columns:1fr auto">
-                  <div><div class="v">📄 ${d.name}</div><div class="k">${fmtDate(d.created_at)}</div></div>
+                  <div><div class="v">${d.name}</div><div class="k">${fmtDate(d.created_at)}</div></div>
                   <${Badge} tone=${ds.tone}>${ds.label}<//>
                 </div>`;
             })}

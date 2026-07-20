@@ -95,7 +95,7 @@ export function Documents({ role }) {
   const activeDef = DOC_VIEWS.find((v) => v.id === activeView) || DOC_VIEWS[0];
   const rows = (data || []).filter(activeDef.match);
   const columns = [
-    { key: 'name', label: 'Document', sortable: true, render: (d) => html`📄 ${d.name}` },
+    { key: 'name', label: 'Document', sortable: true, render: (d) => html`${d.name}` },
     { key: 'customer_email', label: 'Client', sortable: true },
     { key: 'status', label: 'Statut', sortable: true, render: (d) => { const s = docStatus(d.status || 'pending'); return html`<${Badge} tone=${s.tone}>${s.label}<//>`; } },
     { key: 'created_at', label: 'Déposé le', sortable: true, render: (d) => fmtDate(d.created_at) },

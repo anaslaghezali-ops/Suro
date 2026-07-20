@@ -93,7 +93,7 @@ function Detail({ claim, role, onClose, onChanged }) {
           (!files.data || files.data.length === 0) ? html`<${Empty}>Aucune pièce jointe.<//>` : html`
           <div>${files.data.map((f) => html`
             <div class="field-row" style="grid-template-columns:1fr auto">
-              <div class="v">${(f.content_type || '').startsWith('video') ? '🎬' : '📷'} ${f.name}</div>
+              <div class="v">${(f.content_type || '').startsWith('video') ? 'Vidéo' : 'Photo'} — ${f.name}</div>
               <button class="btn-o sm" onClick=${() => api.downloadClaimFile(f.storage_path, f.name)}>⤓ Télécharger</button>
             </div>`)}</div>`}
       ` : null}

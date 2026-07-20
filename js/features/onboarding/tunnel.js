@@ -129,15 +129,14 @@ class OnboardingForm {
           {
             label: 'Couverture complète',
             value: 'complete',
-            icon: '🛡️',
+            tag: 'Recommandé',
             description: 'Vol, Incendie, Responsabilité civile, Assistance 24/7',
-            badge: '⭐ POPULAIRE',
             details: ['Vol et vandalisme', 'Dégâts et incendie', 'Tiers illimité', 'Assistance 24/7', 'Pas de franchise']
           },
           {
             label: 'Couverture minimale',
             value: 'minimal',
-            icon: '✓',
+            tag: 'Essentiel',
             description: 'Responsabilité civile minimale (légale)',
             details: ['Tiers obligatoire', 'Assistance de base']
           },
@@ -221,6 +220,17 @@ class OnboardingForm {
     return fields;
   }
 
+  getStepLabels() {
+    const labels = {
+      vehicle: 'Véhicule',
+      coverage: 'Couverture',
+      account: 'Compte',
+      phone: 'Contact',
+      address: 'Adresse',
+    };
+    return this.fields.map((f) => labels[f.id] || f.id);
+  }
+
   render() {
     const field = this.fields[this.currentStep];
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
@@ -231,13 +241,16 @@ class OnboardingForm {
       this.api.track('step_view', field.id, { index: this.currentStep + 1 });
     }
 
-    const progressPercent = ((this.currentStep + 1) / this.fields.length) * 100;
+    const stepLabels = this.getStepLabels();
+    const stepperHTML = stepLabels.map((label, i) => {
+      const state = i < this.currentStep ? 'done' : i === this.currentStep ? 'active' : '';
+      return `<div class="stepper-item ${state}"><span class="stepper-dot">${i < this.currentStep ? '✓' : i + 1}</span><span class="stepper-label">${label}</span></div>`;
+    }).join('');
+
     let formHTML = `
+      <div class="form-stepper">${stepperHTML}</div>
       <div class="form-progress">
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: ${progressPercent}%"></div>
-        </div>
-        <p class="progress-text">Étape ${this.currentStep + 1} sur ${this.fields.length}</p>
+        <div class="progress-bar"><div class="progress-fill" style="width: ${((this.currentStep + 1) / this.fields.length) * 100}%"></div></div>
       </div>
 
       <form class="form-step" id="form-step">
@@ -248,30 +261,27 @@ class OnboardingForm {
     if (field.type === 'choice') {
       const quote = this.store.getState('onboarding.quote') || {};
       formHTML += `
-        <p style="font-size: 14px; color: var(--color-neutral-600); margin-top: -12px; margin-bottom: 20px;">${field.sublabel || ''}</p>
+        <p class="form-sublabel">${field.sublabel || ''}</p>
         <div class="form-choices">
-          ${field.choices.map((choice, idx) => {
+          ${field.choices.map((choice) => {
             const price = quote[choice.value];
             const priceHTML = price
               ? `<div class="choice-price">${Number(price).toLocaleString('fr-FR')} <span class="choice-price-unit">DH/an</span></div>`
               : '';
             return `
-            <button type="button" class="choice-btn ${choice.icon ? 'choice-card' : ''}" data-value="${choice.value}" onclick="window.SURO_FORM.selectChoice('${choice.value}')">
-              ${choice.badge ? `<span class="choice-badge">${choice.badge}</span>` : ''}
-              <div style="display: flex; gap: 16px; flex: 1;">
-                ${choice.icon ? `<div style="font-size: 32px; line-height: 1;">${choice.icon}</div>` : ''}
-                <div style="flex: 1; text-align: left;">
-                  <div style="font-weight: 600; font-size: 16px; margin-bottom: 6px;">${choice.label}</div>
+            <button type="button" class="choice-btn choice-card" data-value="${choice.value}" onclick="window.SURO_FORM.selectChoice('${choice.value}')">
+              ${choice.tag ? `<span class="choice-tag">${choice.tag}</span>` : ''}
+              <div class="choice-body">
+                <div class="choice-content">
+                  <div class="choice-label">${choice.label}</div>
                   ${priceHTML}
-                  ${choice.description ? `<div style="font-size: 13px; color: var(--color-neutral-600); margin-bottom: 12px;">${choice.description}</div>` : ''}
-                  ${choice.details ? `<div style="font-size: 12px; color: var(--color-neutral-600);">
-                    ${choice.details.map(d => `<div style="margin-top: 4px;">✓ ${d}</div>`).join('')}
-                  </div>` : ''}
+                  ${choice.description ? `<div class="choice-desc">${choice.description}</div>` : ''}
+                  ${choice.details ? `<ul class="choice-details">${choice.details.map((d) => `<li>${d}</li>`).join('')}</ul>` : ''}
                 </div>
+                <span class="choice-radio"></span>
               </div>
-              <span class="choice-radio" style="margin-left: auto; flex-shrink: 0;"></span>
-            </button>
-          `;}).join('')}
+            </button>`;
+          }).join('')}
         </div>
       `;
     } else if (field.type === 'group') {
@@ -318,11 +328,11 @@ class OnboardingForm {
       <div class="form-actions">
         ${this.currentStep > 0 ? `
           <button type="button" class="btn btn-ghost" onclick="window.SURO_FORM.previousStep()">
-            ← Précédent
+            Retour
           </button>
         ` : ''}
-        <button type="button" class="btn btn-primary" onclick="window.SURO_FORM.nextStep()">
-          ${this.currentStep === this.fields.length - 1 ? 'Soumettre' : 'Suivant →'}
+        <button type="button" class="btn btn-primary btn-block" onclick="window.SURO_FORM.nextStep()">
+          ${this.currentStep === this.fields.length - 1 ? 'Finaliser' : 'Continuer'}
         </button>
       </div>
     </form>
@@ -348,70 +358,136 @@ class OnboardingForm {
     const style = document.createElement('style');
     style.setAttribute('data-form-styles', 'true');
     style.textContent = `
-      .form-progress {
-        margin-bottom: 32px;
+      .form-stepper {
+        display: flex;
+        justify-content: space-between;
+        gap: 4px;
+        margin-bottom: 20px;
+        overflow-x: auto;
+        padding-bottom: 4px;
       }
 
+      .stepper-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        min-width: 0;
+        opacity: 0.45;
+        transition: opacity 200ms ease;
+      }
+
+      .stepper-item.active,
+      .stepper-item.done { opacity: 1; }
+
+      .stepper-dot {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--color-neutral-600);
+        background: var(--color-surface);
+        transition: all 200ms ease;
+      }
+
+      .stepper-item.active .stepper-dot {
+        border-color: var(--color-primary);
+        background: var(--color-primary);
+        color: white;
+      }
+
+      .stepper-item.done .stepper-dot {
+        border-color: var(--color-primary);
+        background: var(--color-primary-ghost);
+        color: var(--color-primary);
+        font-size: 12px;
+      }
+
+      .stepper-label {
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--color-neutral-600);
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+
+      .stepper-item.active .stepper-label {
+        color: var(--color-neutral-900);
+        font-weight: 600;
+      }
+
+      .form-progress { margin-bottom: 24px; }
+
       .progress-bar {
-        height: 4px;
+        height: 3px;
         background: var(--color-neutral-200);
         border-radius: 2px;
         overflow: hidden;
-        margin-bottom: 12px;
       }
 
       .progress-fill {
         height: 100%;
         background: var(--color-primary);
         transition: width 300ms ease;
-      }
-
-      .progress-text {
-        font-size: 12px;
-        color: var(--color-neutral-600);
-        text-align: center;
+        border-radius: 2px;
       }
 
       .form-step {
         display: flex;
         flex-direction: column;
-        gap: 24px;
+        gap: 20px;
       }
 
       .form-title {
-        font-size: 24px;
+        font-size: 20px;
         font-weight: 600;
         color: var(--color-neutral-900);
-        margin: 0 0 8px 0;
+        margin: 0;
+        line-height: 1.3;
       }
 
-      .form-hint-text {
+      .form-hint-text,
+      .form-sublabel {
         font-size: 14px;
         color: var(--color-neutral-600);
-        margin: 0 0 20px 0;
+        margin: -8px 0 0 0;
         font-weight: 400;
       }
 
       .form-input {
-        padding: 12px 16px;
-        border: 1px solid var(--color-neutral-200);
-        border-radius: var(--radius-lg);
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
         font-size: 16px;
         font-family: var(--font-body);
-        transition: all 150ms ease;
+        background: var(--color-surface);
+        color: var(--color-neutral-900);
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+        box-sizing: border-box;
       }
 
       .form-input:focus {
         outline: none;
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px var(--color-primary-ghost);
+        box-shadow: var(--shadow-focus);
       }
 
       .choice-price {
         font-size: 22px;
         font-weight: 800;
         color: var(--color-primary);
-        margin-bottom: 6px;
+        margin: 4px 0 6px;
+        font-variant-numeric: tabular-nums;
       }
 
       .choice-price-unit {
@@ -423,7 +499,7 @@ class OnboardingForm {
       .form-group-fields {
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 16px;
       }
 
       .form-subfield {
@@ -432,13 +508,8 @@ class OnboardingForm {
         gap: 6px;
       }
 
-      .form-subfield .form-input {
-        width: 100%;
-        box-sizing: border-box;
-      }
-
       .form-sublabel {
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
         color: var(--color-neutral-900);
       }
@@ -446,81 +517,101 @@ class OnboardingForm {
       .form-choices {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 12px;
       }
 
       .choice-btn {
-        display: flex;
-        align-items: flex-start;
-        padding: 20px;
-        border: 2px solid var(--color-neutral-200);
+        display: block;
+        width: 100%;
+        padding: 0;
+        border: 1.5px solid var(--color-border);
         border-radius: var(--radius-lg);
-        background: white;
+        background: var(--color-surface);
         cursor: pointer;
-        transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 200ms ease;
         text-align: left;
         font-family: var(--font-body);
         position: relative;
-        overflow: hidden;
-        min-height: 48px;
       }
 
-      .choice-btn.choice-card {
-        min-height: auto;
+      .choice-body {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px;
       }
 
-      .choice-btn::before {
+      .choice-content { flex: 1; min-width: 0; }
+
+      .choice-label {
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--color-neutral-900);
+      }
+
+      .choice-desc {
+        font-size: 13px;
+        color: var(--color-neutral-600);
+        margin-top: 4px;
+      }
+
+      .choice-details {
+        list-style: none;
+        margin: 10px 0 0;
+        padding: 0;
+        font-size: 12px;
+        color: var(--color-neutral-600);
+      }
+
+      .choice-details li {
+        padding: 3px 0 3px 16px;
+        position: relative;
+      }
+
+      .choice-details li::before {
         content: '';
         position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, rgba(15, 118, 110, 0.03) 0%, rgba(249, 115, 22, 0.01) 100%);
-        opacity: 0;
-        transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
-        pointer-events: none;
+        left: 0;
+        top: 10px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--color-primary-light);
+      }
+
+      .choice-tag {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: var(--color-primary);
+        color: white;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: var(--radius-sm);
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
       }
 
       .choice-btn:hover {
         border-color: var(--color-primary);
-        box-shadow: 0 8px 16px rgba(15, 118, 110, 0.12);
-        transform: translateY(-2px);
-      }
-
-      .choice-btn:hover::before {
-        opacity: 1;
-      }
-
-      .choice-badge {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        background: linear-gradient(135deg, var(--color-accent), #FF9D2D);
-        color: white;
-        font-size: 11px;
-        font-weight: 600;
-        padding: 4px 8px;
-        border-radius: 4px;
-        letter-spacing: 0.05em;
-        z-index: 1;
+        box-shadow: var(--shadow-sm);
       }
 
       .choice-radio {
-        width: 24px;
-        height: 24px;
-        min-width: 24px;
-        border: 2.5px solid var(--color-neutral-300);
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
+        border: 2px solid var(--color-neutral-300);
         border-radius: 50%;
-        flex-shrink: 0;
-        transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+        margin-top: 2px;
+        transition: all 200ms ease;
       }
 
       .choice-btn.selected {
         border-color: var(--color-primary);
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(15, 118, 110, 0.02) 100%);
-        box-shadow: 0 8px 16px rgba(15, 118, 110, 0.15), inset 0 0 0 1px var(--color-primary);
-      }
-
-      .choice-btn.selected::before {
-        opacity: 1;
+        background: var(--color-primary-ghost);
+        box-shadow: var(--shadow-focus);
       }
 
       .choice-btn.selected .choice-radio {
@@ -535,53 +626,28 @@ class OnboardingForm {
         display: none;
       }
 
-      .form-error.show {
-        display: block;
-      }
+      .form-error.show { display: block; }
 
       .form-actions {
         display: flex;
-        gap: 12px;
-        margin-top: 24px;
+        flex-direction: column-reverse;
+        gap: 10px;
+        margin-top: 8px;
       }
 
-      .form-actions .btn {
-        flex: 1;
-        height: 44px;
-      }
+      .form-actions .btn { height: 48px; font-size: 15px; }
 
-      @media (max-width: 640px) {
+      @media (min-width: 480px) {
         .form-actions {
-          flex-direction: column;
+          flex-direction: row;
         }
+        .form-actions .btn-primary { flex: 1; }
+        .form-actions .btn-ghost { flex: 0 0 auto; }
+      }
 
-        .form-title {
-          font-size: 20px;
-        }
-
-        .form-hint-text {
-          font-size: 13px;
-        }
-
-        .choice-btn {
-          padding: 24px 16px;
-          min-height: 60px;
-        }
-
-        .choice-btn.choice-card {
-          min-height: auto;
-        }
-
-        .form-input {
-          padding: 14px 16px;
-          height: 48px;
-          font-size: 16px;
-        }
-
-        .form-actions .btn {
-          height: 48px;
-          font-size: 16px;
-        }
+      @media (max-width: 480px) {
+        .stepper-label { display: none; }
+        .form-title { font-size: 18px; }
       }
     `;
     document.head.appendChild(style);

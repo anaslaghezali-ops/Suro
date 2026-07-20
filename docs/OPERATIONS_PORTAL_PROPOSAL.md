@@ -361,8 +361,11 @@ Migration `20260720_ops_phase0_foundations.sql` appliquée (voir `docs/migration
 ### 13.4nonies Vues sauvegardées ✅ FAIT
 - Composant `SavedViews` (réutilisable) : pastilles avec compteur, remplace le filtre statut de Souscriptions. 7 vues : Toutes, **Docs à vérifier** (croisement avec `insurance_documents.status`, ambre), **Expire < 30j** (calculé sur `expires_at`, ambre), Nouvelles, Actives, Expirées, Annulées. Clic = filtre instantané ; recherche texte s'applique par-dessus la vue active. Vérifié navigateur : 39/39.
 
+### 13.4decies Vues sauvegardées — Documents & Sinistres ✅ FAIT
+- `SavedViews` généralisé : **Documents** (Tous / À vérifier ambre / Validés / Refusés) et **Sinistres** (Tous / En attente ambre / Approuvés / Rejetés / Payés). Remplace les sélecteurs de statut. Vérifié navigateur : 41/41.
+
 ### 13.5 Prochaines étapes proposées
-- **Polish (suite)** : actions groupées (multi-sélection), vues personnalisées éditables par l'utilisateur, généraliser `SavedViews` à Documents/Sinistres.
+- **Polish (suite)** : actions groupées (multi-sélection), vues personnalisées éditables par l'utilisateur.
 - **Cache-busting modules** : stamp de version aux imports ESM `/ops` (éviter le hard-refresh aux mises à jour).
 - **Cleanup** : retirer l'admin legacy `/backoffice` une fois la config tarifaire reprise (avec le courtier).
 - **Polish** : Command Palette (Cmd-K), vues sauvegardées, actions groupées.

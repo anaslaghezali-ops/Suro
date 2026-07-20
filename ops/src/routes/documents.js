@@ -1,11 +1,19 @@
 import { html } from 'htm/preact';
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useMemo } from 'preact/hooks';
 import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
 import { DataTable } from '../components/DataTable.js';
+import { SavedViews } from '../components/SavedViews.js';
 import { SlideOver, Badge, Spinner, Empty, toast } from '../components/ui.js';
 import { can } from '../lib/permissions.js';
 import { fmtDate, docStatus } from '../lib/format.js';
+
+const DOC_VIEWS = [
+  { id: '',         label: 'Tous',       match: () => true },
+  { id: 'pending',  label: 'À vérifier', attn: true, match: (d) => (d.status || 'pending') === 'pending' },
+  { id: 'approved', label: 'Validés',    match: (d) => d.status === 'approved' },
+  { id: 'rejected', label: 'Refusés',    match: (d) => d.status === 'rejected' },
+];
 
 /* Aperçu du fichier (image / PDF) via blob authentifié */
 function Preview({ doc }) {
@@ -74,13 +82,18 @@ function Detail({ doc, role, onClose, onReviewed }) {
 
 export function Documents({ role }) {
   const { data, loading, error, reload } = useAsync(() => api.allDocuments().catch(() => []), []);
-  const [filter, setFilter] = useState('');
+  const [activeView, setActiveView] = useState('');
   const [selected, setSelected] = useState(null);
+
+  const views = useMemo(() => DOC_VIEWS.map((v) => ({
+    id: v.id, label: v.label, attn: v.attn, count: (data || []).filter(v.match).length,
+  })), [data]);
 
   if (loading) return html`<div style="padding:40px"><${Spinner}/></div>`;
   if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;
 
-  const rows = (data || []).filter((d) => !filter || (d.status || 'pending') === filter);
+  const activeDef = DOC_VIEWS.find((v) => v.id === activeView) || DOC_VIEWS[0];
+  const rows = (data || []).filter(activeDef.match);
   const columns = [
     { key: 'name', label: 'Document', sortable: true, render: (d) => html`📄 ${d.name}` },
     { key: 'customer_email', label: 'Client', sortable: true },
@@ -94,9 +107,8 @@ export function Documents({ role }) {
       <p>Bibliothèque des documents transmis par les clients. Cliquez pour prévisualiser et valider.</p>
     </div>
     <div class="card">
-      <${DataTable} columns=${columns} rows=${rows} searchKeys=${['name', 'customer_email']}
-        filters=${[{ id: 'status', label: 'Tous les statuts', value: filter, onChange: setFilter,
-          options: [{ value: 'pending', label: 'À vérifier' }, { value: 'approved', label: 'Validé' }, { value: 'rejected', label: 'Refusé' }] }]}
+      <${SavedViews} views=${views} active=${activeView} onChange=${setActiveView} />
+      <${DataTable} key=${activeView} columns=${columns} rows=${rows} searchKeys=${['name', 'customer_email']}
         onRowClick=${(d) => setSelected(d)} />
     </div>
     ${selected ? html`<${Detail} doc=${selected} role=${role}

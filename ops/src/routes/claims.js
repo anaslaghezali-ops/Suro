@@ -1,13 +1,21 @@
 import { html } from 'htm/preact';
-import { useState } from 'preact/hooks';
+import { useState, useMemo } from 'preact/hooks';
 import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
 import { DataTable } from '../components/DataTable.js';
+import { SavedViews } from '../components/SavedViews.js';
 import { SlideOver, Badge, Spinner, Empty, toast } from '../components/ui.js';
 import { can } from '../lib/permissions.js';
 import { fmtDate, fmtDateTime } from '../lib/format.js';
 
 const STATUSES = ['pending', 'approved', 'rejected', 'paid'];
+const CLAIM_VIEWS = [
+  { id: '',         label: 'Tous',       match: () => true },
+  { id: 'pending',  label: 'En attente', attn: true, match: (c) => c.status === 'pending' },
+  { id: 'approved', label: 'Approuvés',  match: (c) => c.status === 'approved' },
+  { id: 'rejected', label: 'Rejetés',    match: (c) => c.status === 'rejected' },
+  { id: 'paid',     label: 'Payés',      match: (c) => c.status === 'paid' },
+];
 const statusMeta = (s) => ({
   pending:  { label: 'En attente', tone: 'amber' },
   approved: { label: 'Approuvé',   tone: 'green' },
@@ -115,13 +123,18 @@ function Detail({ claim, role, onClose, onChanged }) {
 
 export function Claims({ role }) {
   const { data, loading, error, reload } = useAsync(() => api.claims().catch(() => []), []);
-  const [filter, setFilter] = useState('');
+  const [activeView, setActiveView] = useState('');
   const [selected, setSelected] = useState(null);
+
+  const views = useMemo(() => CLAIM_VIEWS.map((v) => ({
+    id: v.id, label: v.label, attn: v.attn, count: (data || []).filter(v.match).length,
+  })), [data]);
 
   if (loading) return html`<div style="padding:40px"><${Spinner}/></div>`;
   if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;
 
-  const rows = (data || []).filter((c) => !filter || c.status === filter);
+  const activeDef = CLAIM_VIEWS.find((v) => v.id === activeView) || CLAIM_VIEWS[0];
+  const rows = (data || []).filter(activeDef.match);
   const columns = [
     { key: 'id', label: 'Réf.', render: (c) => html`<span class="muted">${c.id.slice(0, 8)}…</span>` },
     { key: 'application_id', label: 'Contrat', render: (c) => html`<span class="muted">${(c.application_id || '').slice(0, 8)}…</span>` },
@@ -136,9 +149,8 @@ export function Claims({ role }) {
       <p>Réclamations clients. Cliquez pour traiter : suivi, pièces jointes et messagerie.</p>
     </div>
     <div class="card">
-      <${DataTable} columns=${columns} rows=${rows} searchKeys=${['claim_type', 'description']}
-        filters=${[{ id: 'status', label: 'Tous les statuts', value: filter, onChange: setFilter,
-          options: STATUSES.map((s) => ({ value: s, label: statusMeta(s).label })) }]}
+      <${SavedViews} views=${views} active=${activeView} onChange=${setActiveView} />
+      <${DataTable} key=${activeView} columns=${columns} rows=${rows} searchKeys=${['claim_type', 'description']}
         onRowClick=${(c) => setSelected(c)} />
     </div>
     ${selected ? html`<${Detail} claim=${selected} role=${role}

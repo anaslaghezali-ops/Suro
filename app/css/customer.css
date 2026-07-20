@@ -187,7 +187,21 @@ textarea {
 }
 
 .header-user {
+  display: flex;
+  align-items: center;
   gap: 10px;
+}
+
+.header-user #notif-mount .notif-bell {
+  border-color: var(--color-border-subtle);
+  background: var(--color-neutral-50);
+  color: var(--color-neutral-600);
+}
+
+.header-user #notif-mount .notif-bell:hover {
+  background: var(--color-neutral-100);
+  border-color: var(--color-border);
+  color: var(--color-neutral-900);
 }
 
 .user-name {

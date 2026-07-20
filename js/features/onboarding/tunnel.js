@@ -155,7 +155,7 @@ class OnboardingForm {
             label: 'Ton email',
             type: 'email',
             autocomplete: 'email',
-            placeholder: 'Ex: vous@email.com',
+            placeholder: 'Ex: ton@email.com',
             validate: (value) => {
               if (!value) return 'L\'email est nécessaire pour ton espace client';
               if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {

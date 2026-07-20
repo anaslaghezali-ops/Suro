@@ -585,7 +585,7 @@ function closeSidebar() {
 }
 
 function logout() {
-  if (confirm('Êtes-vous sûr de vouloir vous déconnecter?')) {
+  if (confirm('Tu veux te déconnecter ?')) {
     window.SURO_API.logout();
     window.location.href = LOGIN_PAGE;
   }

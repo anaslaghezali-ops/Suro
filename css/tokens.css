@@ -1,5 +1,7 @@
 /* SURO Design Tokens — Premium System v2 */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
   /* Colors — Teal premium */
   --color-primary: #0F766E;

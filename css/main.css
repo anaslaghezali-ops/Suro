@@ -1105,7 +1105,3 @@ main {
     transition: none;
   }
 }
-
-
-/* GPT V1 overrides */
-.hero h1{font-size:clamp(3rem,6vw,5rem);line-height:1.05;max-width:700px}.hero-description{font-size:1.15rem;max-width:640px;color:#5b6472}.hero h2{display:none}.comparison-table-wrapper,.section-comparison{display:none!important}

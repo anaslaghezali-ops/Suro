@@ -39,9 +39,12 @@
 
   function scrollToTunnel() {
     if (window.SURO_API) window.SURO_API.track('cta_sticky_click');
-    const target = document.querySelector('.hero-form') || tunnel;
+    const target = document.getElementById('souscrire-form') || document.querySelector('.hero-form') || tunnel;
     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    const firstInput = document.querySelector('.tunnel-wrapper input');
+    if (window.SURO_FORM && window.SURO_FORM.openFocusMode && window.matchMedia('(max-width: 768px)').matches) {
+      window.SURO_FORM.openFocusMode();
+    }
+    const firstInput = document.querySelector('.tunnel-wrapper input, .tunnel-wrapper textarea');
     if (firstInput) setTimeout(() => firstInput.focus(), 400);
   }
 

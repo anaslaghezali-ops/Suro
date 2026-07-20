@@ -468,6 +468,14 @@ a:hover { color: var(--color-primary-hover); }
   pointer-events: none;
 }
 
+body.tunnel-focus .sticky-cta {
+  display: none !important;
+}
+
+body.nav-open {
+  overflow: hidden;
+}
+
 /* ====== MOBILE NAV ====== */
 .nav-mobile {
   display: none;

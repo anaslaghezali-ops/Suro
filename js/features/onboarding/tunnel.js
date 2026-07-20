@@ -267,6 +267,10 @@ class OnboardingForm {
     if (field.type === 'choice') {
       const quote = this.store.getState('onboarding.quote') || {};
       const selectedValue = this.store.getState(`onboarding.data.${field.id}`) || '';
+      const hasPrices = field.choices.some((c) => quote[c.value]);
+      if (field.id === 'coverage' && !hasPrices) {
+        formHTML += `<div class="tunnel-info-banner" role="status">Tarif indicatif — le montant exact sera confirmé au paiement.</div>`;
+      }
       formHTML += `
         <p class="form-sublabel">${field.sublabel || ''}</p>
         <div class="form-choices">
@@ -386,6 +390,34 @@ class OnboardingForm {
   }
 
 
+  setFieldError(fieldId, message) {
+    const input = document.querySelector(`#field-${fieldId}`);
+    const errorEl = document.querySelector(`#error-${fieldId}`);
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.classList.add('show');
+      errorEl.setAttribute('role', 'alert');
+    }
+    if (input) {
+      input.setAttribute('aria-invalid', 'true');
+      input.setAttribute('aria-describedby', `error-${fieldId}`);
+    }
+  }
+
+  clearFieldError(fieldId) {
+    const input = document.querySelector(`#field-${fieldId}`);
+    const errorEl = document.querySelector(`#error-${fieldId}`);
+    if (errorEl) {
+      errorEl.textContent = '';
+      errorEl.classList.remove('show');
+      errorEl.removeAttribute('role');
+    }
+    if (input) {
+      input.removeAttribute('aria-invalid');
+      input.removeAttribute('aria-describedby');
+    }
+  }
+
   async nextStep() {
     const field = this.fields[this.currentStep];
 
@@ -404,13 +436,11 @@ class OnboardingForm {
 
         const validation = sub.validate ? sub.validate(val) : true;
         if (validation !== true) {
-          if (subErrorEl) {
-            subErrorEl.textContent = validation;
-            subErrorEl.classList.add('show');
-          }
+          this.setFieldError(sub.id, validation);
           allValid = false;
           return;
         }
+        this.clearFieldError(sub.id);
 
         if (sub.secret) {
           // Jamais dans le store (persisté en localStorage)
@@ -426,6 +456,14 @@ class OnboardingForm {
 
       // Après l'étape véhicule : calcul du devis (prix affichés à l'étape couverture)
       if (field.id === 'vehicle') {
+        const tunnelWrapper = document.querySelector('.tunnel-wrapper');
+        if (tunnelWrapper) {
+          tunnelWrapper.innerHTML = `
+            <div class="tunnel-state">
+              <div class="tunnel-spinner"></div>
+              <p>Calcul de ton devis…</p>
+            </div>`;
+        }
         try {
           const quote = await this.api.getQuote({
             annee: this.store.getState('onboarding.data.annee'),
@@ -436,7 +474,6 @@ class OnboardingForm {
           this.store.setState('onboarding.quote', quote);
           this.api.track('quote_shown', 'coverage', quote);
         } catch (e) {
-          // Devis indisponible : on continue, le prix sera confirmé plus tard
           this.store.setState('onboarding.quote', {});
         }
       }
@@ -457,12 +494,10 @@ class OnboardingForm {
     if (field.type === 'choice') {
       value = this.store.getState(`onboarding.data.${field.id}`);
       if (!value) {
-        if (errorEl) {
-          errorEl.textContent = 'Sélectionnez une option';
-          errorEl.classList.add('show');
-        }
+        this.setFieldError(field.id, 'Sélectionne une option');
         return;
       }
+      this.clearFieldError(field.id);
     } else {
       const input = document.querySelector(`#field-${field.id}`);
       value = input.value.trim();
@@ -470,12 +505,10 @@ class OnboardingForm {
       // Validate
       const validation = await this.validateField(field.id, value);
       if (validation !== true) {
-        if (errorEl) {
-          errorEl.textContent = validation;
-          errorEl.classList.add('show');
-        }
+        this.setFieldError(field.id, validation);
         return;
       }
+      this.clearFieldError(field.id);
     }
 
     // Store value
@@ -508,11 +541,7 @@ class OnboardingForm {
     this.render();
 
     setTimeout(() => {
-      const errorEl = document.querySelector(`#error-${subFieldId || fieldId}`);
-      if (errorEl) {
-        errorEl.textContent = message;
-        errorEl.classList.add('show');
-      }
+      this.setFieldError(subFieldId || fieldId, message);
       const input = document.querySelector(`#field-${subFieldId || fieldId}`);
       if (input) input.focus();
     }, 150);
@@ -548,7 +577,7 @@ class OnboardingForm {
       tunnelWrapper.innerHTML = `
         <div class="tunnel-state">
           <div class="tunnel-spinner"></div>
-          <p>Traitement de votre demande...</p>
+          <p>Traitement de ta demande…</p>
         </div>
       `;
 

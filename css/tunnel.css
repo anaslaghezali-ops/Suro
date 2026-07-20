@@ -44,8 +44,8 @@ body.tunnel-focus .tunnel-close {
   display: none;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border: none;
   border-radius: 10px;
   background: var(--color-neutral-100);
@@ -239,6 +239,17 @@ body.tunnel-focus .tunnel-close {
 }
 
 .form-error.show { display: block; }
+
+.tunnel-info-banner {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  font-size: 13px;
+  color: var(--color-neutral-700);
+  line-height: 1.5;
+}
 
 /* Choices */
 .form-choices {

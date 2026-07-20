@@ -5,30 +5,56 @@
   const toggle = document.getElementById('nav-toggle');
   const mobileNav = document.getElementById('nav-mobile');
 
+  function setMobileNavOpen(open) {
+    if (!mobileNav || !toggle) return;
+    mobileNav.classList.toggle('open', open);
+    toggle.setAttribute('aria-expanded', open);
+    mobileNav.setAttribute('aria-hidden', !open);
+    document.body.classList.toggle('nav-open', open);
+  }
+
   if (toggle && mobileNav) {
     toggle.addEventListener('click', () => {
-      const open = mobileNav.classList.toggle('open');
-      toggle.setAttribute('aria-expanded', open);
-      mobileNav.setAttribute('aria-hidden', !open);
+      setMobileNavOpen(!mobileNav.classList.contains('open'));
     });
 
     mobileNav.querySelectorAll('a').forEach((link) => {
-      link.addEventListener('click', () => {
-        mobileNav.classList.remove('open');
-        toggle.setAttribute('aria-expanded', 'false');
-        mobileNav.setAttribute('aria-hidden', 'true');
-      });
+      link.addEventListener('click', () => setMobileNavOpen(false));
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && mobileNav.classList.contains('open')) {
+        setMobileNavOpen(false);
+        toggle.focus();
+      }
     });
   }
 
-  // FAQ accordion
-  document.querySelectorAll('.faq-item').forEach((item) => {
+  // FAQ accordion (WAI-ARIA pattern)
+  document.querySelectorAll('.faq-item').forEach((item, index) => {
     const btn = item.querySelector('.faq-question');
-    if (!btn) return;
+    const answer = item.querySelector('.faq-answer');
+    if (!btn || !answer) return;
+
+    const answerId = `faq-answer-${index + 1}`;
+    answer.id = answerId;
+    btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-controls', answerId);
+    answer.setAttribute('role', 'region');
+    answer.setAttribute('aria-labelledby', answerId + '-label');
+    btn.id = answerId + '-label';
+
     btn.addEventListener('click', () => {
       const isOpen = item.classList.contains('open');
-      document.querySelectorAll('.faq-item.open').forEach((el) => el.classList.remove('open'));
-      if (!isOpen) item.classList.add('open');
+      document.querySelectorAll('.faq-item.open').forEach((el) => {
+        el.classList.remove('open');
+        const q = el.querySelector('.faq-question');
+        if (q) q.setAttribute('aria-expanded', 'false');
+      });
+      if (!isOpen) {
+        item.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
     });
   });
 

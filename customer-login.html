@@ -87,9 +87,18 @@
     </main>
   </div>
 
-  <script src="js/services/api.js?v=19"></script>
-  <script src="js/auth.js?v=1"></script>
+  <script src="js/services/api.js?v=22"></script>
+  <script src="js/auth.js?v=22"></script>
   <script>
+    const REMEMBER_KEY = 'suroRememberEmail';
+    const emailInput = document.getElementById('email');
+    const rememberInput = document.querySelector('input[name="remember"]');
+    const savedEmail = localStorage.getItem(REMEMBER_KEY);
+    if (savedEmail && emailInput) {
+      emailInput.value = savedEmail;
+      if (rememberInput) rememberInput.checked = true;
+    }
+
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       clearErrors();
@@ -102,6 +111,11 @@
 
       try {
         await window.SURO_API.login(email, password);
+        if (rememberInput && rememberInput.checked) {
+          localStorage.setItem(REMEMBER_KEY, email);
+        } else {
+          localStorage.removeItem(REMEMBER_KEY);
+        }
         window.location.href = 'app/';
       } catch (error) {
         let message = error.message || 'Erreur de connexion';

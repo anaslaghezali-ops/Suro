@@ -943,3 +943,48 @@ textarea {
     transition: none !important;
   }
 }
+
+/* ===== EMPTY & ERROR STATES ===== */
+.table-empty-cell {
+  padding: 0 !important;
+  border: none !important;
+}
+
+.table-empty-cell::before {
+  content: none !important;
+}
+
+.table-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.table-empty-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-neutral-900);
+}
+
+.table-empty-desc {
+  margin: 0;
+  max-width: 320px;
+  font-size: 13px;
+  color: var(--color-neutral-600);
+  line-height: 1.55;
+}
+
+.table-empty--error .table-empty-title {
+  color: var(--color-error);
+}
+
+@media (max-width: 640px) {
+  .btn-sm {
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+}

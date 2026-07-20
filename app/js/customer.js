@@ -9,6 +9,41 @@ const LOGIN_PAGE = '../customer-login.html';
 const SUPPORT_PHONE = '+212600000000';
 const SUPPORT_WHATSAPP = '212600000000'; // format international sans +
 
+function toast(msg, type = 'ok') {
+  if (window.SuroToast) window.SuroToast.show(msg, type);
+  else alert(msg);
+}
+
+async function confirmAction(message, opts = {}) {
+  if (window.SuroToast && window.SuroToast.confirm) {
+    return window.SuroToast.confirm(message, opts);
+  }
+  return confirm(message);
+}
+
+let _modalFocusReturn = null;
+
+function _modalEscHandler(e) {
+  if (e.key === 'Escape') closeModal();
+}
+
+function openModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  _modalFocusReturn = document.activeElement;
+  modal.classList.add('open');
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  const title = modal.querySelector('h2');
+  if (title) {
+    if (!title.id) title.id = `${id}-title`;
+    modal.setAttribute('aria-labelledby', title.id);
+  }
+  const closeBtn = modal.querySelector('.modal-close');
+  if (closeBtn) closeBtn.focus();
+  document.addEventListener('keydown', _modalEscHandler);
+}
+
 class CustomerDashboard {
   constructor() {
     this.api = window.SURO_API;
@@ -29,9 +64,41 @@ class CustomerDashboard {
     }
 
     this.setupNavigation();
+    this.setupFilters();
     this.setupSupportLinks();
     this.loadProfileHeader();
     this.loadDashboard();
+  }
+
+  setupFilters() {
+    const policyFilter = document.getElementById('filter-policy-status');
+    if (policyFilter) {
+      policyFilter.addEventListener('change', () => this.loadPolicies());
+    }
+    const claimFilter = document.getElementById('filter-claim-status');
+    if (claimFilter) {
+      claimFilter.addEventListener('change', () => this.loadClaims());
+    }
+  }
+
+  emptyStateHTML(colspan, { title, desc, ctaLabel, ctaOnclick }) {
+    return `<tr><td colspan="${colspan}" class="table-empty-cell">
+      <div class="table-empty">
+        <p class="table-empty-title">${title}</p>
+        ${desc ? `<p class="table-empty-desc">${desc}</p>` : ''}
+        ${ctaLabel ? `<button type="button" class="btn btn-primary btn-sm" onclick="${ctaOnclick}">${ctaLabel}</button>` : ''}
+      </div>
+    </td></tr>`;
+  }
+
+  errorStateHTML(colspan, retryFn) {
+    return `<tr><td colspan="${colspan}" class="table-empty-cell">
+      <div class="table-empty table-empty--error">
+        <p class="table-empty-title">Impossible de charger</p>
+        <p class="table-empty-desc">Vérifie ta connexion et réessaie.</p>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="${retryFn}">Réessayer</button>
+      </div>
+    </td></tr>`;
   }
 
   async setupSupportLinks() {
@@ -109,7 +176,13 @@ class CustomerDashboard {
     try {
       const user = await this.api.getUser();
       const name = (user.user_metadata && user.user_metadata.name) || user.email;
-      document.getElementById('user-name').textContent = name;
+      const firstName = name.includes('@') ? name.split('@')[0] : name.split(' ')[0];
+      const welcome = document.getElementById('welcome-name');
+      const userName = document.getElementById('user-name');
+      const avatar = document.getElementById('user-avatar');
+      if (welcome) welcome.textContent = firstName;
+      if (userName) userName.textContent = name;
+      if (avatar) avatar.textContent = (firstName[0] || 'C').toUpperCase();
     } catch (error) {
       if (this.handleAuthError(error)) return;
     }
@@ -144,19 +217,27 @@ class CustomerDashboard {
           <td data-label="Statut"><span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></td>
           <td data-label=""><button class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button></td>
         </tr>
-      `).join('') : '<tr><td colspan="4" class="text-center">Aucun contrat pour le moment</td></tr>';
+      `).join('') : this.emptyStateHTML(4, {
+        title: 'Aucun contrat actif',
+        desc: 'Souscris une assurance en quelques minutes.',
+        ctaLabel: 'Nouvelle assurance',
+        ctaOnclick: 'dashboard.newSubscription()',
+      });
     } catch (error) {
       if (this.handleAuthError(error)) return;
-      console.error('Error loading dashboard:', error);
+      const tbody = document.getElementById('active-policies-tbody');
+      if (tbody) tbody.innerHTML = this.errorStateHTML(4, 'dashboard.loadDashboard()');
     }
   }
 
   async loadPolicies() {
     try {
       const policies = await this.fetchPolicies(true);
+      const statusFilter = document.getElementById('filter-policy-status')?.value || '';
+      const filtered = statusFilter ? policies.filter(p => p.status === statusFilter) : policies;
       const tbody = document.getElementById('policies-tbody');
 
-      tbody.innerHTML = policies.length ? policies.map(p => `
+      tbody.innerHTML = filtered.length ? filtered.map(p => `
         <tr>
           <td data-label="Immatriculation">${p.immatriculation || '—'}</td>
           <td data-label="Véhicule">${this.vehicleLabel(p)}</td>
@@ -168,10 +249,16 @@ class CustomerDashboard {
             <button class="btn btn-ghost btn-sm" onclick="dashboard.renewPolicy('${p.id}')">Renouveler</button>
           </td>
         </tr>
-      `).join('') : '<tr><td colspan="6" class="text-center">Aucun contrat trouvé</td></tr>';
+      `).join('') : this.emptyStateHTML(6, {
+        title: statusFilter ? 'Aucun contrat pour ce filtre' : 'Aucun contrat',
+        desc: statusFilter ? 'Essaie un autre statut ou souscris une nouvelle assurance.' : 'Commence par souscrire ton assurance auto.',
+        ctaLabel: 'Nouvelle assurance',
+        ctaOnclick: 'dashboard.newSubscription()',
+      });
     } catch (error) {
       if (this.handleAuthError(error)) return;
-      console.error('Error loading policies:', error);
+      const tbody = document.getElementById('policies-tbody');
+      if (tbody) tbody.innerHTML = this.errorStateHTML(6, 'dashboard.loadPolicies()');
     }
   }
 
@@ -179,9 +266,11 @@ class CustomerDashboard {
     try {
       const claims = await this.api.getMyClaims() || [];
       this.claims = claims;
+      const statusFilter = document.getElementById('filter-claim-status')?.value || '';
+      const filtered = statusFilter ? claims.filter(c => c.status === statusFilter) : claims;
       const tbody = document.getElementById('claims-tbody');
 
-      tbody.innerHTML = claims.length ? claims.map(c => `
+      tbody.innerHTML = filtered.length ? filtered.map(c => `
         <tr>
           <td data-label="Type">${this.escape(c.claim_type || 'N/A')}</td>
           <td data-label="Description">${this.escape((c.description || '').slice(0, 60))}${(c.description || '').length > 60 ? '…' : ''}</td>
@@ -189,12 +278,18 @@ class CustomerDashboard {
           <td data-label="Statut"><span class="status-badge status-${c.status}">${this.formatStatus(c.status)}</span></td>
           <td data-label=""><button class="btn btn-primary btn-sm" onclick="dashboard.viewClaimDetail('${c.id}')">Suivre</button></td>
         </tr>
-      `).join('') : '<tr><td colspan="5" class="text-center">Aucun sinistre déclaré</td></tr>';
+      `).join('') : this.emptyStateHTML(5, {
+        title: statusFilter ? 'Aucun sinistre pour ce filtre' : 'Aucun sinistre déclaré',
+        desc: 'En cas d\'incident, déclare-le ici pour un suivi rapide.',
+        ctaLabel: 'Déclarer un sinistre',
+        ctaOnclick: 'openNewClaimModal()',
+      });
 
       await this.loadPoliciesForClaimForm();
     } catch (error) {
       if (this.handleAuthError(error)) return;
-      console.error('Error loading claims:', error);
+      const tbody = document.getElementById('claims-tbody');
+      if (tbody) tbody.innerHTML = this.errorStateHTML(5, 'dashboard.loadClaims()');
     }
   }
 
@@ -219,7 +314,7 @@ class CustomerDashboard {
     try {
       await this.api.downloadDocument(path, name);
     } catch (error) {
-      alert('Document momentanément inaccessible');
+      toast('Document momentanément inaccessible', 'err');
     }
   }
 
@@ -252,10 +347,16 @@ class CustomerDashboard {
           <td data-label="Date">${new Date(pay.paid_at).toLocaleDateString('fr-FR')}</td>
           <td data-label="Statut"><span class="status-badge status-active">Payé</span></td>
         </tr>`;
-      }).join('') : '<tr><td colspan="4" class="text-center">Aucun paiement effectué</td></tr>';
+      }).join('') : this.emptyStateHTML(4, {
+        title: 'Aucun paiement',
+        desc: 'Tes paiements apparaîtront ici après ta souscription.',
+        ctaLabel: 'Souscrire une assurance',
+        ctaOnclick: 'dashboard.newSubscription()',
+      });
     } catch (error) {
       if (this.handleAuthError(error)) return;
-      console.error('Error loading payments:', error);
+      const tbody = document.getElementById('payments-tbody');
+      if (tbody) tbody.innerHTML = this.errorStateHTML(4, 'dashboard.loadPayments()');
     }
   }
 
@@ -284,11 +385,17 @@ class CustomerDashboard {
 
     try {
       await this.api.updateUser({ data: { name, phone } });
-      document.getElementById('user-name').textContent = name || this.session.email;
-      alert('Profil mis à jour ✓');
+      const displayName = name || this.session.email;
+      document.getElementById('user-name').textContent = displayName;
+      const firstName = displayName.includes('@') ? displayName.split('@')[0] : displayName.split(' ')[0];
+      const welcome = document.getElementById('welcome-name');
+      const avatar = document.getElementById('user-avatar');
+      if (welcome) welcome.textContent = firstName;
+      if (avatar) avatar.textContent = (firstName[0] || 'C').toUpperCase();
+      toast('Profil mis à jour');
     } catch (error) {
       if (this.handleAuthError(error)) return;
-      alert('Erreur lors de la mise à jour du profil');
+      toast('Erreur lors de la mise à jour du profil', 'err');
     }
   }
 
@@ -344,9 +451,9 @@ class CustomerDashboard {
         </div>
       `;
 
-      modal.classList.add('open');
+      openModal('detail-modal');
     } catch (error) {
-      console.error('Error loading policy detail:', error);
+      toast('Impossible d\'afficher ce contrat', 'err');
     }
   }
 
@@ -373,7 +480,7 @@ class CustomerDashboard {
       const premium = p.annual_premium
         ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH`
         : 'le montant de ta prime';
-      if (!confirm(`Renouveler ce contrat pour un an (${premium}) ?\nTon contrat sera prolongé, tu gardes le même numéro.`)) {
+      if (!await confirmAction(`Renouveler ce contrat pour un an (${premium}) ?\nTon contrat sera prolongé, tu gardes le même numéro.`, { title: 'Renouveler', okLabel: 'Renouveler' })) {
         return;
       }
 
@@ -381,18 +488,17 @@ class CustomerDashboard {
       const newExpiry = Array.isArray(result) ? result[0] : result;
       const dateStr = newExpiry ? new Date(newExpiry).toLocaleDateString('fr-FR') : null;
 
-      alert(dateStr
-        ? `Contrat renouvelé ✓ Nouvelle échéance : ${dateStr}`
-        : 'Contrat renouvelé ✓');
+      toast(dateStr
+        ? `Contrat renouvelé — nouvelle échéance : ${dateStr}`
+        : 'Contrat renouvelé');
 
       closeModal();
-      await this.fetchPolicies(true); // recharge le cache
+      await this.fetchPolicies(true);
       this.loadDashboard();
       if (this.currentPage === 'policies') this.loadPolicies();
     } catch (error) {
       if (this.handleAuthError(error)) return;
-      console.error('Error renewing policy:', error);
-      alert('Erreur lors du renouvellement : ' + (error.message || ''));
+      toast('Erreur lors du renouvellement : ' + (error.message || ''), 'err');
     }
   }
 
@@ -508,11 +614,11 @@ class CustomerDashboard {
           const msgs = await this.api.getClaimMessages(claimId).catch(() => []);
           document.getElementById('claim-messages').innerHTML = this.renderClaimMessages(msgs);
         } catch (err) {
-          alert('Message non envoyé, réessaie.');
+          toast('Message non envoyé, réessaie.', 'err');
         }
       };
 
-      modal.classList.add('open');
+      openModal('detail-modal');
     } catch (error) {
       if (this.handleAuthError(error)) return;
       console.error('Error loading claim detail:', error);
@@ -523,7 +629,7 @@ class CustomerDashboard {
     try {
       await this.api.downloadClaimFile(decodeURIComponent(encodedPath), name);
     } catch (e) {
-      alert('Fichier momentanément inaccessible');
+      toast('Fichier momentanément inaccessible', 'err');
     }
   }
 
@@ -531,7 +637,7 @@ class CustomerDashboard {
     const input = document.getElementById('claim-extra-files');
     const btn = document.getElementById('claim-extra-upload');
     if (!input || !input.files.length) {
-      alert('Choisis d\'abord un ou plusieurs fichiers');
+      toast('Choisis d\'abord un ou plusieurs fichiers', 'info');
       return;
     }
     btn.disabled = true;
@@ -542,7 +648,7 @@ class CustomerDashboard {
       }
       this.viewClaimDetail(claimId); // rafraîchit
     } catch (e) {
-      alert('Erreur lors de l\'envoi : ' + (e.message || ''));
+      toast('Erreur lors de l\'envoi : ' + (e.message || ''), 'err');
       btn.disabled = false;
       btn.textContent = 'Ajouter des photos/vidéos';
     }
@@ -573,8 +679,14 @@ document.addEventListener('DOMContentLoaded', () => {
 function toggleSidebar() {
   const sidebar = document.querySelector('.sidebar');
   const overlay = document.getElementById('sidebar-overlay');
+  const toggle = document.querySelector('.sidebar-toggle');
   if (sidebar) sidebar.classList.toggle('open');
   if (overlay) overlay.classList.toggle('open');
+  if (toggle && sidebar) {
+    const open = sidebar.classList.contains('open');
+    toggle.setAttribute('aria-expanded', open);
+    toggle.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
+  }
 }
 
 function closeSidebar() {
@@ -584,19 +696,24 @@ function closeSidebar() {
   if (overlay) overlay.classList.remove('open');
 }
 
-function logout() {
-  if (confirm('Tu veux te déconnecter ?')) {
+async function logout() {
+  if (await confirmAction('Tu veux te déconnecter ?', { title: 'Déconnexion', okLabel: 'Se déconnecter' })) {
     window.SURO_API.logout();
     window.location.href = LOGIN_PAGE;
   }
 }
 
 function closeModal() {
-  document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
+  document.querySelectorAll('.modal.open').forEach(m => m.classList.remove('open'));
+  document.removeEventListener('keydown', _modalEscHandler);
+  if (_modalFocusReturn) {
+    _modalFocusReturn.focus();
+    _modalFocusReturn = null;
+  }
 }
 
 function openNewClaimModal() {
-  document.getElementById('claim-modal').classList.add('open');
+  openModal('claim-modal');
 
   const form = document.getElementById('claim-form');
   form.onsubmit = async (e) => {
@@ -608,7 +725,7 @@ function openNewClaimModal() {
     const description = document.getElementById('claim-description').value;
 
     if (!policyId) {
-      alert('Choisis un contrat');
+      toast('Choisis un contrat', 'info');
       return;
     }
 
@@ -644,13 +761,12 @@ function openNewClaimModal() {
       }
 
       window.SURO_API.track('claim_declared', null, { type: claimType, files: uploaded });
-      alert('Sinistre déclaré ✓' + (uploaded ? ` ${uploaded} fichier(s) envoyé(s).` : '') + ' Nos équipes te recontactent rapidement.');
+      toast('Sinistre déclaré' + (uploaded ? ` — ${uploaded} fichier(s) envoyé(s)` : '') + '. Nos équipes te recontactent rapidement.');
       closeModal();
       form.reset();
       dashboard.loadClaims();
     } catch (error) {
-      console.error('Error submitting claim:', error);
-      alert('Erreur lors de la déclaration du sinistre');
+      toast('Erreur lors de la déclaration du sinistre', 'err');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Déclarer le sinistre';
@@ -659,7 +775,7 @@ function openNewClaimModal() {
 }
 
 function openChangePasswordModal() {
-  document.getElementById('password-modal').classList.add('open');
+  openModal('password-modal');
 
   const form = document.getElementById('password-form');
   form.onsubmit = async (e) => {
@@ -669,21 +785,21 @@ function openChangePasswordModal() {
     const confirmPassword = document.getElementById('confirm-password').value;
 
     if (newPassword.length < 8) {
-      alert('Minimum 8 caractères');
+      toast('Minimum 8 caractères', 'info');
       return;
     }
     if (newPassword !== confirmPassword) {
-      alert('Les mots de passe ne correspondent pas');
+      toast('Les mots de passe ne correspondent pas', 'info');
       return;
     }
 
     try {
       await window.SURO_API.updateUser({ password: newPassword });
-      alert('Mot de passe mis à jour ✓');
+      toast('Mot de passe mis à jour');
       closeModal();
       form.reset();
     } catch (error) {
-      alert('Erreur lors du changement de mot de passe');
+      toast('Erreur lors du changement de mot de passe', 'err');
     }
   };
 }

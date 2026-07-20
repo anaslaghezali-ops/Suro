@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SURO — Mon espace</title>
-  <meta name="description" content="Gérez vos contrats, sinistres et paiements SURO.">
-  <link rel="stylesheet" href="../css/tokens.css?v=21">
-  <link rel="stylesheet" href="css/dashboard.css?v=21">
-  <link rel="stylesheet" href="css/customer.css?v=21">
+  <meta name="description" content="Gère tes contrats, sinistres et paiements SURO.">
+  <link rel="stylesheet" href="../css/tokens.css?v=22">
+  <link rel="stylesheet" href="../css/toast.css?v=22">
+  <link rel="stylesheet" href="css/dashboard.css?v=22">
+  <link rel="stylesheet" href="css/customer.css?v=22">
 </head>
 <body>
   <div class="admin-container">
@@ -276,11 +277,11 @@
         <div class="page" id="profile-page" style="display: none;">
           <div class="page-header">
             <h1>Mon profil</h1>
-            <p>Mettez à jour vos informations personnelles</p>
+            <p>Mets à jour tes informations personnelles</p>
           </div>
 
           <div class="section-card">
-            <h3>Informations Personnelles</h3>
+            <h3>Informations personnelles</h3>
             <form id="profile-form" class="profile-form">
               <div class="form-group">
                 <label for="profile-email">Email</label>
@@ -290,12 +291,12 @@
 
               <div class="form-group">
                 <label for="profile-name">Nom Complet</label>
-                <input type="text" id="profile-name" placeholder="Votre nom complet" autocomplete="name">
+                <input type="text" id="profile-name" placeholder="Ton nom complet" autocomplete="name">
               </div>
 
               <div class="form-group">
                 <label for="profile-phone">Téléphone</label>
-                <input type="tel" id="profile-phone" placeholder="Votre numéro de téléphone" autocomplete="tel">
+                <input type="tel" id="profile-phone" placeholder="Ton numéro de téléphone" autocomplete="tel">
               </div>
 
               <div class="form-group">
@@ -310,7 +311,7 @@
           <div class="section-card">
             <h3>Sécurité</h3>
             <div class="security-group">
-              <p>Gérez vos paramètres de sécurité et vos préférences de confidentialité.</p>
+              <p>Gère ton mot de passe et tes préférences de sécurité.</p>
               <button class="btn btn-secondary" onclick="openChangePasswordModal()">Changer le mot de passe</button>
             </div>
           </div>
@@ -394,8 +395,9 @@
     </div>
   </div>
 
-  <script src="../js/services/api.js?v=18"></script>
-  <script src="../js/notifications.js?v=18"></script>
-  <script src="js/customer.js?v=18"></script>
+  <script src="../js/services/api.js?v=22"></script>
+  <script src="../js/notifications.js?v=22"></script>
+  <script src="../js/toast.js?v=22"></script>
+  <script src="js/customer.js?v=22"></script>
 </body>
 </html>

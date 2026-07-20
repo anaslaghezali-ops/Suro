@@ -214,11 +214,11 @@ body {
 
 .password-toggle {
   position: absolute;
-  right: 4px;
+  right: 2px;
   top: 50%;
   transform: translateY(-50%);
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border: none;
   background: transparent;
   color: var(--color-neutral-400);
@@ -257,12 +257,14 @@ body {
   gap: 8px;
   color: var(--color-neutral-600);
   cursor: pointer;
+  min-height: 44px;
 }
 
 .form-row input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   accent-color: var(--color-primary);
+  flex-shrink: 0;
 }
 
 .form-link {

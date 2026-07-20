@@ -17,7 +17,7 @@ function Kpi({ label, value, sub, attn }) {
     </div>`;
 }
 
-export function Dashboard() {
+export function Dashboard({ caps }) {
   const { data, loading, error } = useAsync(async () => {
     const [apps, payments, claims, docs, audit] = await Promise.all([
       api.applications().catch(() => []),

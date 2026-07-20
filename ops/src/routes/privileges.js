@@ -8,7 +8,7 @@ import { Badge, Spinner, Empty, toast } from '../components/ui.js';
 const ROLE_ORDER = ['admin', 'operations', 'support'];
 const roleTone = (r) => ({ admin: 'green', operations: 'amber', support: 'gray' }[r] || 'gray');
 
-export function Privileges() {
+export function Privileges({ caps }) {
   const { data: matrix, loading, error, reload } = useAsync(() => api.listRolePrivileges(), []);
   const [toggling, setToggling] = useState(null);
 

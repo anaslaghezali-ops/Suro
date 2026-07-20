@@ -56,8 +56,8 @@ function ContactSettings({ editable }) {
   `;
 }
 
-export function Settings({ role }) {
-  const editable = can(role, 'settings.edit');
+export function Settings({ caps }) {
+  const editable = can(caps, 'settings.edit');
   return html`
     <div class="page-head">
       <h1>Paramètres</h1>

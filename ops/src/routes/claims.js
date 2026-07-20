@@ -37,14 +37,14 @@ function Timeline({ status }) {
   </div>`;
 }
 
-function Detail({ claim, role, onClose, onChanged }) {
+function Detail({ claim, caps, onClose, onChanged }) {
   const [tab, setTab] = useState('suivi');
   const [status, setStatus] = useState(claim.status);
   const files = useAsync(() => api.claimFiles(claim.id).catch(() => []), [claim.id]);
   const msgs = useAsync(() => api.claimMessages(claim.id).catch(() => []), [claim.id]);
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
-  const canHandle = can(role, 'claim.handle');
+  const canHandle = can(caps, 'claim.handle');
 
   const applyStatus = async () => {
     try { await api.updateClaimStatus(claim.id, status); toast('Statut mis à jour', 'ok'); onChanged(); }
@@ -121,7 +121,7 @@ function Detail({ claim, role, onClose, onChanged }) {
   `;
 }
 
-export function Claims({ role }) {
+export function Claims({ caps }) {
   const { data, loading, error, reload } = useAsync(() => api.claims().catch(() => []), []);
   const [activeView, setActiveView] = useState('');
   const [selected, setSelected] = useState(null);
@@ -153,7 +153,7 @@ export function Claims({ role }) {
       <${DataTable} key=${activeView} columns=${columns} rows=${rows} searchKeys=${['claim_type', 'description']}
         onRowClick=${(c) => setSelected(c)} />
     </div>
-    ${selected ? html`<${Detail} claim=${selected} role=${role}
+    ${selected ? html`<${Detail} claim=${selected} caps=${caps}
       onClose=${() => setSelected(null)}
       onChanged=${() => { setSelected(null); reload(); }} />` : null}
   `;

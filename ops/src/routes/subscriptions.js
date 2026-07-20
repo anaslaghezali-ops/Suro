@@ -43,12 +43,12 @@ const EDITABLE = [
 ];
 
 /* Fiche dossier (slide-over) */
-function Detail({ app, role, onClose, onSaved }) {
+function Detail({ app, caps, onClose, onSaved }) {
   const [tab, setTab] = useState('infos');
   const [form, setForm] = useState({ ...app });
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState(app.status);
-  const editable = can(role, 'subscription.edit');
+  const editable = can(caps, 'contract.edit');
   const docs = useAsync(() => api.documents(app.id).catch(() => []), [app.id]);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -150,7 +150,7 @@ function Detail({ app, role, onClose, onSaved }) {
   `;
 }
 
-export function Subscriptions({ role }) {
+export function Subscriptions({ caps }) {
   const { data, loading, error, reload } = useAsync(async () => {
     const [apps, docs] = await Promise.all([
       api.applications().catch(() => []),
@@ -220,7 +220,7 @@ export function Subscriptions({ role }) {
       />
     </div>
 
-    ${selected ? html`<${Detail} app=${selected} role=${role}
+    ${selected ? html`<${Detail} app=${selected} caps=${caps}
       onClose=${closeDetail}
       onSaved=${() => { closeDetail(); reload(); }} />` : null}
   `;

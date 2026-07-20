@@ -14,7 +14,7 @@ function Loading() { return html`<div style="padding:40px"><${Spinner}/></div>`;
 /* Clients : voir routes/clients.js (fiche client 360). */
 
 /* ---------------- CONTRATS (souscriptions actives/expirées) ---------------- */
-export function Contracts() {
+export function Contracts({ caps }) {
   const { data, loading, error } = useAsync(() => api.applications().catch(() => []), []);
   if (loading) return html`<${Loading}/>`;
   if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;
@@ -34,7 +34,7 @@ export function Contracts() {
 }
 
 /* ---------------- PAIEMENTS ---------------- */
-export function Payments() {
+export function Payments({ caps }) {
   const { data, loading, error } = useAsync(() => api.payments().catch(() => []), []);
   const [filter, setFilter] = useState('');
   if (loading) return html`<${Loading}/>`;
@@ -59,7 +59,7 @@ export function Payments() {
 /* Sinistres : voir routes/claims.js (fiche de traitement complète). */
 
 /* ---------------- JOURNAL D'ACTIVITÉ ---------------- */
-export function Audit() {
+export function Audit({ caps }) {
   const { data, loading, error } = useAsync(() => api.auditRecent(200).catch(() => []), []);
   if (loading) return html`<${Loading}/>`;
   if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;

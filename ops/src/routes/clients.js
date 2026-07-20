@@ -121,7 +121,7 @@ function ClientDetail({ client, onClose }) {
     <//>`;
 }
 
-export function Clients() {
+export function Clients({ caps }) {
   const { data, loading, error } = useAsync(() => api.customers().catch(() => []), []);
   const [selected, setSelected] = useState(null);
   const param = useRouteParam();

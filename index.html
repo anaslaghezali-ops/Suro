@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="T'es couvert en 5 min. Assurance auto, simple et directe.">
   <title>SURO — Assurance Protection</title>
-  <link rel="stylesheet" href="css/tokens.css?v=16">
-  <link rel="stylesheet" href="css/components.css?v=16">
-  <link rel="stylesheet" href="css/main.css?v=16">
+  <link rel="stylesheet" href="css/tokens.css?v=17">
+  <link rel="stylesheet" href="css/components.css?v=17">
+  <link rel="stylesheet" href="css/main.css?v=17">
 </head>
 <body>
   <!-- HEADER -->
@@ -15,10 +15,10 @@
     <div class="header-inner">
       <div class="logo">SURO</div>
       <nav class="nav">
-        <a href="#" class="active">Auto</a>
-        <a href="#" style="opacity: 0.5;">Habitation</a>
-        <a href="#" style="opacity: 0.5;">Voyage</a>
-        <a href="#" style="opacity: 0.5;">Santé</a>
+        <a href="#" class="active"></a>
+        <a href="#" style="opacity: 0.5;">Comment ça marche</a>
+        <a href="#" style="opacity: 0.5;">FAQ</a>
+        <a href="#" style="opacity: 0.5;"></a>
       </nav>
       <div class="header-actions">
         <a href="customer-login.html" class="btn btn-primary btn-sm" style="text-decoration: none;">Mon espace</a>
@@ -30,12 +30,12 @@
     <!-- HERO -->
     <section class="hero">
       <div class="hero-content">
-        <h1>Assurance auto<br>en 5 minutes</h1>
-        <h2>Zéro prise de tête</h2>
-        <p class="hero-description">Pas de formulaire compliqué. Pas de jargon d'assureur. On analyse ta voiture, on te propose une couverture fair. Première quittance demain.</p>
+        <h1>L'assurance automobile,<br>enfin simple.</h1>
+        
+        <p class="hero-description">Souscrivez votre assurance automobile en ligne grâce à un parcours simple, rapide et sécurisé.</p>
 
         <button class="btn btn-primary btn-lg btn-pulse" onclick="window.SURO_API&&window.SURO_API.track('cta_hero_click');document.querySelector('.tunnel-section').scrollIntoView({behavior: 'smooth'})">
-          ✓ Obtenir ma couverture en 5 min
+          Commencer ma souscription
         </button>
         <p style="font-size: 12px; color: var(--color-neutral-600); margin-top: 16px;">
           ⭐ 5234 clients assurés • ✓ Processus 100% sécurisé
@@ -46,7 +46,7 @@
     <!-- WHY SURO -->
     <section class="section section-light">
       <div class="section-content">
-        <h2 class="section-title">Pourquoi SURO?</h2>
+        <h2 class="section-title">Pourquoi choisir SURO ?</h2>
         <div class="features-grid">
           <div class="feature-card">
             <div class="feature-icon">⚡</div>
@@ -75,7 +75,7 @@
     <!-- TRUST SIGNALS -->
     <section class="section section-trust">
       <div class="section-content">
-        <h2 class="section-title section-title-trust">Nous sommes certifiés & sécurisés</h2>
+        <h2 class="section-title section-title-trust">Pourquoi vous pouvez nous faire confiance</h2>
         <div class="trust-grid">
           <div class="trust-badge">
             <div class="trust-icon">🏛️</div>
@@ -145,35 +145,6 @@
       </div>
     </section>
 
-    <!-- GUARANTEES -->
-    <section class="section section-light">
-      <div class="section-content">
-        <h2 class="section-title">Nos garanties</h2>
-        <div class="guarantees-grid">
-          <div class="guarantee-item">
-            <div class="guarantee-icon">💰</div>
-            <h3>Meilleur prix garantie</h3>
-            <p>Nous vous remboursons la différence si vous trouvez moins cher ailleurs</p>
-          </div>
-          <div class="guarantee-item">
-            <div class="guarantee-icon">⏱️</div>
-            <h3>Résiliation sans frais</h3>
-            <p>Tu peux arrêter quand tu veux, sans pénalité ni engagement</p>
-          </div>
-          <div class="guarantee-item">
-            <div class="guarantee-icon">✨</div>
-            <h3>Satisfaction 100%</h3>
-            <p>30 jours pour te faire rembourser intégralement si tu n'es pas satisfait</p>
-          </div>
-          <div class="guarantee-item">
-            <div class="guarantee-icon">🚗</div>
-            <h3>Assistance immédiate</h3>
-            <p>En cas de problème, on t'envoie un expert en moins d'une heure</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- HOW IT WORKS -->
     <section class="section">
       <div class="section-content">
@@ -228,61 +199,6 @@
             <div class="stat-label">Temps moyen</div>
             <div class="stat-subtext">pour s'assurer (min)</div>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- COMPARISON -->
-    <section class="section section-comparison">
-      <div class="section-content">
-        <h2 class="section-title">Pourquoi SURO plutôt que les autres?</h2>
-        <div class="comparison-table-wrapper">
-          <table class="comparison-table">
-            <thead>
-              <tr>
-                <th>Critère</th>
-                <th>SURO <span class="comparison-badge">⭐ MEILLEUR</span></th>
-                <th>Concurrents</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="comparison-row-yes">
-                <td class="comparison-feature">Temps de souscription</td>
-                <td><strong>5 minutes</strong></td>
-                <td>20-40 minutes</td>
-              </tr>
-              <tr>
-                <td class="comparison-feature">Formulaire simplifié</td>
-                <td><span class="comparison-check">✓</span></td>
-                <td><span class="comparison-cross">✗</span></td>
-              </tr>
-              <tr class="comparison-row-yes">
-                <td class="comparison-feature">Tarification transparente</td>
-                <td><strong>Oui</strong></td>
-                <td>Frais cachés possibles</td>
-              </tr>
-              <tr>
-                <td class="comparison-feature">Assistance 24/7</td>
-                <td><span class="comparison-check">✓</span></td>
-                <td><span class="comparison-check">✓</span></td>
-              </tr>
-              <tr class="comparison-row-yes">
-                <td class="comparison-feature">Résiliation sans frais</td>
-                <td><span class="comparison-check">✓</span></td>
-                <td><span class="comparison-cross">✗</span></td>
-              </tr>
-              <tr>
-                <td class="comparison-feature">100% Digital</td>
-                <td><span class="comparison-check">✓</span></td>
-                <td>Partiellement</td>
-              </tr>
-              <tr class="comparison-row-yes">
-                <td class="comparison-feature">Carte verte instant</td>
-                <td><strong>2 minutes</strong></td>
-                <td>24-48 heures</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
     </section>
@@ -376,9 +292,9 @@
   </div>
 
   <!-- SCRIPTS -->
-  <script src="js/store.js?v=16"></script>
-  <script src="js/services/api.js?v=16"></script>
-  <script src="js/features/onboarding/tunnel.js?v=16"></script>
+  <script src="js/store.js?v=17"></script>
+  <script src="js/services/api.js?v=17"></script>
+  <script src="js/features/onboarding/tunnel.js?v=17"></script>
   <script>
     // Masque le CTA sticky quand le tunnel est visible (mobile)
     (function () {

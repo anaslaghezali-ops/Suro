@@ -1105,3 +1105,24 @@ main {
     transition: none;
   }
 }
+
+
+/* === SURO V4 OVERRIDES === */
+:root{
+ --color-primary:#1D4ED8;
+ --color-bg:#FAFAFA;
+ --color-surface:#FFFFFF;
+ --color-text:#111827;
+ --color-muted:#6B7280;
+}
+body{background:var(--color-bg);color:var(--color-text);}
+.hero{padding:7rem 1.5rem 5rem;background:linear-gradient(180deg,#fff,#f8fafc);}
+.hero h1{font-size:clamp(3rem,6vw,4.8rem);line-height:1.05;font-weight:800;letter-spacing:-0.04em;}
+.hero-description{max-width:640px;font-size:1.15rem;color:var(--color-muted);}
+.btn-primary{background:var(--color-primary)!important;border-radius:14px!important;padding:16px 30px!important;}
+.feature-card,.testimonial-card,.trust-badge{
+ background:#fff;
+ border:1px solid #e5e7eb;
+ border-radius:18px;
+ box-shadow:0 8px 30px rgba(0,0,0,.05);
+}

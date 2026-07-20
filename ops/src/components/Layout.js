@@ -3,6 +3,7 @@ import { navFor, roleLabel } from '../lib/permissions.js';
 import { navigate } from '../router.js';
 import { api } from '../lib/api.js';
 import { initials } from '../lib/format.js';
+import { openCommandPalette } from './CommandPalette.js';
 
 function logout() {
   api.logAction('logout', 'staff').catch(() => {});
@@ -37,11 +38,11 @@ export function Layout({ role, route, session, children }) {
 
       <div class="ops-main">
         <div class="ops-topbar">
-          <div class="search">
+          <div class="search" onClick=${openCommandPalette} style="cursor:pointer">
             <span class="mag">⌕</span>
-            <input placeholder="Rechercher un dossier, un client…" />
+            <input placeholder="Rechercher, aller à… (⌘K)" readonly style="cursor:pointer" />
           </div>
-          <span class="kbd">⌘K bientôt</span>
+          <span class="kbd" onClick=${openCommandPalette} style="cursor:pointer">⌘K</span>
         </div>
         <div class="ops-content">${children}</div>
       </div>

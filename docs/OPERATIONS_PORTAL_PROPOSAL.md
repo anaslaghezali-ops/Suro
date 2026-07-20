@@ -348,8 +348,11 @@ Migration `20260720_ops_phase0_foundations.sql` appliquée (voir `docs/migration
 - **RLS** : écriture `suro_settings` → super_admin/admin ; édition `insurance_applications` → super_admin/admin/operations (migration `20260720_ops_phase6_rls_hardening.sql`). Flux client (RPC SECURITY DEFINER) non impactés.
 - **Sinistres v2** : fiche de traitement `/ops` complète — **Suivi** (timeline + changement de statut avec audit), **Pièces jointes** (liste + téléchargement), **Messagerie** (fil client↔équipe + réponse). Gated `claim.handle`. Vérifié navigateur : 21/21.
 
+### 13.4sexies Polish — Command Palette ✅ FAIT
+- **Command Palette** (⌘K / Ctrl-K, ou clic sur la barre de recherche) : filtrage instantané des destinations autorisées par le rôle, navigation clavier (↑↓, Entrée, Échap). Vérifié navigateur : 25/25.
+
 ### 13.5 Prochaines étapes proposées
-- **Polish** : Command Palette (Cmd-K), vues sauvegardées, actions groupées, raccourcis clavier.
+- **Polish (suite)** : vues sauvegardées, actions groupées, recherche d'entités (dossiers/clients) dans la palette.
 - **Cache-busting modules** : stamp de version aux imports ESM `/ops` (éviter le hard-refresh aux mises à jour).
 - **Cleanup** : retirer l'admin legacy `/backoffice` une fois la config tarifaire reprise (avec le courtier).
 - **Polish** : Command Palette (Cmd-K), vues sauvegardées, actions groupées.

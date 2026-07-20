@@ -3,6 +3,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { api } from './lib/api.js';
 import { useRoute, ROUTES } from './router.js';
 import { Layout } from './components/Layout.js';
+import { CommandPalette } from './components/CommandPalette.js';
 import { FullSpinner, registerToast } from './components/ui.js';
 import { navFor } from './lib/permissions.js';
 
@@ -48,6 +49,7 @@ function App() {
     <${Layout} role=${role} route=${activeId} session=${session}>
       <${View} role=${role} />
     <//>
+    <${CommandPalette} role=${role} />
   `;
 }
 

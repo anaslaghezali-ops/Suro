@@ -34,6 +34,10 @@ export const api = {
   updateApplication: (id, fields) => SB().adminUpdateApplication(id, fields),
   updateApplicationStatus: (id, status) => SB().adminUpdateApplicationStatus(id, status),
 
+  // --- paramètres ---
+  getSettings: () => SB().getSettings(),
+  updateSetting: (key, value) => SB().adminUpdateSetting(key, value),
+
   // --- staff (super_admin) ---
   listStaff: () => rpc('suro_list_staff'),
   setStaff: (email, role) => rpc('suro_set_staff', { p_email: email, p_role: role }),

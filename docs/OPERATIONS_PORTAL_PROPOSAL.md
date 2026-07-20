@@ -340,7 +340,14 @@ Migration `20260720_ops_phase0_foundations.sql` appliquée (voir `docs/migration
 - RPC `suro_list_staff()` / `suro_set_staff(email, role)` / `suro_remove_staff(email)` (SECURITY DEFINER, réservés super_admin), **audit** + **garde anti-verrouillage** (impossible de retirer/rétrograder le dernier super_admin). Anciennes fonctions admin conservées pour le legacy.
 - Écran **Utilisateurs** (super_admin uniquement) : ajout/mise à jour d'un collaborateur (email + rôle), liste staff avec changement de rôle inline et retrait. Vérifié navigateur : 14/14.
 
+### 13.4quater Paramètres — ✅ FAIT
+- Écran **Paramètres** : infos plateforme, **contacts support éditables** (réutilise `suro_settings` via `getSettings`/`adminUpdateSetting`, audit à l'enregistrement), placeholder modèles de communication, lien vers la config tarifaire legacy (préservée). Édition gated `settings.edit` (super_admin/admin). Vérifié navigateur : 17/17.
+- **Tous les modules de navigation sont désormais fonctionnels** (plus aucun stub).
+
 ### 13.5 Prochaines étapes proposées
-- **Paramètres** : infos plateforme, contacts support (existant), modèles emails/notifications.
+- **Polish** : Command Palette (Cmd-K), vues sauvegardées, actions groupées.
+- **Sinistres v2** : porter timeline + messagerie + PJ dans le châssis `/ops` (actuellement liste seule).
+- **Durcissement RLS** : restreindre l'écriture `suro_settings` aux rôles super_admin/admin en base (aujourd'hui la policy s'appuie sur `is_suro_admin()` = tout membre) — cohérence avec la matrice.
+- **Cache-busting modules** : ajouter un stamp de version aux imports ESM `/ops` (ou en-têtes) pour éviter le hard-refresh lors des mises à jour.
 - **Polish** : Command Palette (Cmd-K), vues sauvegardées, actions groupées.
 - **Cleanup** : retirer l'admin legacy `/backoffice` une fois la config tarifaire reprise (avec le courtier).

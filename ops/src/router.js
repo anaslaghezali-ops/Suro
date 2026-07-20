@@ -4,7 +4,7 @@ import { Subscriptions } from './routes/subscriptions.js';
 import { Clients, Contracts, Payments, Claims, Audit } from './routes/modules.js';
 import { Documents } from './routes/documents.js';
 import { Users } from './routes/users.js';
-import { Settings } from './routes/stubs.js';
+import { Settings } from './routes/settings.js';
 
 export const ROUTES = {
   dashboard: Dashboard,

@@ -1,0 +1,115 @@
+/* SURO — Pages légales */
+
+body.legal-page {
+  background: var(--color-neutral-50);
+  color: var(--color-neutral-900);
+  line-height: 1.7;
+}
+
+.legal-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 16px 20px;
+}
+
+.legal-header-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.legal-logo {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.legal-back {
+  font-size: 14px;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.legal-container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+.legal-container h1 {
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+
+.legal-updated {
+  color: var(--color-neutral-600);
+  font-size: 13px;
+  margin-bottom: 32px;
+}
+
+.legal-container h2 {
+  font-size: 18px;
+  margin: 32px 0 12px;
+  color: var(--color-primary);
+}
+
+.legal-container p,
+.legal-container li {
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.legal-container ul {
+  padding-left: 22px;
+  margin-bottom: 12px;
+}
+
+.legal-notice {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  font-size: 14px;
+  margin-bottom: 28px;
+  color: var(--color-neutral-600);
+}
+
+.legal-footer {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+  font-size: 13px;
+  color: var(--color-neutral-600);
+  text-align: center;
+}
+
+.legal-footer a { color: var(--color-primary); }
+
+.legal-container table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.legal-container th,
+.legal-container td {
+  border: 1px solid var(--color-border);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.legal-container th {
+  background: var(--color-surface);
+}
+
+@media (max-width: 640px) {
+  .legal-container table { display: block; overflow-x: auto; }
+}

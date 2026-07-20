@@ -344,20 +344,33 @@ class AdminDashboard {
       // Vrais comptes clients (inscrits), avec ou sans contrat
       const customers = await this.api.adminListCustomers() || [];
 
-      const tbody = document.getElementById('customers-tbody') || this.createCustomersTable();
-      if (!tbody) return;
+      // Compter les contrats par customer
+      const apps = await this.fetchApplications() || [];
+      const contractCount = {};
+      apps.forEach(a => {
+        const email = a.customer_email;
+        contractCount[email] = (contractCount[email] || 0) + 1;
+      });
+
+      const tbody = document.getElementById('customers-tbody');
+      if (!tbody) {
+        console.error('customers-tbody not found');
+        return;
+      }
+
       tbody.innerHTML = customers.length ? customers.map(c => `
         <tr>
-          <td>${this.escape(c.name || '—')} ${c.is_admin ? '<span class="status-badge status-active" style="margin-left:6px;">admin</span>' : ''}</td>
+          <td>${this.escape(c.name || '—')}</td>
           <td>${this.escape(c.email)}</td>
           <td>${this.escape(c.phone || '—')}</td>
-          <td>${c.registered_at ? new Date(c.registered_at).toLocaleDateString('fr-FR') : '—'}</td>
-          <td>${c.contracts} contrat(s)</td>
+          <td>${c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR') : '—'}</td>
+          <td>${contractCount[c.email] || 0} contrat(s)</td>
         </tr>
       `).join('') : '<tr><td colspan="5" class="text-center">Aucun client inscrit</td></tr>';
     } catch (error) {
       if (this.handleAuthError(error)) return;
       console.error('Error loading customers:', error);
+      this.showError('Erreur lors du chargement des clients');
     }
   }
 

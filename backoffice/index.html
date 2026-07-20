@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SURO — Admin Dashboard</title>
-  <link rel="stylesheet" href="css/dashboard.css?v=14">
+  <link rel="stylesheet" href="css/dashboard.css?v=15">
 </head>
 <body>
   <div class="admin-container">
@@ -301,6 +301,39 @@
           </div>
         </div>
 
+        <!-- Customers Page -->
+        <div class="page" id="customers-page" style="display: none;">
+          <div class="page-header">
+            <h1>Clients</h1>
+            <p>Gestion des comptes clients enregistrés</p>
+          </div>
+
+          <div class="filter-bar">
+            <input type="text" placeholder="Chercher par email ou nom..." class="filter-input" id="customer-search">
+          </div>
+
+          <div class="section-card">
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Téléphone</th>
+                    <th>Inscrit depuis</th>
+                    <th>Contrats</th>
+                  </tr>
+                </thead>
+                <tbody id="customers-tbody">
+                  <tr>
+                    <td colspan="5" class="text-center">Chargement...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <!-- Settings Page -->
         <div class="page" id="settings-page" style="display: none;">
           <div class="page-header">
@@ -361,8 +394,8 @@
     </div>
   </div>
 
-  <script src="../js/services/api.js?v=14"></script>
-  <script src="../js/notifications.js?v=14"></script>
-  <script src="js/dashboard.js?v=14"></script>
+  <script src="../js/services/api.js?v=15"></script>
+  <script src="../js/notifications.js?v=15"></script>
+  <script src="js/dashboard.js?v=15"></script>
 </body>
 </html>

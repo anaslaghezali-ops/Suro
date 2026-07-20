@@ -225,7 +225,11 @@ class CustomerDashboard {
   async loadPayments() {
     try {
       const policies = await this.fetchPolicies();
-      const paid = policies.filter(p => p.paid_at);
+      // Montrer tous les contrats avec statut active/renewal ou paid_at
+      const paid = policies.filter(p => p.paid_at || p.status === 'active');
+      // Trier par date de paiement (plus récent d'abord)
+      paid.sort((a, b) => new Date(b.paid_at || b.created_at) - new Date(a.paid_at || a.created_at));
+
       const total = paid.reduce((sum, p) => sum + (Number(p.annual_premium) || 0), 0);
 
       document.getElementById('payment-total').textContent = `${total.toLocaleString('fr-FR')} DH`;
@@ -236,8 +240,8 @@ class CustomerDashboard {
         <tr>
           <td data-label="Montant">${this.premiumLabel(p)}</td>
           <td data-label="Contrat">${this.vehicleLabel(p)}</td>
-          <td data-label="Date">${new Date(p.paid_at).toLocaleDateString('fr-FR')}</td>
-          <td data-label="Statut"><span class="status-badge status-active">Payé</span></td>
+          <td data-label="Date">${p.paid_at ? new Date(p.paid_at).toLocaleDateString('fr-FR') : new Date(p.created_at).toLocaleDateString('fr-FR')}</td>
+          <td data-label="Statut"><span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></td>
         </tr>
       `).join('') : '<tr><td colspan="4" class="text-center">Aucun paiement effectué</td></tr>';
     } catch (error) {

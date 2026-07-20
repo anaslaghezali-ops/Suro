@@ -221,6 +221,12 @@ table.tbl .muted { color: var(--color-neutral-400); }
 .cmdk-foot kbd { background: var(--color-neutral-100); border-radius: 4px; padding: 1px 5px; font-family: inherit; }
 @keyframes cmdk-in { from { transform: translateY(-8px); opacity: 0; } }
 
+/* ============ PRIVILEGE MATRIX ============ */
+table.priv-matrix { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+table.priv-matrix th { text-align: left; font-weight: 600; color: var(--color-neutral-600); font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; padding: 10px 12px; border-bottom: 1px solid var(--color-neutral-200); white-space: nowrap; user-select: none; }
+table.priv-matrix td { padding: 12px; border-bottom: 1px solid var(--color-neutral-100); }
+table.priv-matrix input[type="checkbox"] { cursor: pointer; accent-color: var(--color-primary); }
+
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes fade { from { opacity: 0; } }
 @keyframes slidein { from { transform: translateX(100%); } }

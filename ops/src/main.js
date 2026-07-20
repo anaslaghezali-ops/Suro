@@ -23,6 +23,7 @@ function Toasts() {
 
 function App() {
   const [role, setRole] = useState(undefined); // undefined = chargement
+  const [caps, setCaps] = useState(null); // capacités de l'utilisateur
   const [session] = useState(api.session());
   const route = useRoute();
 
@@ -34,6 +35,16 @@ function App() {
       try { r = await api.currentRole(); } catch (e) { /* réseau/perm */ }
       if (!r) { api.logout(); location.href = LOGIN; return; } // pas membre du staff
       setRole(r);
+
+      // Charger les capacités de l'utilisateur
+      try {
+        const privileges = await api.myPrivileges();
+        setCaps(privileges || []);
+      } catch (e) {
+        console.error('Failed to load privileges:', e);
+        setCaps([]);
+      }
+
       api.logAction('login', 'staff').catch(() => {});
     })();
   }, []);
@@ -47,7 +58,7 @@ function App() {
 
   return html`
     <${Layout} role=${role} route=${activeId} session=${session}>
-      <${View} role=${role} />
+      <${View} role=${role} caps=${caps} />
     <//>
     <${CommandPalette} role=${role} />
   `;

@@ -109,8 +109,8 @@
     </main>
   </div>
 
-  <script src="js/services/api.js?v=19"></script>
-  <script src="js/auth.js?v=1"></script>
+  <script src="js/services/api.js?v=23"></script>
+  <script src="js/auth.js?v=23"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
     if (params.get('email')) {
@@ -128,14 +128,18 @@
       const password = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirm-password').value;
 
-      if (password.length < 8) {
-        showFieldError('password-error', 'Minimum 8 caractères');
-        return;
-      }
+      let valid = true;
+      valid = validateField(SURO_VALIDATORS.name, name, 'name-error', 'name') && valid;
+      valid = validateField(SURO_VALIDATORS.email, email, 'email-error', 'email') && valid;
+      valid = validateField(SURO_VALIDATORS.phone, phone, 'phone-error', 'phone') && valid;
+      valid = validateField(SURO_VALIDATORS.password, password, 'password-error', 'password') && valid;
       if (password !== confirmPassword) {
-        showFieldError('confirm-error', 'Les mots de passe ne correspondent pas');
-        return;
+        showFieldError('confirm-error', 'Les mots de passe ne correspondent pas', 'confirm-password');
+        valid = false;
+      } else {
+        clearFieldError('confirm-error', 'confirm-password');
       }
+      if (!valid) return;
 
       setLoading(btn, true, 'Création…', 'Créer mon compte');
 

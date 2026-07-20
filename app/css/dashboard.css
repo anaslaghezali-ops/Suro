@@ -211,7 +211,7 @@ body {
 }
 
 .stat-card {
-  background: white;
+  background: var(--color-surface);
   padding: 24px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-neutral-200);
@@ -287,7 +287,7 @@ body {
 
 /* SECTION CARD */
 .section-card {
-  background: white;
+  background: var(--color-surface);
   padding: 24px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-neutral-200);
@@ -486,7 +486,7 @@ body {
 }
 
 .settings-card {
-  background: white;
+  background: var(--color-surface);
   padding: 24px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-neutral-200);
@@ -523,7 +523,7 @@ body {
 }
 
 .modal-content {
-  background: white;
+  background: var(--color-surface);
   border-radius: var(--radius-lg);
   padding: 32px;
   max-width: 600px;

@@ -22,6 +22,13 @@ async function confirmAction(message, opts = {}) {
 }
 
 let _modalFocusReturn = null;
+let _modalFocusTrapHandler = null;
+
+function getFocusableElements(container) {
+  return Array.from(container.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )).filter((el) => el.offsetParent !== null || el === document.activeElement);
+}
 
 function _modalEscHandler(e) {
   if (e.key === 'Escape') closeModal();
@@ -39,9 +46,26 @@ function openModal(id) {
     if (!title.id) title.id = `${id}-title`;
     modal.setAttribute('aria-labelledby', title.id);
   }
-  const closeBtn = modal.querySelector('.modal-close');
-  if (closeBtn) closeBtn.focus();
+  const content = modal.querySelector('.modal-content') || modal;
+  const focusable = getFocusableElements(content);
+  (focusable[0] || modal.querySelector('.modal-close')).focus();
+
   document.addEventListener('keydown', _modalEscHandler);
+  _modalFocusTrapHandler = (e) => {
+    if (e.key !== 'Tab') return;
+    const items = getFocusableElements(content);
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+  document.addEventListener('keydown', _modalFocusTrapHandler);
 }
 
 class CustomerDashboard {
@@ -99,6 +123,18 @@ class CustomerDashboard {
         <button type="button" class="btn btn-secondary btn-sm" onclick="${retryFn}">Réessayer</button>
       </div>
     </td></tr>`;
+  }
+
+  skeletonRowsHTML(colspan, rows = 3) {
+    const cells = Array.from({ length: colspan }, (_, i) =>
+      `<td><span class="skeleton skeleton-text" style="width:${55 + (i * 11) % 30}%"></span></td>`
+    ).join('');
+    return Array.from({ length: rows }, () => `<tr class="skeleton-row">${cells}</tr>`).join('');
+  }
+
+  setTableSkeleton(tbodyId, colspan, rows = 3) {
+    const tbody = document.getElementById(tbodyId);
+    if (tbody) tbody.innerHTML = this.skeletonRowsHTML(colspan, rows);
   }
 
   async setupSupportLinks() {
@@ -189,6 +225,7 @@ class CustomerDashboard {
   }
 
   async loadDashboard() {
+    this.setTableSkeleton('active-policies-tbody', 4, 3);
     try {
       const policies = await this.fetchPolicies(true);
       const claims = await this.api.getMyClaims() || [];
@@ -231,6 +268,7 @@ class CustomerDashboard {
   }
 
   async loadPolicies() {
+    this.setTableSkeleton('policies-tbody', 6, 4);
     try {
       const policies = await this.fetchPolicies(true);
       const statusFilter = document.getElementById('filter-policy-status')?.value || '';
@@ -263,6 +301,7 @@ class CustomerDashboard {
   }
 
   async loadClaims() {
+    this.setTableSkeleton('claims-tbody', 5, 3);
     try {
       const claims = await this.api.getMyClaims() || [];
       this.claims = claims;
@@ -319,6 +358,7 @@ class CustomerDashboard {
   }
 
   async loadPayments() {
+    this.setTableSkeleton('payments-tbody', 4, 3);
     try {
       // Historique réel : une ligne par paiement (initial ET chaque renouvellement)
       const [payments, policies] = await Promise.all([
@@ -706,6 +746,10 @@ async function logout() {
 function closeModal() {
   document.querySelectorAll('.modal.open').forEach(m => m.classList.remove('open'));
   document.removeEventListener('keydown', _modalEscHandler);
+  if (_modalFocusTrapHandler) {
+    document.removeEventListener('keydown', _modalFocusTrapHandler);
+    _modalFocusTrapHandler = null;
+  }
   if (_modalFocusReturn) {
     _modalFocusReturn.focus();
     _modalFocusReturn = null;

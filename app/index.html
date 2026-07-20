@@ -3,45 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SURO — Mon Espace Client</title>
-  <link rel="stylesheet" href="css/dashboard.css?v=17">
-  <link rel="stylesheet" href="css/customer.css?v=17">
+  <title>SURO — Mon espace</title>
+  <meta name="description" content="Gérez vos contrats, sinistres et paiements SURO.">
+  <link rel="stylesheet" href="css/dashboard.css?v=18">
+  <link rel="stylesheet" href="css/customer.css?v=18">
+  <link rel="stylesheet" href="css/customer-v2.css?v=18">
 </head>
 <body>
   <div class="admin-container">
     <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="customer-sidebar">
       <div class="sidebar-header">
-        <h1 class="sidebar-logo">SURO</h1>
-        <p class="sidebar-subtitle">Client</p>
+        <a href="../index.html" class="sidebar-logo">SURO</a>
+        <p class="sidebar-subtitle">Espace personnel</p>
       </div>
 
       <nav class="sidebar-nav">
         <a href="#dashboard" class="nav-item active" data-page="dashboard">
-          <span class="nav-icon">📊</span>
-          <span>Mon Tableau de Bord</span>
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+          <span>Vue d'ensemble</span>
         </a>
         <a href="#policies" class="nav-item" data-page="policies">
-          <span class="nav-icon">📋</span>
-          <span>Mes Polices</span>
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h6"/></svg></span>
+          <span>Mes contrats</span>
         </a>
         <a href="#claims" class="nav-item" data-page="claims">
-          <span class="nav-icon">⚠️</span>
-          <span>Mes Sinistres</span>
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19z"/><path d="M12 9v4M12 17h.01"/></svg></span>
+          <span>Mes sinistres</span>
         </a>
         <a href="#payments" class="nav-item" data-page="payments">
-          <span class="nav-icon">💳</span>
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></span>
           <span>Paiements</span>
         </a>
         <a href="#profile" class="nav-item" data-page="profile">
-          <span class="nav-icon">👤</span>
-          <span>Mon Profil</span>
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 22a8 8 0 0 1 16 0"/></svg></span>
+          <span>Mon profil</span>
         </a>
       </nav>
 
       <div class="sidebar-footer">
         <button class="btn-logout" onclick="logout()">
-          <span class="nav-icon">🚪</span>
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M15 3h6v18h-6"/></svg></span>
           <span>Déconnexion</span>
         </button>
       </div>
@@ -51,14 +53,17 @@
     <main class="main-content">
       <!-- HEADER -->
       <header class="admin-header">
-        <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+        <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Ouvrir le menu" aria-controls="customer-sidebar" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
         <div class="header-info">
-          <h2 class="welcome-text">Mon Espace Client</h2>
+          <p class="header-kicker">Espace client</p>
+          <h2 class="welcome-text">Bonjour, <span id="welcome-name">Client</span></h2>
         </div>
         <div class="header-user">
           <div id="notif-mount"></div>
           <span class="user-name" id="user-name">Client</span>
-          <img src="https://ui-avatars.com/api/?name=Client&background=0F766E&color=fff" alt="Client" class="user-avatar">
+          <div class="user-avatar" id="user-avatar" aria-hidden="true">C</div>
         </div>
       </header>
 
@@ -70,57 +75,60 @@
         <!-- Dashboard Page -->
         <div class="page" id="dashboard-page">
           <div class="page-header">
-            <h1>Mon Tableau de Bord</h1>
-            <p>Gérez vos contrats et sinistres facilement</p>
+            <div>
+              <p class="page-eyebrow">Aujourd'hui</p>
+              <h1>Vue d'ensemble</h1>
+              <p>Tout ce qu'il faut pour rester protégé.</p>
+            </div>
+            <button class="btn btn-primary page-primary-action" onclick="dashboard.newSubscription()">Nouvelle assurance</button>
           </div>
 
           <div class="stats-grid">
             <div class="stat-card">
-              <div class="stat-icon">📋</div>
-              <h3>Polices Actives</h3>
+              <div class="stat-icon stat-icon-policy" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg></div>
+              <h3>Contrats actifs</h3>
               <div class="stat-value" id="stat-active-policies">0</div>
             </div>
 
             <div class="stat-card">
-              <div class="stat-icon">⚠️</div>
+              <div class="stat-icon stat-icon-claim" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19z"/><path d="M12 9v4M12 17h.01"/></svg></div>
               <h3>Sinistres</h3>
               <div class="stat-value" id="stat-claims">0</div>
             </div>
 
             <div class="stat-card">
-              <div class="stat-icon">💳</div>
-              <h3>Paiements Effectués</h3>
+              <div class="stat-icon stat-icon-payment" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+              <h3>Paiements effectués</h3>
               <div class="stat-value" id="stat-payments">0</div>
             </div>
 
             <div class="stat-card">
-              <div class="stat-icon">✓</div>
-              <h3>Prochaine Échéance</h3>
+              <div class="stat-icon stat-icon-renewal" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+              <h3>Prochaine échéance</h3>
               <div class="stat-value" id="stat-next-renewal">—</div>
             </div>
           </div>
 
           <!-- Urgence sinistre -->
-          <div class="sos-card">
+          <div class="sos-card" role="region" aria-label="Assistance d'urgence">
             <div class="sos-text">
-              <strong>🚨 Urgence sinistre ?</strong>
-              <span>Accident, panne, vol — on est là 24/7</span>
+              <span class="sos-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+              <span><strong>Besoin d'aide maintenant ?</strong><small>Accident, panne ou vol — assistance disponible 24/7</small></span>
             </div>
             <div class="sos-actions">
-              <a id="sos-phone" href="#" class="btn btn-primary btn-sm">📞 Appeler</a>
-              <a id="sos-whatsapp" href="#" class="btn btn-secondary btn-sm" target="_blank" rel="noopener">💬 WhatsApp</a>
+              <a id="sos-phone" href="#" class="btn btn-emergency btn-sm">Appeler</a>
+              <a id="sos-whatsapp" href="#" class="btn btn-secondary btn-sm" target="_blank" rel="noopener">WhatsApp</a>
             </div>
-          </div>
-
-          <div style="margin-bottom: 24px;">
-            <button class="btn btn-primary" onclick="dashboard.newSubscription()">+ Souscrire une nouvelle assurance</button>
           </div>
 
           <!-- Active Policies -->
           <div class="section-card">
             <div class="section-header">
-              <h3>Mes Polices Actives</h3>
-              <a href="#policies" class="link-view-all">Voir tout →</a>
+              <div>
+                <span class="section-kicker">Protection</span>
+                <h3>Mes contrats actifs</h3>
+              </div>
+              <a href="#policies" class="link-view-all">Voir tous les contrats</a>
             </div>
             <div class="table-responsive">
               <table class="admin-table">
@@ -145,8 +153,8 @@
         <!-- Policies Page -->
         <div class="page" id="policies-page" style="display: none;">
           <div class="page-header">
-            <h1>Mes Polices</h1>
-            <p>Visualisez et gérez toutes vos polices d'assurance</p>
+            <h1>Mes contrats</h1>
+            <p>Consultez vos garanties, documents et échéances.</p>
           </div>
 
           <div class="filter-bar">
@@ -156,7 +164,7 @@
               <option value="expired">Expirée</option>
               <option value="cancelled">Annulée</option>
             </select>
-            <button class="btn btn-primary" onclick="dashboard.newSubscription()">+ Nouvelle assurance</button>
+            <button class="btn btn-primary" onclick="dashboard.newSubscription()">Nouvelle assurance</button>
           </div>
 
           <div class="section-card">
@@ -185,8 +193,8 @@
         <!-- Claims Page -->
         <div class="page" id="claims-page" style="display: none;">
           <div class="page-header">
-            <h1>Mes Sinistres</h1>
-            <p>Déclarez et suivez vos sinistres</p>
+            <h1>Mes sinistres</h1>
+            <p>Déclarez un incident et suivez chaque étape du dossier.</p>
           </div>
 
           <div class="filter-bar">
@@ -197,7 +205,7 @@
               <option value="rejected">Rejeté</option>
               <option value="paid">Payé</option>
             </select>
-            <button class="btn btn-primary" onclick="openNewClaimModal()">+ Déclarer un Sinistre</button>
+            <button class="btn btn-primary" onclick="openNewClaimModal()">Déclarer un sinistre</button>
           </div>
 
           <div class="section-card">
@@ -225,8 +233,8 @@
         <!-- Payments Page -->
         <div class="page" id="payments-page" style="display: none;">
           <div class="page-header">
-            <h1>Historique des Paiements</h1>
-            <p>Consultez tous vos paiements d'assurance</p>
+            <h1>Mes paiements</h1>
+            <p>Retrouvez vos règlements et renouvellements.</p>
           </div>
 
           <div class="stats-grid">
@@ -267,7 +275,7 @@
         <!-- Profile Page -->
         <div class="page" id="profile-page" style="display: none;">
           <div class="page-header">
-            <h1>Mon Profil</h1>
+            <h1>Mon profil</h1>
             <p>Mettez à jour vos informations personnelles</p>
           </div>
 
@@ -314,7 +322,7 @@
   <!-- Modal for details -->
   <div class="modal" id="detail-modal">
     <div class="modal-content">
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()" aria-label="Fermer">✕</button>
       <div id="modal-body"><!-- Details loaded here --></div>
     </div>
   </div>
@@ -322,8 +330,8 @@
   <!-- Modal for new claim -->
   <div class="modal" id="claim-modal">
     <div class="modal-content">
-      <button class="modal-close" onclick="closeModal()">✕</button>
-      <h2>Déclarer un Sinistre</h2>
+      <button class="modal-close" onclick="closeModal()" aria-label="Fermer">✕</button>
+      <h2>Déclarer un sinistre</h2>
       <form id="claim-form" class="modal-form">
         <div class="form-group">
           <label for="claim-policy">Sélectionnez une police</label>
@@ -368,7 +376,7 @@
   <!-- Modal for change password -->
   <div class="modal" id="password-modal">
     <div class="modal-content">
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()" aria-label="Fermer">✕</button>
       <h2>Changer le mot de passe</h2>
       <form id="password-form" class="modal-form">
         <div class="form-group">
@@ -386,8 +394,8 @@
     </div>
   </div>
 
-  <script src="../js/services/api.js?v=17"></script>
-  <script src="../js/notifications.js?v=17"></script>
-  <script src="js/customer.js?v=17"></script>
+  <script src="../js/services/api.js?v=18"></script>
+  <script src="../js/notifications.js?v=18"></script>
+  <script src="js/customer.js?v=18"></script>
 </body>
 </html>

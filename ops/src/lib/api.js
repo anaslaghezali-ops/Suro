@@ -43,6 +43,16 @@ export const api = {
   setStaff: (email, role) => rpc('suro_set_staff', { p_email: email, p_role: role }),
   removeStaff: (email) => rpc('suro_remove_staff', { p_email: email }),
 
+  // --- sinistres ---
+  claimFiles: (claimId) => SB().getClaimFiles(claimId),
+  downloadClaimFile: (path, name) => SB().downloadClaimFile(path, name),
+  claimMessages: (claimId) => SB().getClaimMessages(claimId),
+  sendClaimMessage: (claimId, body) => SB().sendClaimMessage(claimId, body, 'admin'),
+  async updateClaimStatus(claimId, status) {
+    await SB().adminUpdateClaimStatus(claimId, status);
+    return rpc('suro_log_action', { p_action: 'update', p_entity: 'claim', p_entity_id: claimId, p_changes: { status } }).catch(() => {});
+  },
+
   // --- documents ---
   allDocuments: () => SB().adminGetDocuments(),
   reviewDocument: (id, status, reason) =>

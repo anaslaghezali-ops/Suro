@@ -72,23 +72,7 @@ export function Payments() {
   <//>`;
 }
 
-/* ---------------- SINISTRES ---------------- */
-export function Claims() {
-  const { data, loading, error } = useAsync(() => api.claims().catch(() => []), []);
-  if (loading) return html`<${Loading}/>`;
-  if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;
-  const tone = (s) => ({ pending: 'amber', approved: 'green', rejected: 'red', paid: 'blue' }[s] || 'gray');
-  const columns = [
-    { key: 'id', label: 'Réf.', render: (c) => html`<span class="muted">${c.id.slice(0, 8)}…</span>` },
-    { key: 'application_id', label: 'Contrat', render: (c) => html`<span class="muted">${(c.application_id || '').slice(0, 8)}…</span>` },
-    { key: 'claim_type', label: 'Type', sortable: true },
-    { key: 'status', label: 'Statut', sortable: true, render: (c) => html`<${Badge} tone=${tone(c.status)}>${c.status || '—'}<//>` },
-    { key: 'created_at', label: 'Déclaré le', sortable: true, render: (c) => fmtDate(c.created_at) },
-  ];
-  return html`<${Page} title="Sinistres" subtitle="Réclamations clients. Le traitement détaillé (timeline, messagerie) sera porté ici en Phase 6.">
-    <div class="card"><${DataTable} columns=${columns} rows=${data || []} searchKeys=${['claim_type', 'description']} /></div>
-  <//>`;
-}
+/* Sinistres : voir routes/claims.js (fiche de traitement complète). */
 
 /* ---------------- JOURNAL D'ACTIVITÉ ---------------- */
 export function Audit() {

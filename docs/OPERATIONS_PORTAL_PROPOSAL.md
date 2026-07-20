@@ -344,10 +344,13 @@ Migration `20260720_ops_phase0_foundations.sql` appliquée (voir `docs/migration
 - Écran **Paramètres** : infos plateforme, **contacts support éditables** (réutilise `suro_settings` via `getSettings`/`adminUpdateSetting`, audit à l'enregistrement), placeholder modèles de communication, lien vers la config tarifaire legacy (préservée). Édition gated `settings.edit` (super_admin/admin). Vérifié navigateur : 17/17.
 - **Tous les modules de navigation sont désormais fonctionnels** (plus aucun stub).
 
+### 13.4quinquies Durcissement RLS + Sinistres v2 — ✅ FAIT
+- **RLS** : écriture `suro_settings` → super_admin/admin ; édition `insurance_applications` → super_admin/admin/operations (migration `20260720_ops_phase6_rls_hardening.sql`). Flux client (RPC SECURITY DEFINER) non impactés.
+- **Sinistres v2** : fiche de traitement `/ops` complète — **Suivi** (timeline + changement de statut avec audit), **Pièces jointes** (liste + téléchargement), **Messagerie** (fil client↔équipe + réponse). Gated `claim.handle`. Vérifié navigateur : 21/21.
+
 ### 13.5 Prochaines étapes proposées
-- **Polish** : Command Palette (Cmd-K), vues sauvegardées, actions groupées.
-- **Sinistres v2** : porter timeline + messagerie + PJ dans le châssis `/ops` (actuellement liste seule).
-- **Durcissement RLS** : restreindre l'écriture `suro_settings` aux rôles super_admin/admin en base (aujourd'hui la policy s'appuie sur `is_suro_admin()` = tout membre) — cohérence avec la matrice.
-- **Cache-busting modules** : ajouter un stamp de version aux imports ESM `/ops` (ou en-têtes) pour éviter le hard-refresh lors des mises à jour.
+- **Polish** : Command Palette (Cmd-K), vues sauvegardées, actions groupées, raccourcis clavier.
+- **Cache-busting modules** : stamp de version aux imports ESM `/ops` (éviter le hard-refresh aux mises à jour).
+- **Cleanup** : retirer l'admin legacy `/backoffice` une fois la config tarifaire reprise (avec le courtier).
 - **Polish** : Command Palette (Cmd-K), vues sauvegardées, actions groupées.
 - **Cleanup** : retirer l'admin legacy `/backoffice` une fois la config tarifaire reprise (avec le courtier).

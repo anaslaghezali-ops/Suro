@@ -1,14 +1,36 @@
 import { html } from 'htm/preact';
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useMemo } from 'preact/hooks';
 import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
 import { useRouteParam, navigate } from '../router.js';
 import { DataTable } from '../components/DataTable.js';
+import { SavedViews } from '../components/SavedViews.js';
 import { SlideOver, Badge, Spinner, Empty, toast } from '../components/ui.js';
 import { can } from '../lib/permissions.js';
 import { fmtDate, fmtMoney, coverageLabel, vehicleLabel, subStatus, docStatus } from '../lib/format.js';
 
 const STATUSES = ['nouvelle', 'active', 'expired', 'cancelled'];
+
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
+}
+
+// Définition des vues sauvegardées : chacune est une fonction de correspondance.
+// pendingDocApps = Set des application_id ayant au moins un document 'pending'.
+const VIEW_DEFS = [
+  { id: '',          label: 'Toutes',            match: () => true },
+  { id: 'docs',       label: 'Docs à vérifier',   attn: true, match: (a, ctx) => ctx.pendingDocApps.has(a.id) },
+  { id: 'expiring',   label: 'Expire < 30j',      attn: true, match: (a) => {
+      if (a.status !== 'active') return false;
+      const d = daysUntil(a.expires_at);
+      return d != null && d >= 0 && d <= 30;
+    } },
+  { id: 'nouvelle',   label: 'Nouvelles',         match: (a) => a.status === 'nouvelle' },
+  { id: 'active',     label: 'Actives',           match: (a) => a.status === 'active' },
+  { id: 'expired',    label: 'Expirées',          match: (a) => a.status === 'expired' },
+  { id: 'cancelled',  label: 'Annulées',          match: (a) => a.status === 'cancelled' },
+];
 const EDITABLE = [
   ['immatriculation', 'Immatriculation', 'text'],
   ['customer_phone', 'Téléphone', 'tel'],
@@ -129,25 +151,47 @@ function Detail({ app, role, onClose, onSaved }) {
 }
 
 export function Subscriptions({ role }) {
-  const { data, loading, error, reload } = useAsync(() => api.applications().catch(() => []), []);
-  const [statusFilter, setStatusFilter] = useState('');
+  const { data, loading, error, reload } = useAsync(async () => {
+    const [apps, docs] = await Promise.all([
+      api.applications().catch(() => []),
+      api.allDocuments().catch(() => []),
+    ]);
+    return { apps: apps || [], docs: docs || [] };
+  }, []);
+  const [activeView, setActiveView] = useState('');
   const [selected, setSelected] = useState(null);
   const param = useRouteParam();
 
+  const apps = data ? data.apps : null;
+
   // Deep-link : #/subscriptions/<id> ouvre directement le dossier
   useEffect(() => {
-    if (param && data) {
-      const found = data.find((a) => a.id === param || a.id.startsWith(param));
+    if (param && apps) {
+      const found = apps.find((a) => a.id === param || a.id.startsWith(param));
       if (found) setSelected(found);
     }
-  }, [param, data]);
+  }, [param, apps]);
 
   const closeDetail = () => { setSelected(null); if (param) navigate('subscriptions'); };
+
+  // Contexte partagé par les vues (docs en attente par dossier)
+  const ctx = useMemo(() => {
+    const pendingDocApps = new Set(
+      (data ? data.docs : []).filter((d) => (d.status || 'pending') === 'pending').map((d) => d.application_id)
+    );
+    return { pendingDocApps };
+  }, [data]);
+
+  const views = useMemo(() => VIEW_DEFS.map((v) => ({
+    id: v.id, label: v.label, attn: v.attn,
+    count: (apps || []).filter((a) => v.match(a, ctx)).length,
+  })), [apps, ctx]);
 
   if (loading) return html`<div style="padding:40px"><${Spinner}/></div>`;
   if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;
 
-  const rows = (data || []).filter((a) => !statusFilter || a.status === statusFilter);
+  const activeDef = VIEW_DEFS.find((v) => v.id === activeView) || VIEW_DEFS[0];
+  const rows = (apps || []).filter((a) => activeDef.match(a, ctx));
 
   const columns = [
     { key: 'policy_number', label: 'N° / Réf.', render: (a) => a.policy_number || html`<span class="muted">${a.id.slice(0, 8)}…</span>` },
@@ -166,14 +210,12 @@ export function Subscriptions({ role }) {
     </div>
 
     <div class="card">
+      <${SavedViews} views=${views} active=${activeView} onChange=${setActiveView} />
       <${DataTable}
+        key=${activeView}
         columns=${columns}
         rows=${rows}
         searchKeys=${['customer_email', 'immatriculation', 'marque', 'modele', 'customer_phone', 'policy_number']}
-        filters=${[{
-          id: 'status', label: 'Tous les statuts', value: statusFilter, onChange: setStatusFilter,
-          options: STATUSES.map((s) => ({ value: s, label: subStatus(s).label })),
-        }]}
         onRowClick=${(a) => setSelected(a)}
       />
     </div>

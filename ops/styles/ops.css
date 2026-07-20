@@ -116,6 +116,20 @@ table.tbl tbody tr.clickable { cursor: pointer; }
 table.tbl tbody tr.clickable:hover { background: var(--color-neutral-50); }
 table.tbl .muted { color: var(--color-neutral-400); }
 
+/* ============ SAVED VIEWS (pills) ============ */
+.views-bar { display: flex; gap: 6px; flex-wrap: wrap; padding: 14px 18px 0; }
+.view-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--color-neutral-200);
+  background: #fff; font-size: 12.5px; font-weight: 600; color: var(--color-neutral-600);
+  cursor: pointer; transition: all 120ms ease; font-family: inherit;
+}
+.view-pill:hover { border-color: var(--color-neutral-400); color: var(--color-neutral-900); }
+.view-pill .n { font-variant-numeric: tabular-nums; opacity: 0.65; }
+.view-pill.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+.view-pill.active .n { opacity: 0.85; }
+.view-pill.attn:not(.active) { border-color: #FCD9B6; color: #B26A00; background: #FFF8F1; }
+
 .toolbar { display: flex; gap: 10px; align-items: center; padding: 12px 18px; border-bottom: 1px solid var(--color-neutral-100); flex-wrap: wrap; }
 .toolbar input.filter, .toolbar select.filter {
   padding: 7px 10px; border: 1px solid var(--color-neutral-200); border-radius: 8px; font-size: 13px; background: #fff;

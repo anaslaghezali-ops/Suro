@@ -122,11 +122,11 @@
       const password = document.getElementById('password').value;
 
       if (!email) {
-        showFieldError('email-error', 'email', 'L\'email est requis');
+        showFieldError('email-error', 'L\'email est requis', 'email');
         return;
       }
       if (!password) {
-        showFieldError('password-error', 'password', 'Le mot de passe est requis');
+        showFieldError('password-error', 'Le mot de passe est requis', 'password');
         return;
       }
 

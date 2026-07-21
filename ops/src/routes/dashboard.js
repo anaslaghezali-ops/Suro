@@ -17,7 +17,7 @@ function Kpi({ label, value, sub, attn }) {
     </div>`;
 }
 
-export function Dashboard() {
+export function Dashboard({ caps }) {
   const { data, loading, error } = useAsync(async () => {
     const [apps, payments, claims, docs, audit] = await Promise.all([
       api.applications().catch(() => []),
@@ -69,7 +69,7 @@ export function Dashboard() {
 
     <div class="card">
       <div class="card-head"><h3>À traiter (${queue.length})</h3></div>
-      ${queue.length === 0 ? html`<${Empty}>Rien en attente. 🎉<//>` : html`
+      ${queue.length === 0 ? html`<${Empty}>Rien en attente.<//>` : html`
         <div class="tbl-wrap"><table class="tbl">
           <thead><tr><th>Type</th><th>Élément</th><th>Client / Réf.</th><th></th></tr></thead>
           <tbody>

@@ -7,7 +7,7 @@ import { DataTable } from '../components/DataTable.js';
 import { SavedViews } from '../components/SavedViews.js';
 import { SlideOver, Badge, Spinner, Empty, toast } from '../components/ui.js';
 import { can } from '../lib/permissions.js';
-import { fmtDate, fmtMoney, coverageLabel, vehicleLabel, subStatus, docStatus } from '../lib/format.js';
+import { fmtDate, fmtMoney, coverageLabel, vehicleLabel, vehicleTypeLabel, subStatus, docStatus } from '../lib/format.js';
 
 const STATUSES = ['nouvelle', 'active', 'expired', 'cancelled'];
 
@@ -43,13 +43,32 @@ const EDITABLE = [
 ];
 
 /* Fiche dossier (slide-over) */
-function Detail({ app, role, onClose, onSaved }) {
+function Detail({ app, caps, onClose, onSaved }) {
   const [tab, setTab] = useState('infos');
   const [form, setForm] = useState({ ...app });
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState(app.status);
-  const editable = can(role, 'subscription.edit');
+  const [uploading, setUploading] = useState(false);
+  const editable = can(caps, 'contract.edit');
+  const canUpload = can(caps, 'document.upload');
   const docs = useAsync(() => api.documents(app.id).catch(() => []), [app.id]);
+
+  const handleUpload = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      await api.uploadDocument(app, file);
+      await api.logAction('upload', 'document', app.id, { name: file.name }).catch(() => {});
+      toast('Document déposé', 'ok');
+      docs.reload();
+    } catch (err) {
+      toast('Échec du dépôt : ' + (err.message || ''), 'err');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -94,12 +113,13 @@ function Detail({ app, role, onClose, onSaved }) {
       ${tab === 'infos' ? html`
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
           <${Badge} tone=${st.tone}>${st.label}<//>
+          <${Badge} tone=${app.vehicle_type === 'moto' ? 'amber' : 'blue'}>${vehicleTypeLabel(app.vehicle_type)}<//>
           <span class="muted" style="font-size:12.5px">${app.policy_number || 'Sans n° de police'}</span>
         </div>
 
         <div class="form-grid">
           ${EDITABLE.map(([k, label, type]) => html`
-            <label>${label}
+            <label>${k === 'puissance' && app.vehicle_type === 'moto' ? 'Cylindrée (cm³)' : label}
               <input class="ops-input" type=${type} disabled=${!editable}
                 value=${form[k] == null ? '' : form[k]}
                 onInput=${(e) => set(k, e.target.value)} />
@@ -115,7 +135,7 @@ function Detail({ app, role, onClose, onSaved }) {
 
         ${editable ? html`
           <div style="margin-top:16px;display:flex;gap:10px">
-            <button class="btn-o primary" disabled=${saving} onClick=${save}>${saving ? 'Enregistrement…' : '💾 Enregistrer'}</button>
+            <button class="btn-o primary" disabled=${saving} onClick=${save}>${saving ? 'Enregistrement…' : 'Enregistrer'}</button>
           </div>
 
           <div style="margin-top:22px;padding-top:16px;border-top:1px solid var(--color-neutral-200)">
@@ -131,6 +151,15 @@ function Detail({ app, role, onClose, onSaved }) {
       ` : null}
 
       ${tab === 'documents' ? html`
+        ${canUpload ? html`
+          <div style="margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--color-neutral-200)">
+            <label class="btn-o primary sm" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+              ${uploading ? 'Envoi…' : 'Déposer un document'}
+              <input type="file" style="display:none" disabled=${uploading} onChange=${handleUpload}
+                accept="image/*,application/pdf" />
+            </label>
+          </div>
+        ` : null}
         ${docs.loading ? html`<${Spinner}/>` :
           (!docs.data || docs.data.length === 0) ? html`<${Empty}>Aucun document pour ce dossier.<//>` : html`
           <div style="display:flex;flex-direction:column">
@@ -138,19 +167,19 @@ function Detail({ app, role, onClose, onSaved }) {
               const ds = docStatus(d.status);
               return html`
                 <div class="field-row" style="grid-template-columns:1fr auto">
-                  <div><div class="v">📄 ${d.name}</div><div class="k">${fmtDate(d.created_at)}</div></div>
+                  <div><div class="v">${d.name}</div><div class="k">${fmtDate(d.created_at)}</div></div>
                   <${Badge} tone=${ds.tone}>${ds.label}<//>
                 </div>`;
             })}
           </div>
-          <p class="muted" style="margin-top:14px;font-size:12.5px">La validation/refus des documents arrive dans le module Documents (Phase 3).</p>
+          <p class="muted" style="margin-top:14px;font-size:12.5px">La validation/refus des documents se fait dans le module Documents.</p>
         `}
       ` : null}
     <//>
   `;
 }
 
-export function Subscriptions({ role }) {
+export function Subscriptions({ caps }) {
   const { data, loading, error, reload } = useAsync(async () => {
     const [apps, docs] = await Promise.all([
       api.applications().catch(() => []),
@@ -196,6 +225,7 @@ export function Subscriptions({ role }) {
   const columns = [
     { key: 'policy_number', label: 'N° / Réf.', render: (a) => a.policy_number || html`<span class="muted">${a.id.slice(0, 8)}…</span>` },
     { key: 'customer_email', label: 'Client', sortable: true },
+    { key: 'vehicle_type', label: 'Type', sortable: true, render: (a) => html`<${Badge} tone=${a.vehicle_type === 'moto' ? 'amber' : 'blue'}>${vehicleTypeLabel(a.vehicle_type)}<//>` },
     { key: 'vehicle', label: 'Véhicule', render: (a) => vehicleLabel(a) },
     { key: 'coverage_type', label: 'Couverture', render: (a) => coverageLabel(a.coverage_type) },
     { key: 'annual_premium', label: 'Prime', sortable: true, render: (a) => fmtMoney(a.annual_premium) },
@@ -220,7 +250,7 @@ export function Subscriptions({ role }) {
       />
     </div>
 
-    ${selected ? html`<${Detail} app=${selected} role=${role}
+    ${selected ? html`<${Detail} app=${selected} caps=${caps}
       onClose=${closeDetail}
       onSaved=${() => { closeDetail(); reload(); }} />` : null}
   `;

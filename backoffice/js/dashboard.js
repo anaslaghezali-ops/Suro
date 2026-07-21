@@ -105,12 +105,12 @@ class AdminDashboard {
         const rows = apps.slice(0, 5);
         tbody.innerHTML = rows.length ? rows.map(a => `
           <tr>
-            <td>${this.escape(a.customer_email)}</td>
-            <td>${this.escape(a.customer_email)}</td>
-            <td>${this.coverageLabel(a.coverage_type)}</td>
-            <td><span class="status-badge status-${a.status}">${this.formatStatus(a.status)}</span></td>
-            <td>${new Date(a.created_at).toLocaleDateString('fr-FR')}</td>
-            <td><button class="btn btn-ghost btn-sm" onclick="dashboard.viewApplicationDetail('${a.id}')">Voir</button></td>
+            <td data-label="Client">${this.escape(a.customer_email)}</td>
+            <td data-label="Email">${this.escape(a.customer_email)}</td>
+            <td data-label="Couverture">${this.coverageLabel(a.coverage_type)}</td>
+            <td data-label="Statut"><span class="status-badge status-${a.status}">${this.formatStatus(a.status)}</span></td>
+            <td data-label="Date">${new Date(a.created_at).toLocaleDateString('fr-FR')}</td>
+            <td data-label=""><button class="btn btn-ghost btn-sm" onclick="dashboard.viewApplicationDetail('${a.id}')">Voir</button></td>
           </tr>
         `).join('') : '<tr><td colspan="6" class="text-center">Aucune demande pour le moment</td></tr>';
       }
@@ -171,14 +171,14 @@ class AdminDashboard {
       const tbody = document.getElementById('applications-tbody');
       tbody.innerHTML = apps.length ? apps.map(a => `
         <tr>
-          <td>${a.id.slice(0, 8)}…</td>
-          <td>${this.vehicleLabel(a)}</td>
-          <td>${this.escape(a.customer_email)}</td>
-          <td>${this.escape(a.customer_phone || '—')}</td>
-          <td>${this.coverageLabel(a.coverage_type)}</td>
-          <td><span class="status-badge status-${a.status}">${this.formatStatus(a.status)}</span></td>
-          <td>${new Date(a.created_at).toLocaleDateString('fr-FR')}</td>
-          <td><button class="btn btn-ghost btn-sm" onclick="dashboard.viewApplicationDetail('${a.id}')">Détails</button></td>
+          <td data-label="ID">${a.id.slice(0, 8)}…</td>
+          <td data-label="Client">${this.vehicleLabel(a)}</td>
+          <td data-label="Email">${this.escape(a.customer_email)}</td>
+          <td data-label="Téléphone">${this.escape(a.customer_phone || '—')}</td>
+          <td data-label="Couverture">${this.coverageLabel(a.coverage_type)}</td>
+          <td data-label="Statut"><span class="status-badge status-${a.status}">${this.formatStatus(a.status)}</span></td>
+          <td data-label="Créée">${new Date(a.created_at).toLocaleDateString('fr-FR')}</td>
+          <td data-label=""><button class="btn btn-ghost btn-sm" onclick="dashboard.viewApplicationDetail('${a.id}')">Détails</button></td>
         </tr>
       `).join('') : '<tr><td colspan="8" class="text-center">Aucune demande</td></tr>';
 
@@ -198,13 +198,13 @@ class AdminDashboard {
       const tbody = document.getElementById('claims-tbody');
       tbody.innerHTML = claims.length ? claims.map(c => `
         <tr>
-          <td>${c.id.slice(0, 8)}…</td>
-          <td>${(c.application_id || '').slice(0, 8)}…</td>
-          <td>${this.escape(c.claim_type || 'N/A')}</td>
-          <td>${this.escape((c.description || '').slice(0, 50))}…</td>
-          <td><span class="status-badge status-${c.status}">${this.formatStatus(c.status)}</span></td>
-          <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
-          <td style="white-space:nowrap;">
+          <td data-label="ID">${c.id.slice(0, 8)}…</td>
+          <td data-label="Application">${(c.application_id || '').slice(0, 8)}…</td>
+          <td data-label="Type">${this.escape(c.claim_type || 'N/A')}</td>
+          <td data-label="Description">${this.escape((c.description || '').slice(0, 50))}…</td>
+          <td data-label="Statut"><span class="status-badge status-${c.status}">${this.formatStatus(c.status)}</span></td>
+          <td data-label="Date">${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
+          <td data-label="">
             <button class="btn btn-ghost btn-sm" onclick="dashboard.viewClaimDetail('${c.id}')">Gérer</button>
             <select class="filter-select" style="min-width:auto;padding:4px 8px" onchange="dashboard.updateClaimStatus('${c.id}', this.value)">
               ${['pending','approved','rejected','paid'].map(s => `<option value="${s}" ${s === c.status ? 'selected' : ''}>${this.formatStatus(s)}</option>`).join('')}
@@ -334,11 +334,11 @@ class AdminDashboard {
         const kindLabel = p.kind === 'renewal' ? 'Renouvellement' : 'Souscription';
         return `
         <tr>
-          <td>${this.escape(p.customer_email)}</td>
-          <td>${p.amount != null ? Number(p.amount).toLocaleString('fr-FR') + ' DH' : '—'}</td>
-          <td>${kindLabel}</td>
-          <td>${new Date(p.paid_at).toLocaleDateString('fr-FR')}</td>
-          <td><span class="status-badge status-active">Payé</span></td>
+          <td data-label="Client">${this.escape(p.customer_email)}</td>
+          <td data-label="Montant">${p.amount != null ? Number(p.amount).toLocaleString('fr-FR') + ' DH' : '—'}</td>
+          <td data-label="Type">${kindLabel}</td>
+          <td data-label="Date">${new Date(p.paid_at).toLocaleDateString('fr-FR')}</td>
+          <td data-label="Statut"><span class="status-badge status-active">Payé</span></td>
         </tr>`;
       }).join('') : '<tr><td colspan="5" class="text-center">Aucun paiement</td></tr>';
     } catch (error) {
@@ -369,11 +369,11 @@ class AdminDashboard {
 
       tbody.innerHTML = customers.length ? customers.map(c => `
         <tr>
-          <td>${this.escape(c.name || '—')}</td>
-          <td>${this.escape(c.email)}</td>
-          <td>${this.escape(c.phone || '—')}</td>
-          <td>${c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR') : '—'}</td>
-          <td>${contractCount[c.email] || 0} contrat(s)</td>
+          <td data-label="Nom">${this.escape(c.name || '—')}</td>
+          <td data-label="Email">${this.escape(c.email)}</td>
+          <td data-label="Téléphone">${this.escape(c.phone || '—')}</td>
+          <td data-label="Inscrit depuis">${c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR') : '—'}</td>
+          <td data-label="Contrats">${contractCount[c.email] || 0} contrat(s)</td>
         </tr>
       `).join('') : '<tr><td colspan="5" class="text-center">Aucun client inscrit</td></tr>';
     } catch (error) {
@@ -404,7 +404,7 @@ class AdminDashboard {
       const docsHtml = (documents || []).length
         ? (documents || []).map(d => `
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #F3F4F6;">
-              <span>📄 ${this.escape(d.name)}</span>
+              <span>${this.escape(d.name)}</span>
               <button class="btn btn-ghost btn-sm" onclick="dashboard.deleteDocument('${d.id}', '${encodeURIComponent(d.storage_path)}', '${applicationId}')" style="color:#EF4444">Supprimer</button>
             </div>`).join('')
         : '<p style="color:#9CA3AF;font-size:13px;">Aucun document déposé pour ce client.</p>';
@@ -515,7 +515,7 @@ class AdminDashboard {
     try {
       await this.api.adminUpdateApplication(applicationId, fields);
       this.showSuccess('Contrat mis à jour');
-      alert('Contrat mis à jour ✓ Le client a reçu une notification.');
+      this.showSuccess('Contrat mis à jour — le client a reçu une notification.');
       closeModal();
       this.fetchApplications(true);
       if (this.currentPage === 'applications') this.loadApplications();
@@ -526,7 +526,7 @@ class AdminDashboard {
   }
 
   async deleteDocument(docId, encodedPath, applicationId) {
-    if (!confirm('Supprimer ce document ? Le client n\'y aura plus accès.')) return;
+    if (!(await (window.SuroToast ? window.SuroToast.confirm('Supprimer ce document ? Le client n\'y aura plus accès.', { title: 'Supprimer', okLabel: 'Supprimer' }) : Promise.resolve(confirm('Supprimer ce document ?'))))) return;
     try {
       await this.api.adminDeleteDocument({ id: docId, storage_path: decodeURIComponent(encodedPath) });
       this.showSuccess('Document supprimé');
@@ -573,31 +573,38 @@ class AdminDashboard {
         this.api.adminGetFactors(),
       ]);
 
-      const rowsHtml = (pricing || []).map(p => `
+      const rowsHtml = (pricing || []).map(p => {
+        const isMoto = p.vehicle_type === 'moto';
+        const unit = isMoto ? 'cm³' : 'CV';
+        const maxOpen = p.cv_max >= 99 && (isMoto ? p.cv_max >= 9999 : p.cv_max === 99);
+        const tranche = `${p.cv_min}–${maxOpen ? '∞' : p.cv_max} ${unit}`;
+        return `
         <tr>
-          <td>${this.coverageName(p.coverage_type)}</td>
-          <td>${p.cv_min}–${p.cv_max === 99 ? '∞' : p.cv_max} CV</td>
-          <td>
+          <td data-label="Type"><span style="display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;${isMoto ? 'background:#FFF4E0;color:#B26A00;' : 'background:#E7F0FF;color:#1B5FCC;'}">${isMoto ? 'Moto' : 'Voiture'}</span></td>
+          <td data-label="Couverture">${this.coverageName(p.coverage_type)}</td>
+          <td data-label="Tranche">${tranche}</td>
+          <td data-label="Prime annuelle">
             <input type="number" id="price-${p.id}" value="${Number(p.annual_premium)}" min="0" step="50"
               style="width:110px;padding:6px 8px;border:1px solid var(--color-neutral-200);border-radius:6px;"> DH/an
           </td>
-          <td><button class="btn btn-primary btn-sm" onclick="dashboard.savePricing('${p.id}')">Enregistrer</button></td>
-        </tr>`).join('');
+          <td data-label=""><button class="btn btn-primary btn-sm" onclick="dashboard.savePricing('${p.id}')">Enregistrer</button></td>
+        </tr>`;
+      }).join('');
 
       const factorsHtml = (factors || []).map(f => `
         <tr>
-          <td>${this.escape(f.description || f.key)}</td>
-          <td>
+          <td data-label="Règle">${this.escape(f.description || f.key)}</td>
+          <td data-label="Facteur">
             <input type="number" id="factor-${this.escape(f.key)}" value="${Number(f.factor)}" min="0" step="0.05"
               style="width:90px;padding:6px 8px;border:1px solid var(--color-neutral-200);border-radius:6px;"> ×
           </td>
-          <td><button class="btn btn-primary btn-sm" onclick="dashboard.saveFactor('${this.escape(f.key)}')">Enregistrer</button></td>
+          <td data-label=""><button class="btn btn-primary btn-sm" onclick="dashboard.saveFactor('${this.escape(f.key)}')">Enregistrer</button></td>
         </tr>`).join('');
 
       el.innerHTML = `
         <div class="table-responsive">
           <table class="admin-table">
-            <thead><tr><th>Couverture</th><th>Puissance</th><th>Prime annuelle</th><th></th></tr></thead>
+            <thead><tr><th>Type</th><th>Couverture</th><th>Tranche</th><th>Prime annuelle</th><th></th></tr></thead>
             <tbody>${rowsHtml}</tbody>
           </table>
         </div>
@@ -621,7 +628,7 @@ class AdminDashboard {
     try {
       await this.api.adminUpdatePricing(id, value);
       this.showSuccess('Tarif mis à jour');
-      alert('Tarif mis à jour ✓ Il s\'applique immédiatement aux nouveaux devis.');
+      this.showSuccess('Tarif mis à jour — il s\'applique immédiatement aux nouveaux devis.');
     } catch (error) {
       if (this.handleAuthError(error)) return;
       this.showError('Erreur lors de la mise à jour du tarif');
@@ -634,7 +641,7 @@ class AdminDashboard {
     if (isNaN(value) || value < 0) { this.showError('Facteur invalide'); return; }
     try {
       await this.api.adminUpdateFactor(key, value);
-      alert('Facteur mis à jour ✓');
+      this.showSuccess('Facteur mis à jour');
     } catch (error) {
       if (this.handleAuthError(error)) return;
       this.showError('Erreur lors de la mise à jour du facteur');
@@ -672,7 +679,7 @@ class AdminDashboard {
     try {
       await this.api.adminUpdateSetting('support_phone', phone.trim());
       await this.api.adminUpdateSetting('support_whatsapp', wa.trim());
-      alert('Contacts mis à jour ✓ Visibles immédiatement dans l\'espace client.');
+      this.showSuccess('Contacts mis à jour — visibles immédiatement dans l\'espace client.');
     } catch (error) {
       if (this.handleAuthError(error)) return;
       this.showError('Erreur lors de la mise à jour des contacts');
@@ -686,9 +693,9 @@ class AdminDashboard {
       const admins = await this.api.adminListAdmins() || [];
       const rows = admins.map(a => `
         <tr>
-          <td>${this.escape(a.email)}</td>
-          <td>${new Date(a.admin_since).toLocaleDateString('fr-FR')}</td>
-          <td><button class="btn btn-ghost btn-sm" style="color:#EF4444;" onclick="dashboard.removeAdmin('${this.escape(a.email)}')">Retirer</button></td>
+          <td data-label="Email">${this.escape(a.email)}</td>
+          <td data-label="Admin depuis">${new Date(a.admin_since).toLocaleDateString('fr-FR')}</td>
+          <td data-label=""><button class="btn btn-ghost btn-sm" style="color:#EF4444;" onclick="dashboard.removeAdmin('${this.escape(a.email)}')">Retirer</button></td>
         </tr>`).join('');
 
       el.innerHTML = `
@@ -715,7 +722,7 @@ class AdminDashboard {
     if (!email) { this.showError('Entre un email'); return; }
     try {
       await this.api.adminAddAdmin(email);
-      alert('Admin ajouté ✓');
+      this.showSuccess('Admin ajouté');
       this.loadAdminsSection();
     } catch (error) {
       if (this.handleAuthError(error)) return;
@@ -724,10 +731,10 @@ class AdminDashboard {
   }
 
   async removeAdmin(email) {
-    if (!confirm(`Retirer les droits admin de ${email} ?`)) return;
+    if (!(await (window.SuroToast ? window.SuroToast.confirm(`Retirer les droits admin de ${email} ?`, { title: 'Retirer les droits' }) : Promise.resolve(confirm(`Retirer les droits admin de ${email} ?`))))) return;
     try {
       await this.api.adminRemoveAdmin(email);
-      alert('Droits retirés ✓');
+      this.showSuccess('Droits retirés');
       this.loadAdminsSection();
     } catch (error) {
       if (this.handleAuthError(error)) return;
@@ -751,10 +758,10 @@ class AdminDashboard {
             <tbody>
               ${events.map(e => `
                 <tr>
-                  <td style="white-space:nowrap;">${new Date(e.created_at).toLocaleString('fr-FR')}</td>
-                  <td><strong>${this.escape(e.event)}</strong></td>
-                  <td>${this.escape(e.step || '—')}</td>
-                  <td style="font-size:12px;color:var(--color-neutral-600);">${e.meta ? this.escape(JSON.stringify(e.meta)) : '—'}</td>
+                  <td data-label="Quand" style="white-space:nowrap;">${new Date(e.created_at).toLocaleString('fr-FR')}</td>
+                  <td data-label="Événement"><strong>${this.escape(e.event)}</strong></td>
+                  <td data-label="Étape">${this.escape(e.step || '—')}</td>
+                  <td data-label="Détails" style="font-size:12px;color:var(--color-neutral-600);">${e.meta ? this.escape(JSON.stringify(e.meta)) : '—'}</td>
                 </tr>`).join('')}
             </tbody>
           </table>
@@ -811,8 +818,14 @@ class AdminDashboard {
     return document.getElementById('customers-tbody');
   }
 
-  showError(message) { alert(message); }
-  showSuccess(message) { console.log(message); }
+  showError(message) {
+    if (window.SuroToast) window.SuroToast.show(message, 'err');
+    else alert(message);
+  }
+  showSuccess(message) {
+    if (window.SuroToast) window.SuroToast.show(message, 'ok');
+    else console.log(message);
+  }
 }
 
 // Initialize
@@ -836,8 +849,11 @@ function closeSidebar() {
   if (overlay) overlay.classList.remove('open');
 }
 
-function logout() {
-  if (confirm('Êtes-vous sûr de vouloir vous déconnecter?')) {
+async function logout() {
+  const ok = window.SuroToast
+    ? await window.SuroToast.confirm('Êtes-vous sûr de vouloir vous déconnecter ?', { title: 'Déconnexion', okLabel: 'Se déconnecter' })
+    : confirm('Êtes-vous sûr de vouloir vous déconnecter?');
+  if (ok) {
     window.SURO_API.logout();
     window.location.href = ADMIN_LOGIN_PAGE;
   }

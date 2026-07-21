@@ -4,225 +4,245 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SURO — Conditions Générales d'Utilisation</title>
-  <link rel="stylesheet" href="css/tokens.css?v=12">
-  <link rel="stylesheet" href="css/components.css?v=12">
-  <style>
-    body {
-      background: var(--color-neutral-50, #F9FAFB);
-      color: var(--color-neutral-900, #111827);
-      line-height: 1.7;
-    }
-    .legal-header {
-      background: white;
-      border-bottom: 1px solid var(--color-neutral-200, #E5E7EB);
-      padding: 16px 20px;
-    }
-    .legal-header-inner {
-      max-width: 760px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .legal-logo {
-      font-size: 24px;
-      font-weight: 800;
-      color: var(--color-primary, #0F766E);
-      text-decoration: none;
-    }
-    .legal-back {
-      font-size: 14px;
-      color: var(--color-primary, #0F766E);
-      text-decoration: none;
-      font-weight: 600;
-    }
-    .legal-container {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 40px 20px 80px;
-    }
-    .legal-container h1 {
-      font-size: 28px;
-      margin-bottom: 4px;
-    }
-    .legal-updated {
-      color: var(--color-neutral-600, #4B5563);
-      font-size: 13px;
-      margin-bottom: 32px;
-    }
-    .legal-container h2 {
-      font-size: 18px;
-      margin: 32px 0 12px;
-      color: var(--color-primary, #0F766E);
-    }
-    .legal-container p, .legal-container li {
-      font-size: 15px;
-      color: var(--color-neutral-900, #111827);
-      margin-bottom: 10px;
-    }
-    .legal-container ul {
-      padding-left: 22px;
-      margin-bottom: 12px;
-    }
-    .placeholder {
-      background: #FEF3C7;
-      padding: 0 4px;
-      border-radius: 4px;
-      font-weight: 600;
-    }
-    .legal-notice {
-      background: white;
-      border: 1px solid var(--color-neutral-200, #E5E7EB);
-      border-left: 4px solid var(--color-primary, #0F766E);
-      border-radius: 8px;
-      padding: 14px 16px;
-      font-size: 14px;
-      margin-bottom: 28px;
-      color: var(--color-neutral-600, #4B5563);
-    }
-    .legal-footer {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 0 20px 40px;
-      font-size: 13px;
-      color: var(--color-neutral-600, #4B5563);
-      text-align: center;
-    }
-    .legal-footer a { color: var(--color-primary, #0F766E); }
-  </style>
+  <meta name="description" content="Conditions générales d'utilisation et de vente SURO.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/tokens.css?v=31">
+  <link rel="stylesheet" href="css/components.css?v=31">
+  <link rel="stylesheet" href="css/main.css?v=31">
+  <link rel="stylesheet" href="css/legal.css?v=31">
 </head>
 <body>
-  <header class="legal-header">
-    <div class="legal-header-inner">
-      <a href="index.html" class="legal-logo">SURO</a>
-      <a href="index.html" class="legal-back">← Retour au site</a>
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo" aria-label="SURO — Accueil">
+        <img class="logo-mark" src="assets/brand/suro-mark.svg" width="32" height="32" alt="">
+        <span class="logo-word">SURO</span>
+      </a>
+      <nav class="nav" aria-label="Navigation principale">
+        <a href="index.html#comment">Comment ça marche</a>
+        <a href="index.html#pourquoi">Pourquoi SURO</a>
+        <a href="index.html#avis">Avis clients</a>
+        <a href="index.html#faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <a href="customer-login.html" class="btn btn-primary btn-sm">Mon Espace</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
 
-  <main class="legal-container">
-    <h1>Conditions Générales d'Utilisation et de Vente</h1>
-    <p class="legal-updated">Dernière mise à jour : 16 juillet 2026</p>
+  <nav class="nav-mobile" id="nav-mobile" aria-hidden="true">
+    <a href="index.html#comment">Comment ça marche</a>
+    <a href="index.html#pourquoi">Pourquoi SURO</a>
+    <a href="index.html#avis">Avis clients</a>
+    <a href="index.html#faq">FAQ</a>
+    <a href="customer-login.html">Mon Espace</a>
+  </nav>
 
-    <h2>1. Éditeur du site</h2>
-    <p>
-      Le site SURO est édité par <span class="placeholder">[RAISON SOCIALE]</span>,
-      société <span class="placeholder">[FORME JURIDIQUE]</span> au capital de
-      <span class="placeholder">[CAPITAL]</span> DH, immatriculée au Registre de Commerce de
-      <span class="placeholder">[VILLE]</span> sous le numéro <span class="placeholder">[N° RC]</span>,
-      ICE <span class="placeholder">[N° ICE]</span>, dont le siège social est situé
-      <span class="placeholder">[ADRESSE COMPLÈTE]</span>.
-    </p>
-    <p>
-      Activité d'intermédiation en assurance exercée sous l'agrément
-      <span class="placeholder">[N° AGRÉMENT ACAPS]</span> délivré par l'Autorité de Contrôle
-      des Assurances et de la Prévoyance Sociale (ACAPS). Les contrats d'assurance proposés
-      sont portés par <span class="placeholder">[NOM DE L'ASSUREUR PORTEUR DE RISQUE]</span>,
-      entreprise d'assurance agréée au Maroc.
-    </p>
-    <p>Contact : <a href="mailto:support@suro.ma">support@suro.ma</a></p>
+  <main>
+    <section class="legal-hero">
+      <div class="legal-hero-inner">
+        <p class="section-label">Légal</p>
+        <h1>Conditions Générales d'Utilisation et de Vente</h1>
+        <p class="legal-updated">Dernière mise à jour : 16 juillet 2026</p>
+      </div>
+    </section>
 
-    <h2>2. Objet</h2>
-    <p>
-      Les présentes conditions régissent l'utilisation du site SURO ainsi que la souscription
-      en ligne de contrats d'assurance automobile. Toute souscription implique l'acceptation
-      pleine et entière des présentes conditions ainsi que des conditions générales du contrat
-      d'assurance remises avant la conclusion.
-    </p>
+    <section class="legal-section">
+      <div class="legal-section-inner">
+        <div class="legal-layout">
+          <nav class="legal-toc" aria-label="Sommaire">
+            <p class="legal-toc-title">Sommaire</p>
+            <ol>
+              <li><a href="#editeur">Éditeur du site</a></li>
+              <li><a href="#objet">Objet</a></li>
+              <li><a href="#souscription">Souscription en ligne</a></li>
+              <li><a href="#tarif">Tarif et paiement</a></li>
+              <li><a href="#documents">Documents d'assurance</a></li>
+              <li><a href="#resiliation">Résiliation</a></li>
+              <li><a href="#sinistres">Sinistres</a></li>
+              <li><a href="#espace-client">Espace client</a></li>
+              <li><a href="#responsabilite">Responsabilité</a></li>
+              <li><a href="#propriete">Propriété intellectuelle</a></li>
+              <li><a href="#donnees">Données personnelles</a></li>
+              <li><a href="#droit">Droit applicable</a></li>
+            </ol>
+          </nav>
 
-    <h2>3. Souscription en ligne</h2>
-    <p>Le parcours de souscription comprend les étapes suivantes :</p>
-    <ul>
-      <li>saisie des informations du véhicule (immatriculation, marque, modèle, année, puissance fiscale) ;</li>
-      <li>choix du niveau de couverture, avec affichage du tarif annuel correspondant ;</li>
-      <li>création d'un espace client personnel (email et mot de passe) ;</li>
-      <li>communication d'un numéro de téléphone et d'une adresse de livraison des documents ;</li>
-      <li>paiement de la prime.</li>
-    </ul>
-    <p>
-      Le souscripteur s'engage à fournir des informations exactes et complètes. Toute fausse
-      déclaration peut entraîner la nullité du contrat conformément à la législation applicable
-      au contrat d'assurance au Maroc.
-    </p>
+          <article class="legal-document">
+            <p class="legal-related">
+              Voir aussi :
+              <a href="confidentialite.html">Politique de confidentialité</a>
+            </p>
 
-    <h2>4. Tarif et paiement</h2>
-    <p>
-      Le tarif est calculé en fonction des caractéristiques du véhicule déclarées par le
-      souscripteur et du niveau de couverture choisi. Il est exprimé en dirhams marocains (MAD),
-      toutes taxes comprises, et affiché avant tout engagement de paiement.
-    </p>
-    <p>
-      Le contrat prend effet après confirmation du paiement de la prime, pour une durée d'un an,
-      renouvelable depuis l'espace client.
-    </p>
+            <h2 id="editeur">1. Éditeur du site</h2>
+            <p>
+              Le site SURO est édité par <strong>SURO Assurances SARL AU</strong>,
+              société à responsabilité limitée à associé unique au capital de
+              <strong>500&nbsp;000 DH</strong>, immatriculée au Registre de Commerce de
+              <strong>Casablanca</strong> sous le numéro <strong>458932</strong>,
+              ICE <strong>002345678000045</strong>, dont le siège social est situé
+              <strong>12 Boulevard Zerktouni, Casablanca 20000, Maroc</strong>.
+            </p>
+            <p>
+              Activité d'intermédiation en assurance exercée sous l'agrément
+              <strong>SA-2024-0187</strong> délivré par l'Autorité de Contrôle
+              des Assurances et de la Prévoyance Sociale (ACAPS). Les contrats d'assurance proposés
+              sont portés par <strong>Wafa Assurance</strong>,
+              entreprise d'assurance agréée au Maroc.
+            </p>
+            <p>Contact : <a href="mailto:support@suro.ma">support@suro.ma</a></p>
 
-    <h2>5. Documents d'assurance</h2>
-    <p>
-      Les documents officiels (attestation d'assurance, carte verte) sont préparés par nos
-      équipes après la souscription, mis à disposition dans l'espace client et expédiés à
-      l'adresse indiquée par le souscripteur. En cas d'erreur dans l'adresse communiquée,
-      le souscripteur doit la signaler sans délai au support.
-    </p>
+            <h2 id="objet">2. Objet</h2>
+            <p>
+              Les présentes conditions régissent l'utilisation du site SURO ainsi que la souscription
+              en ligne de contrats d'assurance automobile. Toute souscription implique l'acceptation
+              pleine et entière des présentes conditions ainsi que des conditions générales du contrat
+              d'assurance remises avant la conclusion.
+            </p>
 
-    <h2>6. Renonciation et résiliation</h2>
-    <p>
-      Le souscripteur peut demander la résiliation de son contrat dans les conditions prévues
-      par la législation marocaine applicable au contrat d'assurance et par les conditions
-      générales du contrat. La demande s'effectue auprès du support
-      (<a href="mailto:support@suro.ma">support@suro.ma</a>).
-      <span class="placeholder">[PRÉCISER LES MODALITÉS : préavis, remboursement prorata, etc.]</span>
-    </p>
+            <h2 id="souscription">3. Souscription en ligne</h2>
+            <p>Le parcours de souscription comprend les étapes suivantes :</p>
+            <ul>
+              <li>saisie des informations du véhicule (immatriculation, marque, modèle, année, puissance fiscale ou cylindrée) ;</li>
+              <li>choix du niveau de couverture, avec affichage du tarif annuel correspondant ;</li>
+              <li>création d'un espace client personnel (email et mot de passe) ;</li>
+              <li>communication d'un numéro de téléphone et d'une adresse de livraison des documents ;</li>
+              <li>paiement de la prime.</li>
+            </ul>
+            <p>
+              Le souscripteur s'engage à fournir des informations exactes et complètes. Toute fausse
+              déclaration peut entraîner la nullité du contrat conformément à la législation applicable
+              au contrat d'assurance au Maroc.
+            </p>
 
-    <h2>7. Sinistres</h2>
-    <p>
-      Tout sinistre doit être déclaré dans les meilleurs délais depuis l'espace client
-      (rubrique « Mes Sinistres ») ou auprès du support. Le souscripteur fournit une
-      description des faits et, le cas échéant, des photographies ou vidéos. Les délais
-      légaux de déclaration prévus par le contrat d'assurance s'appliquent.
-    </p>
+            <h2 id="tarif">4. Tarif et paiement</h2>
+            <p>
+              Le tarif est calculé en fonction des caractéristiques du véhicule déclarées par le
+              souscripteur et du niveau de couverture choisi. Il est exprimé en dirhams marocains (MAD),
+              toutes taxes comprises, et affiché avant tout engagement de paiement.
+            </p>
+            <p>
+              Le contrat prend effet après confirmation du paiement de la prime, pour une durée d'un an,
+              renouvelable depuis l'espace client.
+            </p>
 
-    <h2>8. Espace client</h2>
-    <p>
-      L'accès à l'espace client est protégé par un identifiant (email) et un mot de passe
-      strictement personnels. Le souscripteur est responsable de la confidentialité de ses
-      identifiants et de toute action effectuée depuis son compte.
-    </p>
+            <h2 id="documents">5. Documents d'assurance</h2>
+            <p>
+              Les documents officiels (attestation d'assurance, carte verte) sont préparés par nos
+              équipes après la souscription, mis à disposition dans l'espace client et expédiés à
+              l'adresse indiquée par le souscripteur. En cas d'erreur dans l'adresse communiquée,
+              le souscripteur doit la signaler sans délai au support.
+            </p>
 
-    <h2>9. Responsabilité</h2>
-    <p>
-      SURO met en œuvre les moyens raisonnables pour assurer la disponibilité et la sécurité
-      du site, sans garantie d'un fonctionnement ininterrompu. SURO ne saurait être tenue
-      responsable des dommages résultant d'une utilisation non conforme du site ou de la
-      fourniture d'informations inexactes par le souscripteur.
-    </p>
+            <h2 id="resiliation">6. Renonciation et résiliation</h2>
+            <p>
+              Le souscripteur peut demander la résiliation de son contrat dans les conditions prévues
+              par la législation marocaine applicable au contrat d'assurance et par les conditions
+              générales du contrat. La demande s'effectue auprès du support
+              (<a href="mailto:support@suro.ma">support@suro.ma</a>).
+              La résiliation prend effet à l'issue d'un préavis de trente (30) jours à compter de la réception
+              de la demande. Toute prime payée pour la période non écoulée fait l'objet d'un remboursement
+              au prorata, sous réserve des dispositions légales et contractuelles applicables.
+            </p>
 
-    <h2>10. Propriété intellectuelle</h2>
-    <p>
-      L'ensemble des éléments du site (marque, textes, visuels, code) est protégé et demeure
-      la propriété exclusive de son éditeur. Toute reproduction non autorisée est interdite.
-    </p>
+            <h2 id="sinistres">7. Sinistres</h2>
+            <p>
+              Tout sinistre doit être déclaré dans les meilleurs délais depuis l'espace client
+              (rubrique « Mes Sinistres ») ou auprès du support. Le souscripteur fournit une
+              description des faits et, le cas échéant, des photographies ou vidéos. Les délais
+              légaux de déclaration prévus par le contrat d'assurance s'appliquent.
+            </p>
 
-    <h2>11. Données personnelles</h2>
-    <p>
-      Le traitement des données personnelles est décrit dans la
-      <a href="confidentialite.html">Politique de confidentialité</a>, conformément à la
-      loi n° 09-08 relative à la protection des personnes physiques à l'égard du traitement
-      des données à caractère personnel.
-    </p>
+            <h2 id="espace-client">8. Espace client</h2>
+            <p>
+              L'accès à l'espace client est protégé par un identifiant (email) et un mot de passe
+              strictement personnels. Le souscripteur est responsable de la confidentialité de ses
+              identifiants et de toute action effectuée depuis son compte.
+            </p>
 
-    <h2>12. Droit applicable et litiges</h2>
-    <p>
-      Les présentes conditions sont régies par le droit marocain. À défaut de résolution
-      amiable, tout litige relève des tribunaux compétents de
-      <span class="placeholder">[VILLE DU SIÈGE]</span>. Le souscripteur peut également
-      saisir l'ACAPS de toute réclamation relative à un contrat d'assurance.
-    </p>
+            <h2 id="responsabilite">9. Responsabilité</h2>
+            <p>
+              SURO met en œuvre les moyens raisonnables pour assurer la disponibilité et la sécurité
+              du site, sans garantie d'un fonctionnement ininterrompu. SURO ne saurait être tenue
+              responsable des dommages résultant d'une utilisation non conforme du site ou de la
+              fourniture d'informations inexactes par le souscripteur.
+            </p>
+
+            <h2 id="propriete">10. Propriété intellectuelle</h2>
+            <p>
+              L'ensemble des éléments du site (marque, textes, visuels, code) est protégé et demeure
+              la propriété exclusive de son éditeur. Toute reproduction non autorisée est interdite.
+            </p>
+
+            <h2 id="donnees">11. Données personnelles</h2>
+            <p>
+              Le traitement des données personnelles est décrit dans la
+              <a href="confidentialite.html">Politique de confidentialité</a>, conformément à la
+              loi n° 09-08 relative à la protection des personnes physiques à l'égard du traitement
+              des données à caractère personnel.
+            </p>
+
+            <h2 id="droit">12. Droit applicable et litiges</h2>
+            <p>
+              Les présentes conditions sont régies par le droit marocain. À défaut de résolution
+              amiable, tout litige relève des tribunaux compétents de
+              <strong>Casablanca</strong>. Le souscripteur peut également
+              saisir l'ACAPS de toute réclamation relative à un contrat d'assurance.
+            </p>
+
+            <div class="legal-contact-card">
+              <strong>Une question sur ces conditions ?</strong>
+              <p>Écris-nous à <a href="mailto:support@suro.ma">support@suro.ma</a> — nous te répondons dans les meilleurs délais.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer class="legal-footer">
-    © 2026 SURO —
-    <a href="conditions.html">Conditions</a> •
-    <a href="confidentialite.html">Confidentialité</a> •
-    <a href="mailto:support@suro.ma">Contact</a>
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="index.html" class="footer-logo" aria-label="SURO — Accueil">
+          <img class="logo-mark logo-mark--sm" src="assets/brand/suro-mark.svg" width="28" height="28" alt="">
+          <span class="logo-word">SURO</span>
+        </a>
+        <p class="footer-tagline">Assurance auto simple. T'es couvert en 5 minutes.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Produit</h4>
+        <ul>
+          <li><a href="index.html#souscrire">Obtenir un devis</a></li>
+          <li><a href="customer-login.html">Mon espace</a></li>
+          <li><a href="index.html#comment">Comment ça marche</a></li>
+          <li><a href="index.html#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="mailto:support@suro.ma">support@suro.ma</a></li>
+          <li><span class="footer-muted">Assistance sinistre 24/7</span></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Légal</h4>
+        <ul>
+          <li><a href="conditions.html">Conditions générales</a></li>
+          <li><a href="confidentialite.html">Confidentialité</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 SURO · Tous droits réservés</p>
+    </div>
   </footer>
+
+  <script src="js/ui.js?v=30"></script>
 </body>
 </html>

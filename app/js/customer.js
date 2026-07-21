@@ -9,12 +9,75 @@ const LOGIN_PAGE = '../customer-login.html';
 const SUPPORT_PHONE = '+212600000000';
 const SUPPORT_WHATSAPP = '212600000000'; // format international sans +
 
+function toast(msg, type = 'ok') {
+  if (window.SuroToast) window.SuroToast.show(msg, type);
+  else alert(msg);
+}
+
+async function confirmAction(message, opts = {}) {
+  if (window.SuroToast && window.SuroToast.confirm) {
+    return window.SuroToast.confirm(message, opts);
+  }
+  return confirm(message);
+}
+
+let _modalFocusReturn = null;
+let _modalFocusTrapHandler = null;
+
+function getFocusableElements(container) {
+  return Array.from(container.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )).filter((el) => el.offsetParent !== null || el === document.activeElement);
+}
+
+function _modalEscHandler(e) {
+  if (e.key === 'Escape') closeModal();
+}
+
+function openModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  _modalFocusReturn = document.activeElement;
+  modal.classList.add('open');
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  const title = modal.querySelector('h2');
+  if (title) {
+    if (!title.id) title.id = `${id}-title`;
+    modal.setAttribute('aria-labelledby', title.id);
+  }
+  const content = modal.querySelector('.modal-content') || modal;
+  const focusable = getFocusableElements(content);
+  (focusable[0] || modal.querySelector('.modal-close')).focus();
+
+  document.addEventListener('keydown', _modalEscHandler);
+  _modalFocusTrapHandler = (e) => {
+    if (e.key !== 'Tab') return;
+    const items = getFocusableElements(content);
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+  document.addEventListener('keydown', _modalFocusTrapHandler);
+}
+
 class CustomerDashboard {
   constructor() {
     this.api = window.SURO_API;
     this.session = this.api.getSession();
     this.currentPage = 'dashboard';
     this.policies = null; // cache
+    this.payments = null;
+    this._nextRenewalPolicyId = null;
+    this._profileSnapshot = null;
+    this._profileFormBound = false;
     this.init();
   }
 
@@ -29,9 +92,62 @@ class CustomerDashboard {
     }
 
     this.setupNavigation();
+    this.setupFilters();
     this.setupSupportLinks();
     this.loadProfileHeader();
-    this.loadDashboard();
+    const hashPage = (location.hash || '').replace(/^#/, '');
+    if (hashPage && document.getElementById(`${hashPage}-page`)) {
+      this.navigateTo(hashPage);
+    } else {
+      this.loadDashboard();
+    }
+  }
+
+  setupFilters() {
+    const policyFilter = document.getElementById('filter-policy-status');
+    if (policyFilter) {
+      policyFilter.addEventListener('change', () => this.loadPolicies());
+    }
+    const claimFilter = document.getElementById('filter-claim-status');
+    if (claimFilter) {
+      claimFilter.addEventListener('change', () => this.loadClaims());
+    }
+    const paymentFilter = document.getElementById('filter-payment-kind');
+    if (paymentFilter) {
+      paymentFilter.addEventListener('change', () => this.loadPayments());
+    }
+  }
+
+  emptyStateHTML(colspan, { title, desc, ctaLabel, ctaOnclick }) {
+    return `<tr><td colspan="${colspan}" class="table-empty-cell">
+      <div class="table-empty">
+        <p class="table-empty-title">${title}</p>
+        ${desc ? `<p class="table-empty-desc">${desc}</p>` : ''}
+        ${ctaLabel ? `<button type="button" class="btn btn-primary btn-sm" onclick="${ctaOnclick}">${ctaLabel}</button>` : ''}
+      </div>
+    </td></tr>`;
+  }
+
+  errorStateHTML(colspan, retryFn) {
+    return `<tr><td colspan="${colspan}" class="table-empty-cell">
+      <div class="table-empty table-empty--error">
+        <p class="table-empty-title">Impossible de charger</p>
+        <p class="table-empty-desc">Vérifie ta connexion et réessaie.</p>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="${retryFn}">Réessayer</button>
+      </div>
+    </td></tr>`;
+  }
+
+  skeletonRowsHTML(colspan, rows = 3) {
+    const cells = Array.from({ length: colspan }, (_, i) =>
+      `<td><span class="skeleton skeleton-text" style="width:${55 + (i * 11) % 30}%"></span></td>`
+    ).join('');
+    return Array.from({ length: rows }, () => `<tr class="skeleton-row">${cells}</tr>`).join('');
+  }
+
+  setTableSkeleton(tbodyId, colspan, rows = 3) {
+    const tbody = document.getElementById(tbodyId);
+    if (tbody) tbody.innerHTML = this.skeletonRowsHTML(colspan, rows);
   }
 
   async setupSupportLinks() {
@@ -51,8 +167,21 @@ class CustomerDashboard {
 
     const phone = document.getElementById('sos-phone');
     const wa = document.getElementById('sos-whatsapp');
+    const profileSupport = document.getElementById('profile-support-link');
+    const paymentsSupport = document.getElementById('payments-support-link');
     if (phone) phone.href = 'tel:' + phoneNumber;
     if (wa) wa.href = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent('Bonjour SURO, j\'ai une urgence sinistre.');
+    const supportHref = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent('Bonjour SURO, j\'ai une question sur mon compte.');
+    if (profileSupport) {
+      profileSupport.href = supportHref;
+      profileSupport.target = '_blank';
+      profileSupport.rel = 'noopener';
+    }
+    if (paymentsSupport) {
+      paymentsSupport.href = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent('Bonjour SURO, j\'ai une question sur un paiement.');
+      paymentsSupport.target = '_blank';
+      paymentsSupport.rel = 'noopener';
+    }
   }
 
   // Redirige vers la connexion si le token a expiré
@@ -88,6 +217,9 @@ class CustomerDashboard {
     closeSidebar();
 
     this.currentPage = page;
+    if (page) {
+      history.replaceState(null, '', `#${page}`);
+    }
 
     switch (page) {
       case 'dashboard': this.loadDashboard(); break;
@@ -109,15 +241,23 @@ class CustomerDashboard {
     try {
       const user = await this.api.getUser();
       const name = (user.user_metadata && user.user_metadata.name) || user.email;
-      document.getElementById('user-name').textContent = name;
+      const firstName = name.includes('@') ? name.split('@')[0] : name.split(' ')[0];
+      const welcome = document.getElementById('welcome-name');
+      const userName = document.getElementById('user-name');
+      const avatar = document.getElementById('user-avatar');
+      if (welcome) welcome.textContent = firstName;
+      if (userName) userName.textContent = name;
+      if (avatar) avatar.textContent = (firstName[0] || 'C').toUpperCase();
     } catch (error) {
       if (this.handleAuthError(error)) return;
     }
   }
 
   async loadDashboard() {
+    this.setTableSkeleton('active-policies-tbody', 4, 3);
     try {
       const policies = await this.fetchPolicies(true);
+      this.renderPendingPaymentBanner(policies, 'pending-payment-banner-dashboard');
       const claims = await this.api.getMyClaims() || [];
       // Nombre réel de paiements (initial + renouvellements), pas de contrats
       const payments = await this.api.getMyPayments().catch(() => []);
@@ -144,19 +284,29 @@ class CustomerDashboard {
           <td data-label="Statut"><span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></td>
           <td data-label=""><button class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button></td>
         </tr>
-      `).join('') : '<tr><td colspan="4" class="text-center">Aucun contrat pour le moment</td></tr>';
+      `).join('') : this.emptyStateHTML(4, {
+        title: 'Aucun contrat actif',
+        desc: 'Souscris une assurance en quelques minutes.',
+        ctaLabel: 'Nouvelle assurance',
+        ctaOnclick: 'dashboard.newSubscription()',
+      });
     } catch (error) {
       if (this.handleAuthError(error)) return;
-      console.error('Error loading dashboard:', error);
+      const tbody = document.getElementById('active-policies-tbody');
+      if (tbody) tbody.innerHTML = this.errorStateHTML(4, 'dashboard.loadDashboard()');
     }
   }
 
   async loadPolicies() {
+    this.setTableSkeleton('policies-tbody', 6, 4);
     try {
       const policies = await this.fetchPolicies(true);
+      this.renderPendingPaymentBanner(policies);
+      const statusFilter = document.getElementById('filter-policy-status')?.value || '';
+      const filtered = statusFilter ? policies.filter(p => p.status === statusFilter) : policies;
       const tbody = document.getElementById('policies-tbody');
 
-      tbody.innerHTML = policies.length ? policies.map(p => `
+      tbody.innerHTML = filtered.length ? filtered.map(p => `
         <tr>
           <td data-label="Immatriculation">${p.immatriculation || '—'}</td>
           <td data-label="Véhicule">${this.vehicleLabel(p)}</td>
@@ -165,23 +315,34 @@ class CustomerDashboard {
           <td data-label="Statut"><span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></td>
           <td data-label="" style="white-space:nowrap;">
             <button class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button>
-            <button class="btn btn-ghost btn-sm" onclick="dashboard.renewPolicy('${p.id}')">Renouveler</button>
+            ${p.status === 'nouvelle'
+              ? `<button class="btn btn-primary btn-sm" onclick="dashboard.payPolicy('${p.id}')">Payer</button>`
+              : `<button class="btn btn-ghost btn-sm" onclick="dashboard.renewPolicy('${p.id}')">Renouveler</button>`}
           </td>
         </tr>
-      `).join('') : '<tr><td colspan="6" class="text-center">Aucun contrat trouvé</td></tr>';
+      `).join('') : this.emptyStateHTML(6, {
+        title: statusFilter ? 'Aucun contrat pour ce filtre' : 'Aucun contrat',
+        desc: statusFilter ? 'Essaie un autre statut ou souscris une nouvelle assurance.' : 'Commence par souscrire ton assurance auto.',
+        ctaLabel: 'Nouvelle assurance',
+        ctaOnclick: 'dashboard.newSubscription()',
+      });
     } catch (error) {
       if (this.handleAuthError(error)) return;
-      console.error('Error loading policies:', error);
+      const tbody = document.getElementById('policies-tbody');
+      if (tbody) tbody.innerHTML = this.errorStateHTML(6, 'dashboard.loadPolicies()');
     }
   }
 
   async loadClaims() {
+    this.setTableSkeleton('claims-tbody', 5, 3);
     try {
       const claims = await this.api.getMyClaims() || [];
       this.claims = claims;
+      const statusFilter = document.getElementById('filter-claim-status')?.value || '';
+      const filtered = statusFilter ? claims.filter(c => c.status === statusFilter) : claims;
       const tbody = document.getElementById('claims-tbody');
 
-      tbody.innerHTML = claims.length ? claims.map(c => `
+      tbody.innerHTML = filtered.length ? filtered.map(c => `
         <tr>
           <td data-label="Type">${this.escape(c.claim_type || 'N/A')}</td>
           <td data-label="Description">${this.escape((c.description || '').slice(0, 60))}${(c.description || '').length > 60 ? '…' : ''}</td>
@@ -189,12 +350,18 @@ class CustomerDashboard {
           <td data-label="Statut"><span class="status-badge status-${c.status}">${this.formatStatus(c.status)}</span></td>
           <td data-label=""><button class="btn btn-primary btn-sm" onclick="dashboard.viewClaimDetail('${c.id}')">Suivre</button></td>
         </tr>
-      `).join('') : '<tr><td colspan="5" class="text-center">Aucun sinistre déclaré</td></tr>';
+      `).join('') : this.emptyStateHTML(5, {
+        title: statusFilter ? 'Aucun sinistre pour ce filtre' : 'Aucun sinistre déclaré',
+        desc: 'En cas d\'incident, déclare-le ici pour un suivi rapide.',
+        ctaLabel: 'Déclarer un sinistre',
+        ctaOnclick: 'openNewClaimModal()',
+      });
 
       await this.loadPoliciesForClaimForm();
     } catch (error) {
       if (this.handleAuthError(error)) return;
-      console.error('Error loading claims:', error);
+      const tbody = document.getElementById('claims-tbody');
+      if (tbody) tbody.innerHTML = this.errorStateHTML(5, 'dashboard.loadClaims()');
     }
   }
 
@@ -219,76 +386,460 @@ class CustomerDashboard {
     try {
       await this.api.downloadDocument(path, name);
     } catch (error) {
-      alert('Document momentanément inaccessible');
+      toast('Document momentanément inaccessible', 'err');
+    }
+  }
+
+  async fetchPayments(force = false) {
+    if (!this.payments || force) {
+      this.payments = await this.api.getMyPayments().catch(() => []);
+    }
+    return this.payments;
+  }
+
+  setPaymentsLoading(loading) {
+    const hero = document.getElementById('payments-hero');
+    const skeleton = document.getElementById('payments-hero-skeleton');
+    const content = document.getElementById('payments-hero-content');
+    if (!hero) return;
+    hero.setAttribute('aria-busy', loading ? 'true' : 'false');
+    if (skeleton) skeleton.hidden = !loading;
+    if (content) content.hidden = loading;
+  }
+
+  paymentKindLabel(kind) {
+    return kind === 'renewal' ? 'Renouvellement' : 'Souscription';
+  }
+
+  paymentKindClass(kind) {
+    return kind === 'renewal' ? 'payment-kind-badge--renewal' : 'payment-kind-badge--initial';
+  }
+
+  paymentStatusLabel(status) {
+    const labels = {
+      succeeded: 'Payé',
+      pending: 'En attente',
+      failed: 'Échoué',
+    };
+    return labels[status] || 'Payé';
+  }
+
+  paymentStatusClass(status) {
+    if (status === 'pending') return 'pending';
+    if (status === 'failed') return 'failed';
+    return 'succeeded';
+  }
+
+  paymentMethodLabel(method) {
+    const labels = {
+      card: 'Carte bancaire',
+      cmi: 'Paiement en ligne',
+      transfer: 'Virement',
+    };
+    return labels[method] || (method ? method : 'Paiement en ligne');
+  }
+
+  renderPaymentsHero(payments) {
+    const succeeded = (payments || []).filter(p => (p.status || 'succeeded') === 'succeeded');
+    const total = succeeded.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    const lastPayment = (payments || [])[0];
+
+    const totalEl = document.getElementById('payment-total');
+    const countEl = document.getElementById('payment-count');
+    const lastEl = document.getElementById('payment-last-date');
+
+    if (totalEl) {
+      totalEl.textContent = succeeded.length
+        ? `${total.toLocaleString('fr-FR')} DH`
+        : '0 DH';
+    }
+    if (countEl) countEl.textContent = String((payments || []).length);
+    if (lastEl) {
+      lastEl.textContent = lastPayment?.paid_at
+        ? new Date(lastPayment.paid_at).toLocaleDateString('fr-FR', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })
+        : '—';
+    }
+  }
+
+  async renderPaymentsAside(policies) {
+    const dateEl = document.getElementById('payments-next-renewal');
+    const hintEl = document.getElementById('payments-renewal-hint');
+    const renewBtn = document.getElementById('payments-renew-btn');
+    if (!dateEl || !hintEl) return;
+
+    const active = (policies || []).filter(p => p.status === 'active' && p.expires_at);
+    const sorted = active
+      .map(p => ({ policy: p, expiry: new Date(p.expires_at) }))
+      .sort((a, b) => a.expiry - b.expiry);
+
+    if (!sorted.length) {
+      this._nextRenewalPolicyId = null;
+      dateEl.textContent = '—';
+      hintEl.textContent = 'Aucun renouvellement à prévoir pour le moment.';
+      if (renewBtn) renewBtn.hidden = true;
+      return;
+    }
+
+    const next = sorted[0];
+    this._nextRenewalPolicyId = next.policy.id;
+    const daysLeft = Math.ceil((next.expiry - Date.now()) / (1000 * 60 * 60 * 24));
+    dateEl.textContent = next.expiry.toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+
+    const vehicle = this.vehicleLabel(next.policy);
+    if (daysLeft <= 0) {
+      hintEl.textContent = `${vehicle} — contrat expiré, pense à le renouveler.`;
+    } else if (daysLeft <= 30) {
+      hintEl.textContent = `${vehicle} — échéance dans ${daysLeft} jour${daysLeft > 1 ? 's' : ''}.`;
+    } else {
+      hintEl.textContent = `${vehicle} — tu peux renouveler à tout moment.`;
+    }
+
+    if (renewBtn) renewBtn.hidden = false;
+  }
+
+  renewFromPaymentsAside() {
+    if (this._nextRenewalPolicyId) {
+      this.renewPolicy(this._nextRenewalPolicyId);
     }
   }
 
   async loadPayments() {
+    this.setPaymentsLoading(true);
+    this.setTableSkeleton('payments-tbody', 6, 4);
     try {
-      // Historique réel : une ligne par paiement (initial ET chaque renouvellement)
       const [payments, policies] = await Promise.all([
-        this.api.getMyPayments().catch(() => []),
+        this.fetchPayments(true),
         this.fetchPolicies(),
       ]);
 
-      // Associer chaque paiement à son contrat (pour afficher le véhicule)
+      this.renderPaymentsHero(payments);
+      await this.renderPaymentsAside(policies);
+      this.setPaymentsLoading(false);
+
+      const kindFilter = document.getElementById('filter-payment-kind')?.value || '';
+      const filtered = kindFilter
+        ? (payments || []).filter(p => (p.kind || 'initial') === kindFilter)
+        : (payments || []);
+
       const byId = {};
       (policies || []).forEach(p => { byId[p.id] = p; });
 
-      const total = (payments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-
-      document.getElementById('payment-total').textContent = `${total.toLocaleString('fr-FR')} DH`;
-      document.getElementById('payment-count').textContent = (payments || []).length;
-
       const tbody = document.getElementById('payments-tbody');
-      tbody.innerHTML = (payments || []).length ? payments.map(pay => {
+      tbody.innerHTML = filtered.length ? filtered.map(pay => {
         const policy = byId[pay.application_id];
         const contractLabel = policy ? this.vehicleLabel(policy) : 'Contrat auto';
-        const kindLabel = pay.kind === 'renewal' ? 'Renouvellement' : 'Souscription';
+        const status = pay.status || 'succeeded';
+        const kind = pay.kind || 'initial';
         return `
         <tr>
-          <td data-label="Montant">${pay.amount != null ? `${Number(pay.amount).toLocaleString('fr-FR')} DH` : '—'}</td>
-          <td data-label="Contrat">${this.escape(contractLabel)} <span style="color:#9CA3AF;font-size:12px;">(${kindLabel})</span></td>
-          <td data-label="Date">${new Date(pay.paid_at).toLocaleDateString('fr-FR')}</td>
-          <td data-label="Statut"><span class="status-badge status-active">Payé</span></td>
+          <td data-label="Montant"><span class="payment-amount">${pay.amount != null ? `${Number(pay.amount).toLocaleString('fr-FR')} DH` : '—'}</span></td>
+          <td data-label="Contrat">${this.escape(contractLabel)}</td>
+          <td data-label="Type"><span class="payment-kind-badge ${this.paymentKindClass(kind)}">${this.paymentKindLabel(kind)}</span></td>
+          <td data-label="Date">${pay.paid_at ? new Date(pay.paid_at).toLocaleDateString('fr-FR') : '—'}</td>
+          <td data-label="Statut"><span class="status-badge status-${this.paymentStatusClass(status)}">${this.paymentStatusLabel(status)}</span></td>
+          <td data-label=""><button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.viewPaymentDetail('${pay.id}')">Détails</button></td>
         </tr>`;
-      }).join('') : '<tr><td colspan="4" class="text-center">Aucun paiement effectué</td></tr>';
+      }).join('') : this.emptyStateHTML(6, {
+        title: kindFilter ? 'Aucun paiement pour ce filtre' : 'Aucun paiement',
+        desc: kindFilter
+          ? 'Essaie un autre type ou souscris une nouvelle assurance.'
+          : 'Tes paiements apparaîtront ici après ta souscription.',
+        ctaLabel: 'Souscrire une assurance',
+        ctaOnclick: 'dashboard.newSubscription()',
+      });
     } catch (error) {
+      this.setPaymentsLoading(false);
       if (this.handleAuthError(error)) return;
-      console.error('Error loading payments:', error);
+      const tbody = document.getElementById('payments-tbody');
+      if (tbody) tbody.innerHTML = this.errorStateHTML(6, 'dashboard.loadPayments()');
     }
   }
 
+  async viewPaymentDetail(paymentId) {
+    try {
+      const payments = await this.fetchPayments();
+      const pay = (payments || []).find(p => String(p.id) === String(paymentId));
+      if (!pay) return;
+
+      const policies = await this.fetchPolicies();
+      const policy = (policies || []).find(p => p.id === pay.application_id);
+      const body = document.getElementById('modal-body');
+      const status = pay.status || 'succeeded';
+      const kind = pay.kind || 'initial';
+
+      body.innerHTML = `
+        <p class="page-eyebrow" style="margin-bottom: 8px;">Reçu de paiement</p>
+        <h2>${pay.amount != null ? `${Number(pay.amount).toLocaleString('fr-FR')} DH` : 'Paiement'}</h2>
+        <p class="payment-detail-amount">${this.paymentStatusLabel(status)}</p>
+
+        <dl class="payment-detail-grid">
+          <div class="payment-detail-row">
+            <dt>Contrat</dt>
+            <dd>${this.escape(policy ? this.vehicleLabel(policy) : 'Contrat auto')}</dd>
+          </div>
+          <div class="payment-detail-row">
+            <dt>Immatriculation</dt>
+            <dd>${this.escape(policy?.immatriculation || '—')}</dd>
+          </div>
+          <div class="payment-detail-row">
+            <dt>Type</dt>
+            <dd><span class="payment-kind-badge ${this.paymentKindClass(kind)}">${this.paymentKindLabel(kind)}</span></dd>
+          </div>
+          <div class="payment-detail-row">
+            <dt>Date</dt>
+            <dd>${pay.paid_at ? new Date(pay.paid_at).toLocaleDateString('fr-FR', {
+              day: 'numeric', month: 'long', year: 'numeric',
+            }) : '—'}</dd>
+          </div>
+          <div class="payment-detail-row">
+            <dt>Méthode</dt>
+            <dd>${this.escape(this.paymentMethodLabel(pay.method))}</dd>
+          </div>
+          <div class="payment-detail-row">
+            <dt>Référence</dt>
+            <dd>PAY-${String(pay.id).replace(/-/g, '').slice(0, 8).toUpperCase()}</dd>
+          </div>
+        </dl>
+
+        ${policy ? `
+          <div style="margin-top: 24px; display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary btn-sm" onclick="dashboard.viewPolicyDetail('${policy.id}')">Voir le contrat</button>
+            ${kind === 'renewal' || policy.status === 'active' ? `<button type="button" class="btn btn-secondary btn-sm" onclick="dashboard.renewPolicy('${policy.id}')">Renouveler</button>` : ''}
+          </div>
+        ` : ''}
+      `;
+
+      openModal('detail-modal');
+    } catch (error) {
+      toast('Impossible d\'afficher ce paiement', 'err');
+    }
+  }
+
+  formatProfileDate(dateStr) {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+
+  getProfileInitials(name, email) {
+    const source = (name || email || 'C').trim();
+    if (!source) return 'C';
+    if (source.includes('@')) return source[0].toUpperCase();
+    const parts = source.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return source[0].toUpperCase();
+  }
+
+  setProfileLoading(loading) {
+    const hero = document.getElementById('profile-hero');
+    const skeleton = document.getElementById('profile-hero-skeleton');
+    const content = document.getElementById('profile-hero-content');
+    const form = document.getElementById('profile-form');
+    if (hero) hero.setAttribute('aria-busy', loading ? 'true' : 'false');
+    if (skeleton) skeleton.hidden = !loading;
+    if (content) content.hidden = loading;
+    if (form) {
+      form.querySelectorAll('input, button').forEach((el) => {
+        el.disabled = loading;
+      });
+    }
+  }
+
+  renderProfileHero(user) {
+    const meta = user.user_metadata || {};
+    const displayName = meta.name || user.email || 'Client';
+    const email = user.email || '—';
+    const createdLabel = user.created_at
+      ? `Membre depuis ${this.formatProfileDate(user.created_at)}`
+      : 'Membre SURO';
+
+    const nameEl = document.getElementById('profile-display-name');
+    const emailEl = document.getElementById('profile-display-email');
+    const badgeEl = document.getElementById('profile-member-badge');
+    const avatarEl = document.getElementById('profile-avatar-lg');
+    const detailEmail = document.getElementById('profile-detail-email');
+    const detailCreated = document.getElementById('profile-detail-created');
+
+    if (nameEl) nameEl.textContent = displayName;
+    if (emailEl) emailEl.textContent = email;
+    if (badgeEl) badgeEl.textContent = createdLabel;
+    if (avatarEl) avatarEl.textContent = this.getProfileInitials(meta.name, user.email);
+    if (detailEmail) detailEmail.textContent = email;
+    if (detailCreated) {
+      detailCreated.textContent = user.created_at
+        ? this.formatProfileDate(user.created_at)
+        : '—';
+    }
+  }
+
+  setProfileFieldError(fieldId, message) {
+    const input = document.getElementById(fieldId);
+    const errorEl = document.getElementById(`${fieldId}-error`);
+    if (!input) return false;
+    if (message) {
+      input.classList.add('is-invalid');
+      input.setAttribute('aria-invalid', 'true');
+      if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.hidden = false;
+      }
+      return false;
+    }
+    input.classList.remove('is-invalid');
+    input.removeAttribute('aria-invalid');
+    if (errorEl) {
+      errorEl.textContent = '';
+      errorEl.hidden = true;
+    }
+    return true;
+  }
+
+  validateProfileField(fieldId) {
+    const input = document.getElementById(fieldId);
+    if (!input) return true;
+    const value = input.value.trim();
+    if (fieldId === 'profile-name') {
+      if (!value) return this.setProfileFieldError(fieldId, 'Le nom est requis');
+      if (value.length < 2) return this.setProfileFieldError(fieldId, 'Nom trop court');
+      return this.setProfileFieldError(fieldId, '');
+    }
+    if (fieldId === 'profile-phone') {
+      if (!value) return this.setProfileFieldError(fieldId, '');
+      if (!/^[+]?[\d\s\-()]{10,}$/.test(value.replace(/\s/g, ''))) {
+        return this.setProfileFieldError(fieldId, 'Numéro invalide (ex: +212 6 XX XX XX XX)');
+      }
+      return this.setProfileFieldError(fieldId, '');
+    }
+    return true;
+  }
+
+  validateProfileForm() {
+    const nameOk = this.validateProfileField('profile-name');
+    const phoneOk = this.validateProfileField('profile-phone');
+    return nameOk && phoneOk;
+  }
+
+  isProfileDirty() {
+    if (!this._profileSnapshot) return false;
+    const name = document.getElementById('profile-name')?.value.trim() || '';
+    const phone = document.getElementById('profile-phone')?.value.trim() || '';
+    return name !== this._profileSnapshot.name || phone !== this._profileSnapshot.phone;
+  }
+
+  updateProfileDirtyState() {
+    const footer = document.getElementById('profile-form-footer');
+    const saveBtn = document.getElementById('profile-save-btn');
+    const dirty = this.isProfileDirty();
+    if (footer) footer.hidden = !dirty;
+    if (saveBtn) saveBtn.disabled = !dirty;
+  }
+
+  bindProfileForm() {
+    if (this._profileFormBound) return;
+    const form = document.getElementById('profile-form');
+    const resetBtn = document.getElementById('profile-reset-btn');
+    if (!form) return;
+
+    form.addEventListener('input', () => this.updateProfileDirtyState());
+    form.addEventListener('submit', (e) => this.updateProfile(e));
+
+    ['profile-name', 'profile-phone'].forEach((id) => {
+      const input = document.getElementById(id);
+      if (input) input.addEventListener('blur', () => this.validateProfileField(id));
+    });
+
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (!this._profileSnapshot) return;
+        document.getElementById('profile-name').value = this._profileSnapshot.name;
+        document.getElementById('profile-phone').value = this._profileSnapshot.phone;
+        this.validateProfileField('profile-name');
+        this.validateProfileField('profile-phone');
+        this.updateProfileDirtyState();
+      });
+    }
+
+    this._profileFormBound = true;
+  }
+
   async loadProfilePage() {
+    this.setProfileLoading(true);
+    this.bindProfileForm();
+
     try {
       const user = await this.api.getUser();
       const meta = user.user_metadata || {};
+      const name = meta.name || '';
+      const phone = meta.phone || '';
 
-      document.getElementById('profile-email').value = user.email || '';
-      document.getElementById('profile-name').value = meta.name || '';
-      document.getElementById('profile-phone').value = meta.phone || '';
-      document.getElementById('profile-created').value =
-        user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : '';
+      this._profileSnapshot = { name, phone };
+      document.getElementById('profile-name').value = name;
+      document.getElementById('profile-phone').value = phone;
 
-      document.getElementById('profile-form').onsubmit = (e) => this.updateProfile(e);
+      this.renderProfileHero(user);
+      this.validateProfileField('profile-name');
+      this.validateProfileField('profile-phone');
+      this.updateProfileDirtyState();
     } catch (error) {
       if (this.handleAuthError(error)) return;
       console.error('Error loading profile:', error);
+      toast('Impossible de charger ton profil', 'err');
+    } finally {
+      this.setProfileLoading(false);
     }
   }
 
   async updateProfile(e) {
     e.preventDefault();
-    const name = document.getElementById('profile-name').value;
-    const phone = document.getElementById('profile-phone').value;
+    if (!this.validateProfileForm()) {
+      toast('Corrige les champs en erreur avant d\'enregistrer', 'err');
+      return;
+    }
+
+    const name = document.getElementById('profile-name').value.trim();
+    const phone = document.getElementById('profile-phone').value.trim();
+    const saveBtn = document.getElementById('profile-save-btn');
+
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Enregistrement…';
+    }
 
     try {
       await this.api.updateUser({ data: { name, phone } });
-      document.getElementById('user-name').textContent = name || this.session.email;
-      alert('Profil mis à jour ✓');
+      this._profileSnapshot = { name, phone };
+      this.updateProfileDirtyState();
+
+      const user = await this.api.getUser();
+      const displayName = name || user.email || this.session.email;
+      document.getElementById('user-name').textContent = displayName;
+      const firstName = displayName.includes('@') ? displayName.split('@')[0] : displayName.split(' ')[0];
+      const welcome = document.getElementById('welcome-name');
+      const avatar = document.getElementById('user-avatar');
+      if (welcome) welcome.textContent = firstName;
+      if (avatar) avatar.textContent = (firstName[0] || 'C').toUpperCase();
+
+      this.renderProfileHero(user);
+      toast('Profil mis à jour');
     } catch (error) {
       if (this.handleAuthError(error)) return;
-      alert('Erreur lors de la mise à jour du profil');
+      toast('Erreur lors de la mise à jour du profil', 'err');
+    } finally {
+      if (saveBtn) {
+        saveBtn.textContent = 'Enregistrer';
+        this.updateProfileDirtyState();
+      }
     }
   }
 
@@ -325,7 +876,7 @@ class CustomerDashboard {
         <div style="margin-top: 20px;">
           <p><strong>N° de contrat:</strong> SR-${String(p.id).replace(/-/g, '').slice(0, 8).toUpperCase()}</p>
           <p><strong>Immatriculation:</strong> ${this.escape(p.immatriculation || '—')}</p>
-          <p><strong>Année:</strong> ${p.annee || '—'} — <strong>Puissance:</strong> ${p.puissance || '—'} CV</p>
+          <p><strong>Année:</strong> ${p.annee || '—'} — <strong>${p.vehicle_type === 'moto' ? 'Cylindrée' : 'Puissance'}:</strong> ${p.puissance || '—'} ${p.vehicle_type === 'moto' ? 'cm³' : 'CV'}</p>
           <p><strong>Couverture:</strong> ${this.coverageLabel(p.coverage_type)}</p>
           <p><strong>Prime annuelle:</strong> ${this.premiumLabel(p)}</p>
           <p><strong>Adresse de livraison:</strong> ${this.escape(p.address || '—')}</p>
@@ -340,13 +891,15 @@ class CustomerDashboard {
         </div>
 
         <div style="margin-top: 24px;">
-          <button class="btn btn-primary" onclick="dashboard.renewPolicy('${p.id}')">🔄 Renouveler ce contrat</button>
+          ${p.status === 'nouvelle'
+            ? `<button class="btn btn-primary" onclick="dashboard.payPolicy('${p.id}')">Payer et activer mon contrat</button>`
+            : `<button class="btn btn-primary" onclick="dashboard.renewPolicy('${p.id}')">🔄 Renouveler ce contrat</button>`}
         </div>
       `;
 
-      modal.classList.add('open');
+      openModal('detail-modal');
     } catch (error) {
-      console.error('Error loading policy detail:', error);
+      toast('Impossible d\'afficher ce contrat', 'err');
     }
   }
 
@@ -364,6 +917,63 @@ class CustomerDashboard {
   }
 
   // Renouveler : PROLONGE le contrat existant d'un an (même contrat)
+  // Bandeau « devis en attente de paiement » (accueil + « Mes contrats »)
+  renderPendingPaymentBanner(policies, elId = 'pending-payment-banner') {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const pending = (policies || []).filter(p => p.status === 'nouvelle');
+    if (!pending.length) { el.innerHTML = ''; return; }
+
+    const box = (inner) => `
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#FFF8F1;border:1px solid #FCD9B6;border-radius:12px;padding:14px 18px;margin-bottom:16px;">
+        ${inner}
+      </div>`;
+
+    if (pending.length === 1) {
+      const p = pending[0];
+      const amount = p.annual_premium ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH/an` : '';
+      el.innerHTML = box(`
+        <div style="flex:1;min-width:200px;">
+          <div style="font-weight:700;color:#B26A00;">Devis en attente de paiement</div>
+          <div style="font-size:13.5px;color:#7A4E00;margin-top:2px;">${this.escape(this.vehicleLabel(p))}${amount ? ` — ${amount}` : ''}. Ton contrat n'est pas actif tant que le paiement n'est pas effectué.</div>
+        </div>
+        <button class="btn btn-primary" onclick="dashboard.payPolicy('${p.id}')">Payer maintenant</button>`);
+    } else {
+      el.innerHTML = box(`
+        <div style="flex:1;min-width:200px;">
+          <div style="font-weight:700;color:#B26A00;">${pending.length} devis en attente de paiement</div>
+          <div style="font-size:13.5px;color:#7A4E00;margin-top:2px;">Règle-les depuis la liste ci-dessous (bouton « Payer ») pour activer tes contrats.</div>
+        </div>`);
+    }
+  }
+
+  // Payer un devis en attente (statut 'nouvelle') → active le contrat
+  async payPolicy(policyId) {
+    try {
+      const policies = await this.fetchPolicies();
+      const p = policies.find(x => x.id === policyId);
+      if (!p) return;
+
+      const premium = p.annual_premium
+        ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH`
+        : 'le montant de ta prime';
+      if (!await confirmAction(`Payer ${premium} pour activer ton contrat ?\nTon attestation sera préparée dès le paiement confirmé.`, { title: 'Payer mon contrat', okLabel: 'Payer maintenant' })) {
+        return;
+      }
+
+      await this.api.submitPayment(policyId, { method: 'card', amount: p.annual_premium || null, currency: 'MAD' });
+      toast('Paiement confirmé — ton contrat est actif');
+
+      closeModal();
+      await this.fetchPolicies(true);
+      this.loadDashboard();
+      if (this.currentPage === 'policies') this.loadPolicies();
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      toast('Erreur lors du paiement : ' + (error.message || ''), 'err');
+    }
+  }
+
   async renewPolicy(policyId) {
     try {
       const policies = await this.fetchPolicies();
@@ -373,7 +983,7 @@ class CustomerDashboard {
       const premium = p.annual_premium
         ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH`
         : 'le montant de ta prime';
-      if (!confirm(`Renouveler ce contrat pour un an (${premium}) ?\nTon contrat sera prolongé, tu gardes le même numéro.`)) {
+      if (!await confirmAction(`Renouveler ce contrat pour un an (${premium}) ?\nTon contrat sera prolongé, tu gardes le même numéro.`, { title: 'Renouveler', okLabel: 'Renouveler' })) {
         return;
       }
 
@@ -381,18 +991,17 @@ class CustomerDashboard {
       const newExpiry = Array.isArray(result) ? result[0] : result;
       const dateStr = newExpiry ? new Date(newExpiry).toLocaleDateString('fr-FR') : null;
 
-      alert(dateStr
-        ? `Contrat renouvelé ✓ Nouvelle échéance : ${dateStr}`
-        : 'Contrat renouvelé ✓');
+      toast(dateStr
+        ? `Contrat renouvelé — nouvelle échéance : ${dateStr}`
+        : 'Contrat renouvelé');
 
       closeModal();
-      await this.fetchPolicies(true); // recharge le cache
+      await this.fetchPolicies(true);
       this.loadDashboard();
       if (this.currentPage === 'policies') this.loadPolicies();
     } catch (error) {
       if (this.handleAuthError(error)) return;
-      console.error('Error renewing policy:', error);
-      alert('Erreur lors du renouvellement : ' + (error.message || ''));
+      toast('Erreur lors du renouvellement : ' + (error.message || ''), 'err');
     }
   }
 
@@ -508,11 +1117,11 @@ class CustomerDashboard {
           const msgs = await this.api.getClaimMessages(claimId).catch(() => []);
           document.getElementById('claim-messages').innerHTML = this.renderClaimMessages(msgs);
         } catch (err) {
-          alert('Message non envoyé, réessaie.');
+          toast('Message non envoyé, réessaie.', 'err');
         }
       };
 
-      modal.classList.add('open');
+      openModal('detail-modal');
     } catch (error) {
       if (this.handleAuthError(error)) return;
       console.error('Error loading claim detail:', error);
@@ -523,7 +1132,7 @@ class CustomerDashboard {
     try {
       await this.api.downloadClaimFile(decodeURIComponent(encodedPath), name);
     } catch (e) {
-      alert('Fichier momentanément inaccessible');
+      toast('Fichier momentanément inaccessible', 'err');
     }
   }
 
@@ -531,7 +1140,7 @@ class CustomerDashboard {
     const input = document.getElementById('claim-extra-files');
     const btn = document.getElementById('claim-extra-upload');
     if (!input || !input.files.length) {
-      alert('Choisis d\'abord un ou plusieurs fichiers');
+      toast('Choisis d\'abord un ou plusieurs fichiers', 'info');
       return;
     }
     btn.disabled = true;
@@ -542,7 +1151,7 @@ class CustomerDashboard {
       }
       this.viewClaimDetail(claimId); // rafraîchit
     } catch (e) {
-      alert('Erreur lors de l\'envoi : ' + (e.message || ''));
+      toast('Erreur lors de l\'envoi : ' + (e.message || ''), 'err');
       btn.disabled = false;
       btn.textContent = 'Ajouter des photos/vidéos';
     }
@@ -550,7 +1159,7 @@ class CustomerDashboard {
 
   formatStatus(status) {
     const labels = {
-      'nouvelle': 'En attente de paiement',
+      'nouvelle': 'À payer',
       'active': 'Active',
       'expired': 'Expirée',
       'cancelled': 'Annulée',
@@ -558,6 +1167,8 @@ class CustomerDashboard {
       'approved': 'Approuvé',
       'rejected': 'Rejeté',
       'paid': 'Payé',
+      'succeeded': 'Payé',
+      'failed': 'Échoué',
     };
     return labels[status] || status;
   }
@@ -573,8 +1184,14 @@ document.addEventListener('DOMContentLoaded', () => {
 function toggleSidebar() {
   const sidebar = document.querySelector('.sidebar');
   const overlay = document.getElementById('sidebar-overlay');
+  const toggle = document.querySelector('.sidebar-toggle');
   if (sidebar) sidebar.classList.toggle('open');
   if (overlay) overlay.classList.toggle('open');
+  if (toggle && sidebar) {
+    const open = sidebar.classList.contains('open');
+    toggle.setAttribute('aria-expanded', open);
+    toggle.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
+  }
 }
 
 function closeSidebar() {
@@ -584,19 +1201,28 @@ function closeSidebar() {
   if (overlay) overlay.classList.remove('open');
 }
 
-function logout() {
-  if (confirm('Êtes-vous sûr de vouloir vous déconnecter?')) {
+async function logout() {
+  if (await confirmAction('Tu veux te déconnecter ?', { title: 'Déconnexion', okLabel: 'Se déconnecter' })) {
     window.SURO_API.logout();
     window.location.href = LOGIN_PAGE;
   }
 }
 
 function closeModal() {
-  document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
+  document.querySelectorAll('.modal.open').forEach(m => m.classList.remove('open'));
+  document.removeEventListener('keydown', _modalEscHandler);
+  if (_modalFocusTrapHandler) {
+    document.removeEventListener('keydown', _modalFocusTrapHandler);
+    _modalFocusTrapHandler = null;
+  }
+  if (_modalFocusReturn) {
+    _modalFocusReturn.focus();
+    _modalFocusReturn = null;
+  }
 }
 
 function openNewClaimModal() {
-  document.getElementById('claim-modal').classList.add('open');
+  openModal('claim-modal');
 
   const form = document.getElementById('claim-form');
   form.onsubmit = async (e) => {
@@ -608,7 +1234,7 @@ function openNewClaimModal() {
     const description = document.getElementById('claim-description').value;
 
     if (!policyId) {
-      alert('Choisis un contrat');
+      toast('Choisis un contrat', 'info');
       return;
     }
 
@@ -644,13 +1270,12 @@ function openNewClaimModal() {
       }
 
       window.SURO_API.track('claim_declared', null, { type: claimType, files: uploaded });
-      alert('Sinistre déclaré ✓' + (uploaded ? ` ${uploaded} fichier(s) envoyé(s).` : '') + ' Nos équipes te recontactent rapidement.');
+      toast('Sinistre déclaré' + (uploaded ? ` — ${uploaded} fichier(s) envoyé(s)` : '') + '. Nos équipes te recontactent rapidement.');
       closeModal();
       form.reset();
       dashboard.loadClaims();
     } catch (error) {
-      console.error('Error submitting claim:', error);
-      alert('Erreur lors de la déclaration du sinistre');
+      toast('Erreur lors de la déclaration du sinistre', 'err');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Déclarer le sinistre';
@@ -659,7 +1284,7 @@ function openNewClaimModal() {
 }
 
 function openChangePasswordModal() {
-  document.getElementById('password-modal').classList.add('open');
+  openModal('password-modal');
 
   const form = document.getElementById('password-form');
   form.onsubmit = async (e) => {
@@ -669,21 +1294,21 @@ function openChangePasswordModal() {
     const confirmPassword = document.getElementById('confirm-password').value;
 
     if (newPassword.length < 8) {
-      alert('Minimum 8 caractères');
+      toast('Minimum 8 caractères', 'info');
       return;
     }
     if (newPassword !== confirmPassword) {
-      alert('Les mots de passe ne correspondent pas');
+      toast('Les mots de passe ne correspondent pas', 'info');
       return;
     }
 
     try {
       await window.SURO_API.updateUser({ password: newPassword });
-      alert('Mot de passe mis à jour ✓');
+      toast('Mot de passe mis à jour');
       closeModal();
       form.reset();
     } catch (error) {
-      alert('Erreur lors du changement de mot de passe');
+      toast('Erreur lors du changement de mot de passe', 'err');
     }
   };
 }

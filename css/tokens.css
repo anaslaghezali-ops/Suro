@@ -1,36 +1,42 @@
-/* SURO Design Tokens — Premium System */
+/* SURO Design Tokens — Premium System v2 */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* ====== COLORS ====== */
-  /* Primary: Teal (Premium, Stable, Confiance) */
+  /* Colors — Teal premium */
   --color-primary: #0F766E;
   --color-primary-hover: #0D6961;
-  --color-primary-light: #0D9488;
-  --color-primary-ghost: rgba(15, 118, 110, 0.1);
+  --color-primary-light: #14B8A6;
+  --color-primary-ghost: rgba(15, 118, 110, 0.08);
+  --color-primary-muted: rgba(15, 118, 110, 0.12);
 
-  /* Accent: Orange (Secondary actions, success celebrations) */
-  --color-accent: #F97316;
-  --color-accent-hover: #EA580C;
+  --color-accent: #F59E0B;
+  --color-accent-hover: #D97706;
 
-  /* Neutral (Dark to Light) */
+  --color-bg: #FAFBFC;
+  --color-surface: #FFFFFF;
+  --color-surface-elevated: #FFFFFF;
+  --color-border: #E5E7EB;
+  --color-border-subtle: #F3F4F6;
+
   --color-neutral-50: #F9FAFB;
   --color-neutral-100: #F3F4F6;
   --color-neutral-200: #E5E7EB;
+  --color-neutral-300: #D1D5DB;
   --color-neutral-400: #9CA3AF;
   --color-neutral-600: #4B5563;
+  --color-neutral-700: #374151;
   --color-neutral-900: #111827;
 
-  /* Semantic */
-  --color-success: #10B981;
+  --color-success: #059669;
   --color-warning: #F59E0B;
-  --color-error: #EF4444;
+  --color-error: #DC2626;
 
-  /* ====== TYPOGRAPHY ====== */
-  --font-display: 'Interop', system-ui, -apple-system, sans-serif;
+  /* Typography */
+  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'Menlo', 'Fira Code', monospace;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
-  /* Text Scale */
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
@@ -41,20 +47,18 @@
   --text-4xl: 2.25rem;
   --text-5xl: 3rem;
 
-  /* Line Heights */
   --line-tight: 1.1;
   --line-snug: 1.25;
   --line-normal: 1.5;
-  --line-relaxed: 1.75;
+  --line-relaxed: 1.65;
 
-  /* Font Weight */
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
   --weight-bold: 700;
   --weight-extrabold: 800;
 
-  /* ====== SPACING ====== */
+  /* Spacing */
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
   --space-md: 1rem;
@@ -64,70 +68,69 @@
   --space-3xl: 4rem;
   --space-4xl: 6rem;
 
-  /* ====== RADIUS ====== */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
 
-  /* ====== SHADOWS ====== */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.12);
-  --shadow-elevated: 0 20px 25px rgba(0, 0, 0, 0.1), 0 8px 12px rgba(0, 0, 0, 0.06);
-  --shadow-premium: 0 25px 50px rgba(0, 0, 0, 0.15);
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.12);
+  --shadow-focus: 0 0 0 3px var(--color-primary-ghost);
 
-  /* ====== TRANSITIONS ====== */
+  /* Transitions */
   --transition-fast: 150ms ease;
   --transition-base: 200ms ease;
-  --transition-smooth: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bounce: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  --transition-slow: 300ms ease;
+  --transition-smooth: 280ms cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* ====== EFFECTS ====== */
-  --backdrop-blur: blur(12px);
-  --backdrop-blur-sm: blur(8px);
+  /* Layout */
+  --max-width: 480px;
+  --max-width-wide: 1140px;
+  --header-height: 64px;
 
-  /* ====== LAYOUT ====== */
-  --max-width: 600px;
-  --max-width-wide: 1200px;
-  --breakpoint-mobile: 640px;
-  --breakpoint-tablet: 1024px;
-
-  /* ====== Z-INDEX ====== */
-  --z-base: 1;
-  --z-sticky: 10;
-  --z-fixed: 50;
-  --z-modal: 100;
-  --z-tooltip: 150;
+  /* Z-index */
+  --z-sticky: 50;
+  --z-overlay: 100;
+  --z-modal: 200;
 }
 
-/* Dark Mode */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --color-neutral-50: #111827;
-    --color-neutral-100: #1F2937;
-    --color-neutral-200: #374151;
+  :root:not([data-theme="light"]) {
+    --color-bg: #0B0F14;
+    --color-surface: #151A23;
+    --color-surface-elevated: #1C2330;
+    --color-border: #2A3344;
+    --color-border-subtle: #1C2330;
+    --color-neutral-50: #0B0F14;
+    --color-neutral-100: #151A23;
+    --color-neutral-200: #2A3344;
+    --color-neutral-300: #3D4A5C;
     --color-neutral-400: #6B7280;
     --color-neutral-600: #9CA3AF;
-    --color-neutral-900: #F9FAFB;
+    --color-neutral-700: #D1D5DB;
+    --color-neutral-900: #F3F4F6;
+    --color-primary-ghost: rgba(20, 184, 166, 0.15);
   }
 }
 
 :root[data-theme="dark"] {
-  --color-neutral-50: #111827;
-  --color-neutral-100: #1F2937;
-  --color-neutral-200: #374151;
+  --color-bg: #0B0F14;
+  --color-surface: #151A23;
+  --color-surface-elevated: #1C2330;
+  --color-border: #2A3344;
+  --color-border-subtle: #1C2330;
+  --color-neutral-50: #0B0F14;
+  --color-neutral-100: #151A23;
+  --color-neutral-200: #2A3344;
+  --color-neutral-300: #3D4A5C;
   --color-neutral-400: #6B7280;
   --color-neutral-600: #9CA3AF;
-  --color-neutral-900: #F9FAFB;
-}
-
-:root[data-theme="light"] {
-  --color-neutral-50: #F9FAFB;
-  --color-neutral-100: #F3F4F6;
-  --color-neutral-200: #E5E7EB;
-  --color-neutral-400: #9CA3AF;
-  --color-neutral-600: #4B5563;
-  --color-neutral-900: #111827;
+  --color-neutral-700: #D1D5DB;
+  --color-neutral-900: #F3F4F6;
+  --color-primary-ghost: rgba(20, 184, 166, 0.15);
 }

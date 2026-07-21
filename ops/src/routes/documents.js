@@ -37,10 +37,10 @@ function Preview({ doc }) {
   return html`<${Empty}>Aperçu non disponible pour ce type de fichier. Utilisez « Télécharger ».<//>`;
 }
 
-function Detail({ doc, role, onClose, onReviewed }) {
+function Detail({ doc, caps, onClose, onReviewed }) {
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
-  const canReview = can(role, 'document.review');
+  const canReview = can(caps, 'document.review');
   const st = docStatus(doc.status);
 
   const review = async (status) => {
@@ -80,7 +80,7 @@ function Detail({ doc, role, onClose, onReviewed }) {
   `;
 }
 
-export function Documents({ role }) {
+export function Documents({ caps }) {
   const { data, loading, error, reload } = useAsync(() => api.allDocuments().catch(() => []), []);
   const [activeView, setActiveView] = useState('');
   const [selected, setSelected] = useState(null);
@@ -95,7 +95,7 @@ export function Documents({ role }) {
   const activeDef = DOC_VIEWS.find((v) => v.id === activeView) || DOC_VIEWS[0];
   const rows = (data || []).filter(activeDef.match);
   const columns = [
-    { key: 'name', label: 'Document', sortable: true, render: (d) => html`📄 ${d.name}` },
+    { key: 'name', label: 'Document', sortable: true, render: (d) => html`${d.name}` },
     { key: 'customer_email', label: 'Client', sortable: true },
     { key: 'status', label: 'Statut', sortable: true, render: (d) => { const s = docStatus(d.status || 'pending'); return html`<${Badge} tone=${s.tone}>${s.label}<//>`; } },
     { key: 'created_at', label: 'Déposé le', sortable: true, render: (d) => fmtDate(d.created_at) },
@@ -104,14 +104,14 @@ export function Documents({ role }) {
   return html`
     <div class="page-head">
       <h1>Documents</h1>
-      <p>Bibliothèque des documents transmis par les clients. Cliquez pour prévisualiser et valider.</p>
+      <p>File de vérification des pièces reçues (carte grise, permis, RIB…). L'équipe ouvre chaque document, le prévisualise, puis le valide ou le refuse avec un motif — le client est notifié automatiquement.</p>
     </div>
     <div class="card">
       <${SavedViews} views=${views} active=${activeView} onChange=${setActiveView} />
       <${DataTable} key=${activeView} columns=${columns} rows=${rows} searchKeys=${['name', 'customer_email']}
         onRowClick=${(d) => setSelected(d)} />
     </div>
-    ${selected ? html`<${Detail} doc=${selected} role=${role}
+    ${selected ? html`<${Detail} doc=${selected} caps=${caps}
       onClose=${() => setSelected(null)}
       onReviewed=${() => { setSelected(null); reload(); }} />` : null}
   `;

@@ -17,6 +17,21 @@ export const api = {
   logout: () => SB().logout(),
   currentRole: () => rpc('suro_current_role'),
   isStaff: () => rpc('is_suro_staff'),
+  myPrivileges: () => rpc('suro_my_privileges'),
+
+  // --- privilèges (super_admin) ---
+  listRolePrivileges: () => rpc('suro_list_role_privileges'),
+  setPrivilege: (role, cap, allowed) => rpc('suro_set_privilege', { p_role: role, p_cap: cap, p_allowed: allowed }),
+
+  // --- clients (édition / suppression) ---
+  updateCustomer: (email, name, phone) => rpc('suro_update_customer', { p_email: email, p_name: name, p_phone: phone }),
+  deleteCustomer: (email) => rpc('suro_delete_customer', { p_email: email }),
+
+  // --- dashboard : sinistres en attente de réponse ---
+  claimsNeedingReply: () => rpc('suro_claims_needing_reply'),
+
+  // --- upload de document (attestation…) rattaché à un contrat ---
+  uploadDocument: (application, file) => SB().adminUploadDocument(application, file),
 
   // --- audit ---
   logAction: (action, entity, entityId, changes) =>
@@ -41,6 +56,7 @@ export const api = {
   // --- staff (super_admin) ---
   listStaff: () => rpc('suro_list_staff'),
   setStaff: (email, role) => rpc('suro_set_staff', { p_email: email, p_role: role }),
+  createStaff: (payload) => SB().adminCreateStaff(payload),
   removeStaff: (email) => rpc('suro_remove_staff', { p_email: email }),
 
   // --- sinistres ---

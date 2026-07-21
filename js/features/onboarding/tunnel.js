@@ -46,10 +46,63 @@ class OnboardingForm {
   }
 
   getFields() {
+    const vt = this.store.getState('onboarding.data.vehicle_type') || 'voiture';
+    const isMoto = vt === 'moto';
+
+    // Champ de tarification adaptatif : CV fiscaux (voiture) ou cylindrée cm³ (moto)
+    const ratingField = isMoto
+      ? {
+          id: 'puissance',
+          label: 'Cylindrée (cm³)',
+          type: 'number',
+          placeholder: 'Ex: 125',
+          validate: (value) => {
+            if (!value) return 'La cylindrée est nécessaire';
+            const cc = parseInt(value, 10);
+            if (isNaN(cc) || cc < 25 || cc > 3000) {
+              return 'Cylindrée invalide (entre 25 et 3000 cm³)';
+            }
+            return true;
+          },
+        }
+      : {
+          id: 'puissance',
+          label: 'Puissance fiscale (chevaux)',
+          type: 'number',
+          placeholder: 'Ex: 6',
+          validate: (value) => {
+            if (!value) return 'La puissance fiscale est nécessaire';
+            const cv = parseInt(value, 10);
+            if (isNaN(cv) || cv < 1 || cv > 100) {
+              return 'Puissance invalide (entre 1 et 100 CV)';
+            }
+            return true;
+          },
+        };
+
     const fields = [
       {
+        id: 'vehicle_type',
+        label: 'Que veux-tu assurer ?',
+        sublabel: 'Sélectionne le type de véhicule',
+        type: 'choice',
+        choices: [
+          {
+            label: 'Voiture',
+            value: 'voiture',
+            icon: 'voiture',
+          },
+          {
+            label: 'Moto',
+            value: 'moto',
+            icon: 'moto',
+          },
+        ],
+        required: true,
+      },
+      {
         id: 'vehicle',
-        label: 'Parle-nous de ton véhicule',
+        label: isMoto ? 'Parle-nous de ta moto' : 'Parle-nous de ton véhicule',
         hint: 'Ces infos nous permettent de calculer ton tarif',
         type: 'group',
         fields: [
@@ -59,6 +112,7 @@ class OnboardingForm {
             type: 'text',
             autocomplete: 'off',
             placeholder: 'Ex: 7737-A-76',
+            fullWidth: true,
             validate: (value) => {
               if (!value) return 'L\'immatriculation est nécessaire';
               const cleaned = value.replace(/[\s-]/g, '');
@@ -72,7 +126,7 @@ class OnboardingForm {
             id: 'marque',
             label: 'Marque',
             type: 'text',
-            placeholder: 'Ex: Dacia, Renault, Peugeot',
+            placeholder: isMoto ? 'Ex: Honda, Yamaha, KTM' : 'Ex: Dacia, Renault, Peugeot',
             validate: (value) => {
               if (!value) return 'La marque est nécessaire';
               return true;
@@ -82,7 +136,7 @@ class OnboardingForm {
             id: 'modele',
             label: 'Modèle',
             type: 'text',
-            placeholder: 'Ex: Logan, Clio, 208',
+            placeholder: isMoto ? 'Ex: PCX, MT-07, Duke' : 'Ex: Logan, Clio, 208',
             validate: (value) => {
               if (!value) return 'Le modèle est nécessaire';
               return true;
@@ -103,41 +157,27 @@ class OnboardingForm {
               return true;
             },
           },
-          {
-            id: 'puissance',
-            label: 'Puissance fiscale (chevaux)',
-            type: 'number',
-            placeholder: 'Ex: 6',
-            validate: (value) => {
-              if (!value) return 'La puissance fiscale est nécessaire';
-              const cv = parseInt(value, 10);
-              if (isNaN(cv) || cv < 1 || cv > 100) {
-                return 'Puissance invalide (entre 1 et 100 CV)';
-              }
-              return true;
-            },
-          },
+          ratingField,
         ],
         required: true,
       },
       {
         id: 'coverage',
         label: 'Quel niveau de protection?',
-        sublabel: 'Choisir le plan qui te convient',
+        sublabel: 'Chaque formule affiche son prix annuel TTC — aucun frais caché',
         type: 'choice',
         choices: [
           {
             label: 'Couverture complète',
             value: 'complete',
-            icon: '🛡️',
+            tag: 'Recommandé',
             description: 'Vol, Incendie, Responsabilité civile, Assistance 24/7',
-            badge: '⭐ POPULAIRE',
             details: ['Vol et vandalisme', 'Dégâts et incendie', 'Tiers illimité', 'Assistance 24/7', 'Pas de franchise']
           },
           {
             label: 'Couverture minimale',
             value: 'minimal',
-            icon: '✓',
+            tag: 'Essentiel',
             description: 'Responsabilité civile minimale (légale)',
             details: ['Tiers obligatoire', 'Assistance de base']
           },
@@ -155,7 +195,7 @@ class OnboardingForm {
             label: 'Ton email',
             type: 'email',
             autocomplete: 'email',
-            placeholder: 'Ex: vous@email.com',
+            placeholder: 'Ex: ton@email.com',
             validate: (value) => {
               if (!value) return 'L\'email est nécessaire pour ton espace client';
               if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
@@ -181,36 +221,42 @@ class OnboardingForm {
         required: true,
       },
       {
-        id: 'phone',
-        label: 'Et ton numéro? (Pour les urgences)',
-        hint: 'On t\'appellera uniquement en cas de sinistre',
-        type: 'tel',
-        autocomplete: 'tel',
-        placeholder: 'Ex: +212 6 XX XX XX XX',
+        id: 'contact',
+        label: 'Tes coordonnées',
+        hint: 'Pour te joindre en cas de sinistre et t\'envoyer tes documents',
+        type: 'group',
+        fields: [
+          {
+            id: 'phone',
+            label: 'Téléphone',
+            type: 'tel',
+            autocomplete: 'tel',
+            placeholder: 'Ex: +212 6 XX XX XX XX',
+            validate: (value) => {
+              if (!value) return 'Un numéro de contact est nécessaire';
+              if (!/^[\+]?[\d\s\-\(\)]{10,}$/.test(value.replace(/\s/g, ''))) {
+                return 'Numéro invalide (ex: +212 6 XX XX XX XX)';
+              }
+              return true;
+            },
+          },
+          {
+            id: 'address',
+            label: 'Adresse de livraison',
+            inputType: 'textarea',
+            autocomplete: 'street-address',
+            placeholder: 'Ex: 12 Rue Atlas, Quartier Maârif, Casablanca',
+            fullWidth: true,
+            validate: (value) => {
+              if (!value) return 'L\'adresse de livraison est nécessaire';
+              if (value.trim().length < 10) {
+                return 'Adresse trop courte — précise la rue et la ville';
+              }
+              return true;
+            },
+          },
+        ],
         required: true,
-        validate: (value) => {
-          if (!value) return 'Un numéro de contact est nécessaire';
-          if (!/^[\+]?[\d\s\-\(\)]{10,}$/.test(value.replace(/\s/g, ''))) {
-            return 'Numéro invalide (ex: +212 6 XX XX XX XX ou 06 XX XX XX XX)';
-          }
-          return true;
-        },
-      },
-      {
-        id: 'address',
-        label: 'Où veux-tu recevoir tes documents?',
-        hint: 'Ta carte verte et tes documents officiels seront envoyés à cette adresse',
-        type: 'text',
-        autocomplete: 'street-address',
-        placeholder: 'Ex: 12 Rue Atlas, Quartier Maârif, Casablanca',
-        required: true,
-        validate: (value) => {
-          if (!value) return 'L\'adresse de livraison est nécessaire';
-          if (value.trim().length < 10) {
-            return 'Adresse trop courte — précise la rue et la ville';
-          }
-          return true;
-        },
       },
     ];
 
@@ -221,7 +267,29 @@ class OnboardingForm {
     return fields;
   }
 
+  getStepLabels() {
+    const labels = {
+      vehicle_type: 'Type',
+      vehicle: 'Véhicule',
+      coverage: 'Couverture',
+      account: 'Compte',
+      contact: 'Coordonnées',
+    };
+    return this.fields.map((f) => labels[f.id] || f.id);
+  }
+
+  renderChoiceIcon(icon) {
+    const icons = {
+      voiture: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16h14M6 16l-1-4.5 1.2-3.2A2 2 0 0 1 8.1 7h7.8a2 2 0 0 1 1.9 1.3L19 11.5 18 16"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/><path d="M8 11h8"/></svg>',
+      moto: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/><path d="M9 17.5h5.5M6.5 15 9 11h4l2-2h3l1 3h-3"/><path d="M11 11 13.5 7H16"/></svg>',
+    };
+    return icons[icon] || '';
+  }
+
   render() {
+    // Recalcule les étapes : le champ de tarification s'adapte au type choisi
+    // (puissance CV pour voiture, cylindrée cm³ pour moto).
+    this.fields = this.getFields();
     const field = this.fields[this.currentStep];
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     if (!tunnelWrapper) return;
@@ -231,13 +299,16 @@ class OnboardingForm {
       this.api.track('step_view', field.id, { index: this.currentStep + 1 });
     }
 
-    const progressPercent = ((this.currentStep + 1) / this.fields.length) * 100;
+    const stepLabels = this.getStepLabels();
+    const stepperHTML = stepLabels.map((label, i) => {
+      const state = i < this.currentStep ? 'done' : i === this.currentStep ? 'active' : '';
+      return `<div class="stepper-item ${state}"><span class="stepper-dot">${i < this.currentStep ? '<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>' : i + 1}</span><span class="stepper-label">${label}</span></div>`;
+    }).join('');
+
     let formHTML = `
+      <div class="form-stepper">${stepperHTML}</div>
       <div class="form-progress">
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: ${progressPercent}%"></div>
-        </div>
-        <p class="progress-text">Étape ${this.currentStep + 1} sur ${this.fields.length}</p>
+        <div class="progress-bar"><div class="progress-fill" style="width: ${((this.currentStep + 1) / this.fields.length) * 100}%"></div></div>
       </div>
 
       <form class="form-step" id="form-step">
@@ -247,44 +318,56 @@ class OnboardingForm {
 
     if (field.type === 'choice') {
       const quote = this.store.getState('onboarding.quote') || {};
+      const selectedValue = this.store.getState(`onboarding.data.${field.id}`) || '';
+      const hasPrices = field.choices.some((c) => quote[c.value]);
+      if (field.id === 'coverage' && !hasPrices) {
+        formHTML += `<div class="tunnel-info-banner" role="status">Complète les infos de ton véhicule pour afficher ton tarif exact — sans engagement.</div>`;
+      }
+      if (field.id === 'coverage' && hasPrices) {
+        formHTML += `<div class="tunnel-info-banner" role="status">Prix définitif TTC. Les garanties ci-dessous sont celles de ton contrat — consulte les <a href="conditions.html" target="_blank" rel="noopener">conditions générales</a> avant de valider.</div>`;
+      }
       formHTML += `
-        <p style="font-size: 14px; color: var(--color-neutral-600); margin-top: -12px; margin-bottom: 20px;">${field.sublabel || ''}</p>
+        <p class="form-sublabel">${field.sublabel || ''}</p>
         <div class="form-choices">
-          ${field.choices.map((choice, idx) => {
+          ${field.choices.map((choice) => {
             const price = quote[choice.value];
             const priceHTML = price
               ? `<div class="choice-price">${Number(price).toLocaleString('fr-FR')} <span class="choice-price-unit">DH/an</span></div>`
               : '';
+            const selected = selectedValue === choice.value ? ' selected' : '';
+            const iconHTML = choice.icon
+              ? `<span class="choice-icon choice-icon--${choice.icon}">${this.renderChoiceIcon(choice.icon)}</span>`
+              : '';
+            const bodyClass = choice.icon ? ' choice-body--with-icon' : '';
             return `
-            <button type="button" class="choice-btn ${choice.icon ? 'choice-card' : ''}" data-value="${choice.value}" onclick="window.SURO_FORM.selectChoice('${choice.value}')">
-              ${choice.badge ? `<span class="choice-badge">${choice.badge}</span>` : ''}
-              <div style="display: flex; gap: 16px; flex: 1;">
-                ${choice.icon ? `<div style="font-size: 32px; line-height: 1;">${choice.icon}</div>` : ''}
-                <div style="flex: 1; text-align: left;">
-                  <div style="font-weight: 600; font-size: 16px; margin-bottom: 6px;">${choice.label}</div>
+            <button type="button" class="choice-btn choice-card${selected}" data-value="${choice.value}" onclick="window.SURO_FORM.selectChoice('${choice.value}')">
+              ${choice.tag ? `<span class="choice-tag">${choice.tag}</span>` : ''}
+              <div class="choice-body${bodyClass}">
+                ${iconHTML}
+                <div class="choice-content">
+                  <div class="choice-label">${choice.label}</div>
                   ${priceHTML}
-                  ${choice.description ? `<div style="font-size: 13px; color: var(--color-neutral-600); margin-bottom: 12px;">${choice.description}</div>` : ''}
-                  ${choice.details ? `<div style="font-size: 12px; color: var(--color-neutral-600);">
-                    ${choice.details.map(d => `<div style="margin-top: 4px;">✓ ${d}</div>`).join('')}
-                  </div>` : ''}
+                  ${choice.description ? `<div class="choice-desc">${choice.description}</div>` : ''}
+                  ${choice.details ? `<ul class="choice-details">${choice.details.map((d) => `<li>${d}</li>`).join('')}</ul>` : ''}
                 </div>
+                <span class="choice-radio"></span>
               </div>
-              <span class="choice-radio" style="margin-left: auto; flex-shrink: 0;"></span>
-            </button>
-          `;}).join('')}
+            </button>`;
+          }).join('')}
         </div>
+        <span class="form-error" id="error-${field.id}"></span>
       `;
     } else if (field.type === 'group') {
-      formHTML += `<div class="form-group-fields">`;
+      const gridClass = field.id === 'vehicle' ? ' form-group-fields--grid' : '';
+      formHTML += `<div class="form-group-fields${gridClass}">`;
       field.fields.forEach((sub) => {
-        // Les champs secrets (mot de passe) ne passent jamais par le store persisté
         const subValue = sub.secret
           ? (this.secrets && this.secrets[sub.id]) || ''
           : this.store.getState(`onboarding.data.${sub.id}`) || '';
-        formHTML += `
-          <div class="form-subfield">
-            <label class="form-sublabel" for="field-${sub.id}">${sub.label}</label>
-            <input
+        const fullClass = sub.fullWidth ? ' form-subfield--full' : '';
+        const inputHTML = sub.inputType === 'textarea'
+          ? `<textarea id="field-${sub.id}" class="form-textarea" placeholder="${sub.placeholder}" autocomplete="${sub.autocomplete || 'off'}">${subValue}</textarea>`
+          : `<input
               type="${sub.type}"
               id="field-${sub.id}"
               class="form-input"
@@ -292,7 +375,11 @@ class OnboardingForm {
               value="${subValue}"
               autocomplete="${sub.autocomplete || 'off'}"
               ${sub.type === 'number' ? 'inputmode="numeric"' : ''}
-            />
+            />`;
+        formHTML += `
+          <div class="form-subfield${fullClass}">
+            <label class="form-sublabel" for="field-${sub.id}">${sub.label}</label>
+            ${inputHTML}
             <span class="form-error" id="error-${sub.id}"></span>
           </div>
         `;
@@ -318,11 +405,11 @@ class OnboardingForm {
       <div class="form-actions">
         ${this.currentStep > 0 ? `
           <button type="button" class="btn btn-ghost" onclick="window.SURO_FORM.previousStep()">
-            ← Précédent
+            Retour
           </button>
         ` : ''}
-        <button type="button" class="btn btn-primary" onclick="window.SURO_FORM.nextStep()">
-          ${this.currentStep === this.fields.length - 1 ? 'Soumettre' : 'Suivant →'}
+        <button type="button" class="btn btn-primary btn-block" onclick="window.SURO_FORM.nextStep()">
+          ${this.currentStep === this.fields.length - 1 ? 'Finaliser' : 'Continuer'}
         </button>
       </div>
     </form>
@@ -338,253 +425,33 @@ class OnboardingForm {
         if (input) input.focus();
       }, 100);
     }
-
-    this.addStyles();
   }
 
-  addStyles() {
-    if (document.querySelector('style[data-form-styles]')) return;
+  openFocusMode() {
+    document.body.classList.add('tunnel-focus');
+    const card = document.getElementById('tunnel-card');
+    if (card) card.scrollTop = 0;
+  }
 
-    const style = document.createElement('style');
-    style.setAttribute('data-form-styles', 'true');
-    style.textContent = `
-      .form-progress {
-        margin-bottom: 32px;
-      }
+  closeFocusMode() {
+    document.body.classList.remove('tunnel-focus');
+  }
 
-      .progress-bar {
-        height: 4px;
-        background: var(--color-neutral-200);
-        border-radius: 2px;
-        overflow: hidden;
-        margin-bottom: 12px;
-      }
+  isMobileViewport() {
+    return window.matchMedia('(max-width: 768px)').matches;
+  }
 
-      .progress-fill {
-        height: 100%;
-        background: var(--color-primary);
-        transition: width 300ms ease;
-      }
+  setupMobileFocus() {
+    const card = document.getElementById('tunnel-card');
+    if (!card || card.dataset.mobileFocusBound) return;
+    card.dataset.mobileFocusBound = '1';
 
-      .progress-text {
-        font-size: 12px;
-        color: var(--color-neutral-600);
-        text-align: center;
-      }
-
-      .form-step {
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-      }
-
-      .form-title {
-        font-size: 24px;
-        font-weight: 600;
-        color: var(--color-neutral-900);
-        margin: 0 0 8px 0;
-      }
-
-      .form-hint-text {
-        font-size: 14px;
-        color: var(--color-neutral-600);
-        margin: 0 0 20px 0;
-        font-weight: 400;
-      }
-
-      .form-input {
-        padding: 12px 16px;
-        border: 1px solid var(--color-neutral-200);
-        border-radius: var(--radius-lg);
-        font-size: 16px;
-        font-family: var(--font-body);
-        transition: all 150ms ease;
-      }
-
-      .form-input:focus {
-        outline: none;
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px var(--color-primary-ghost);
-      }
-
-      .choice-price {
-        font-size: 22px;
-        font-weight: 800;
-        color: var(--color-primary);
-        margin-bottom: 6px;
-      }
-
-      .choice-price-unit {
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--color-neutral-600);
-      }
-
-      .form-group-fields {
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-      }
-
-      .form-subfield {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .form-subfield .form-input {
-        width: 100%;
-        box-sizing: border-box;
-      }
-
-      .form-sublabel {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--color-neutral-900);
-      }
-
-      .form-choices {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-
-      .choice-btn {
-        display: flex;
-        align-items: flex-start;
-        padding: 20px;
-        border: 2px solid var(--color-neutral-200);
-        border-radius: var(--radius-lg);
-        background: white;
-        cursor: pointer;
-        transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
-        text-align: left;
-        font-family: var(--font-body);
-        position: relative;
-        overflow: hidden;
-        min-height: 48px;
-      }
-
-      .choice-btn.choice-card {
-        min-height: auto;
-      }
-
-      .choice-btn::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, rgba(15, 118, 110, 0.03) 0%, rgba(249, 115, 22, 0.01) 100%);
-        opacity: 0;
-        transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
-        pointer-events: none;
-      }
-
-      .choice-btn:hover {
-        border-color: var(--color-primary);
-        box-shadow: 0 8px 16px rgba(15, 118, 110, 0.12);
-        transform: translateY(-2px);
-      }
-
-      .choice-btn:hover::before {
-        opacity: 1;
-      }
-
-      .choice-badge {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        background: linear-gradient(135deg, var(--color-accent), #FF9D2D);
-        color: white;
-        font-size: 11px;
-        font-weight: 600;
-        padding: 4px 8px;
-        border-radius: 4px;
-        letter-spacing: 0.05em;
-        z-index: 1;
-      }
-
-      .choice-radio {
-        width: 24px;
-        height: 24px;
-        min-width: 24px;
-        border: 2.5px solid var(--color-neutral-300);
-        border-radius: 50%;
-        flex-shrink: 0;
-        transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .choice-btn.selected {
-        border-color: var(--color-primary);
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(15, 118, 110, 0.02) 100%);
-        box-shadow: 0 8px 16px rgba(15, 118, 110, 0.15), inset 0 0 0 1px var(--color-primary);
-      }
-
-      .choice-btn.selected::before {
-        opacity: 1;
-      }
-
-      .choice-btn.selected .choice-radio {
-        border-color: var(--color-primary);
-        background: var(--color-primary);
-        box-shadow: inset 0 0 0 3px white;
-      }
-
-      .form-error {
-        font-size: 13px;
-        color: var(--color-error);
-        display: none;
-      }
-
-      .form-error.show {
-        display: block;
-      }
-
-      .form-actions {
-        display: flex;
-        gap: 12px;
-        margin-top: 24px;
-      }
-
-      .form-actions .btn {
-        flex: 1;
-        height: 44px;
-      }
-
-      @media (max-width: 640px) {
-        .form-actions {
-          flex-direction: column;
-        }
-
-        .form-title {
-          font-size: 20px;
-        }
-
-        .form-hint-text {
-          font-size: 13px;
-        }
-
-        .choice-btn {
-          padding: 24px 16px;
-          min-height: 60px;
-        }
-
-        .choice-btn.choice-card {
-          min-height: auto;
-        }
-
-        .form-input {
-          padding: 14px 16px;
-          height: 48px;
-          font-size: 16px;
-        }
-
-        .form-actions .btn {
-          height: 48px;
-          font-size: 16px;
-        }
-      }
-    `;
-    document.head.appendChild(style);
+    card.addEventListener('pointerdown', (e) => {
+      if (!this.isMobileViewport()) return;
+      if (document.body.classList.contains('tunnel-focus')) return;
+      if (e.target.closest('.tunnel-close')) return;
+      this.openFocusMode();
+    }, { passive: true });
   }
 
   async validateField(fieldId, value) {
@@ -600,6 +467,34 @@ class OnboardingForm {
   }
 
 
+  setFieldError(fieldId, message) {
+    const input = document.querySelector(`#field-${fieldId}`);
+    const errorEl = document.querySelector(`#error-${fieldId}`);
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.classList.add('show');
+      errorEl.setAttribute('role', 'alert');
+    }
+    if (input) {
+      input.setAttribute('aria-invalid', 'true');
+      input.setAttribute('aria-describedby', `error-${fieldId}`);
+    }
+  }
+
+  clearFieldError(fieldId) {
+    const input = document.querySelector(`#field-${fieldId}`);
+    const errorEl = document.querySelector(`#error-${fieldId}`);
+    if (errorEl) {
+      errorEl.textContent = '';
+      errorEl.classList.remove('show');
+      errorEl.removeAttribute('role');
+    }
+    if (input) {
+      input.removeAttribute('aria-invalid');
+      input.removeAttribute('aria-describedby');
+    }
+  }
+
   async nextStep() {
     const field = this.fields[this.currentStep];
 
@@ -608,23 +503,16 @@ class OnboardingForm {
       let allValid = true;
       field.fields.forEach((sub) => {
         const input = document.querySelector(`#field-${sub.id}`);
-        const subErrorEl = document.querySelector(`#error-${sub.id}`);
         const val = input ? input.value.trim() : '';
-
-        if (subErrorEl) {
-          subErrorEl.textContent = '';
-          subErrorEl.classList.remove('show');
-        }
+        this.clearFieldError(sub.id);
 
         const validation = sub.validate ? sub.validate(val) : true;
         if (validation !== true) {
-          if (subErrorEl) {
-            subErrorEl.textContent = validation;
-            subErrorEl.classList.add('show');
-          }
+          this.setFieldError(sub.id, validation);
           allValid = false;
           return;
         }
+        this.clearFieldError(sub.id);
 
         if (sub.secret) {
           // Jamais dans le store (persisté en localStorage)
@@ -640,17 +528,25 @@ class OnboardingForm {
 
       // Après l'étape véhicule : calcul du devis (prix affichés à l'étape couverture)
       if (field.id === 'vehicle') {
+        const tunnelWrapper = document.querySelector('.tunnel-wrapper');
+        if (tunnelWrapper) {
+          tunnelWrapper.innerHTML = `
+            <div class="tunnel-state">
+              <div class="tunnel-spinner"></div>
+              <p>Calcul de ton devis…</p>
+            </div>`;
+        }
         try {
           const quote = await this.api.getQuote({
             annee: this.store.getState('onboarding.data.annee'),
             puissance: this.store.getState('onboarding.data.puissance'),
             marque: this.store.getState('onboarding.data.marque'),
             modele: this.store.getState('onboarding.data.modele'),
+            vehicle_type: this.store.getState('onboarding.data.vehicle_type') || 'voiture',
           });
           this.store.setState('onboarding.quote', quote);
           this.api.track('quote_shown', 'coverage', quote);
         } catch (e) {
-          // Devis indisponible : on continue, le prix sera confirmé plus tard
           this.store.setState('onboarding.quote', {});
         }
       }
@@ -671,12 +567,10 @@ class OnboardingForm {
     if (field.type === 'choice') {
       value = this.store.getState(`onboarding.data.${field.id}`);
       if (!value) {
-        if (errorEl) {
-          errorEl.textContent = 'Sélectionnez une option';
-          errorEl.classList.add('show');
-        }
+        this.setFieldError(field.id, 'Sélectionne une option');
         return;
       }
+      this.clearFieldError(field.id);
     } else {
       const input = document.querySelector(`#field-${field.id}`);
       value = input.value.trim();
@@ -684,12 +578,10 @@ class OnboardingForm {
       // Validate
       const validation = await this.validateField(field.id, value);
       if (validation !== true) {
-        if (errorEl) {
-          errorEl.textContent = validation;
-          errorEl.classList.add('show');
-        }
+        this.setFieldError(field.id, validation);
         return;
       }
+      this.clearFieldError(field.id);
     }
 
     // Store value
@@ -722,11 +614,7 @@ class OnboardingForm {
     this.render();
 
     setTimeout(() => {
-      const errorEl = document.querySelector(`#error-${subFieldId || fieldId}`);
-      if (errorEl) {
-        errorEl.textContent = message;
-        errorEl.classList.add('show');
-      }
+      this.setFieldError(subFieldId || fieldId, message);
       const input = document.querySelector(`#field-${subFieldId || fieldId}`);
       if (input) input.focus();
     }, 150);
@@ -737,11 +625,21 @@ class OnboardingForm {
     this.store.setState(`onboarding.data.${field.id}`, value);
     this.api.track('choice_selected', field.id, { value });
 
-    // Update UI
-    document.querySelectorAll('.choice-btn').forEach(btn => {
+    document.querySelectorAll('.choice-btn').forEach((btn) => {
       btn.classList.remove('selected');
     });
-    document.querySelector(`[data-value="${value}"]`).classList.add('selected');
+    const selectedBtn = document.querySelector(`[data-value="${value}"]`);
+    if (selectedBtn) selectedBtn.classList.add('selected');
+
+    const errorEl = document.querySelector(`#error-${field.id}`);
+    if (errorEl) {
+      errorEl.textContent = '';
+      errorEl.classList.remove('show');
+    }
+
+    if (field.id === 'coverage') {
+      setTimeout(() => this.nextStep(), 300);
+    }
   }
 
   async submit() {
@@ -750,12 +648,11 @@ class OnboardingForm {
 
     try {
       tunnelWrapper.innerHTML = `
-        <div style="text-align: center; padding: 48px 32px;">
-          <div class="loading-spinner"></div>
-          <p style="font-size: 16px; color: var(--color-neutral-600); margin-top: 24px;">Traitement de votre demande...</p>
+        <div class="tunnel-state">
+          <div class="tunnel-spinner"></div>
+          <p>Traitement de ta demande…</p>
         </div>
       `;
-      this.addLoadingStyles();
 
       const data = this.store.getState('onboarding.data');
 
@@ -809,6 +706,7 @@ class OnboardingForm {
       // 2. Créer le contrat (rattaché au compte par l'email)
       const application = await this.api.createApplication({
         product_slug: 'automobile',
+        vehicle_type: data.vehicle_type || 'voiture',
         immatriculation: data.immatriculation,
         marque: data.marque,
         modele: data.modele,
@@ -823,8 +721,8 @@ class OnboardingForm {
       this.store.setState('onboarding.applicationId', application.application.id);
       this.api.track('application_created', null, { coverage: data.coverage });
 
-      // 3. Paiement
-      this.showPaymentOptions(application.application.id);
+      // 3. Choix : payer maintenant, ou enregistrer le devis pour payer plus tard
+      this.showPaymentChoice(application.application.id);
     } catch (error) {
       const msg = String(error.message || '');
       this.api.track('tunnel_error', 'submit', { message: msg.slice(0, 200) });
@@ -842,11 +740,13 @@ class OnboardingForm {
       // Autre erreur : on GARDE les données saisies et on propose de réessayer
       // sans repartir de zéro.
       tunnelWrapper.innerHTML = `
-        <div style="text-align: center; padding: 32px;">
-          <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
-          <p style="font-size: 16px; color: var(--color-error);">Erreur: ${error.message}</p>
-          <p style="font-size: 13px; color: var(--color-neutral-600); margin-top: 8px;">Tes informations sont conservées.</p>
-          <div style="display:flex; gap:12px; justify-content:center; margin-top:16px; flex-wrap:wrap;">
+        <div class="tunnel-state">
+          <div class="tunnel-error-icon">
+            <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </div>
+          <p class="tunnel-error-msg">Erreur : ${error.message}</p>
+          <p class="tunnel-error-hint">Tes informations sont conservées.</p>
+          <div class="tunnel-error-actions">
             <button class="btn btn-primary" onclick="window.SURO_FORM.retryLastStep()">Réessayer</button>
             <button class="btn btn-ghost" onclick="window.SURO_FORM.reset()">Tout recommencer</button>
           </div>
@@ -861,6 +761,106 @@ class OnboardingForm {
     this.render();
   }
 
+  // Écran final : payer maintenant ou enregistrer le devis pour payer plus tard.
+  showPaymentChoice(applicationId) {
+    const tunnelWrapper = document.querySelector('.tunnel-wrapper');
+    if (!tunnelWrapper) return;
+    this.api.track('payment_choice_view');
+
+    const quote = this.store.getState('onboarding.quote') || {};
+    const coverage = this.store.getState('onboarding.data.coverage');
+    const premium = quote[coverage];
+    const amountHTML = premium
+      ? `<div class="payment-amount">
+           <div class="payment-amount-label">Prime annuelle — ${coverage === 'complete' ? 'Couverture complète' : 'Couverture minimale'}</div>
+           <div class="payment-amount-value">${Number(premium).toLocaleString('fr-FR')} DH<span>/an</span></div>
+         </div>`
+      : '';
+
+    tunnelWrapper.innerHTML = `
+      <div class="payment-section">
+        <h3>Ton contrat est prêt</h3>
+        ${amountHTML}
+        <p class="payment-legal">Paie maintenant pour l'activer, ou garde ton devis et paie plus tard depuis ton espace client.</p>
+
+        <div class="payment-methods">
+          <button type="button" class="payment-method-btn" onclick="window.SURO_FORM.payNow('${applicationId}')">
+            <span class="payment-method-icon">
+              <svg viewBox="0 0 24 24"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
+            </span>
+            <div>
+              <div class="payment-method-label">Payer maintenant
+                <span style="display:inline-block;background:var(--color-primary,#0F766E);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle;letter-spacing:.02em;">Recommandé</span>
+              </div>
+              <div class="payment-method-desc">Active ton contrat et reçois ton attestation</div>
+            </div>
+            <span class="payment-method-arrow">→</span>
+          </button>
+
+          <button type="button" class="payment-method-btn" onclick="window.SURO_FORM.payLater('${applicationId}')">
+            <span class="payment-method-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            </span>
+            <div>
+              <div class="payment-method-label">Payer plus tard</div>
+              <div class="payment-method-desc">On garde ton devis dans ton espace — paie quand tu veux</div>
+            </div>
+            <span class="payment-method-arrow">→</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  payNow(applicationId) {
+    this.api.track('pay_now_selected');
+    this.showPaymentOptions(applicationId);
+  }
+
+  payLater(applicationId) {
+    this.api.track('pay_later_selected');
+    this.showSavedConfirmation();
+  }
+
+  // Confirmation « devis enregistré » : le compte/espace existe, le contrat
+  // reste en attente de paiement (aucune couverture tant que non payé).
+  showSavedConfirmation() {
+    const tunnelWrapper = document.querySelector('.tunnel-wrapper');
+    if (!tunnelWrapper) return;
+    this.api.track('quote_saved_view');
+
+    const email = (this.loggedIn && this.session ? this.session.email : this.store.getState('onboarding.data.email')) || '';
+    const quote = this.store.getState('onboarding.quote') || {};
+    const coverage = this.store.getState('onboarding.data.coverage');
+    const premium = quote[coverage];
+
+    tunnelWrapper.innerHTML = `
+      <div class="success-container">
+        <div class="success-section">
+          <div class="success-icon-wrap">
+            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+          </div>
+          <h2 class="success-heading">Devis enregistré</h2>
+          <p class="success-description">Ton espace client est prêt${premium ? ` — ${Number(premium).toLocaleString('fr-FR')} DH/an` : ''}. Ton devis t'y attend.</p>
+
+          <div class="success-info success-info--warn">
+            Ton contrat n'est <strong>pas encore actif</strong> : aucune couverture ni attestation tant que le paiement n'est pas effectué.
+          </div>
+
+          <div class="success-info">
+            Connecte-toi avec <strong>${email}</strong> et clique sur <strong>Payer</strong> quand tu veux pour activer ton contrat.
+          </div>
+
+          <div class="success-actions">
+            <button class="btn btn-primary btn-block" onclick="window.SURO_FORM.handleGoToSpace()">
+              Aller à mon espace client
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   showPaymentOptions(applicationId) {
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     if (!tunnelWrapper) return;
@@ -870,67 +870,68 @@ class OnboardingForm {
     const coverage = this.store.getState('onboarding.data.coverage');
     const premium = quote[coverage];
     const amountHTML = premium
-      ? `<div style="text-align: center; margin-bottom: 24px; padding: 16px; background: var(--color-neutral-50, #F9FAFB); border-radius: 12px;">
-           <div style="font-size: 13px; color: var(--color-neutral-600);">Prime annuelle — ${coverage === 'complete' ? 'Couverture complète' : 'Couverture minimale'}</div>
-           <div style="font-size: 28px; font-weight: 800; color: var(--color-primary);">${Number(premium).toLocaleString('fr-FR')} DH<span style="font-size: 14px; font-weight: 500;">/an</span></div>
+      ? `<div class="payment-amount">
+           <div class="payment-amount-label">Prime annuelle — ${coverage === 'complete' ? 'Couverture complète' : 'Couverture minimale'}</div>
+           <div class="payment-amount-value">${Number(premium).toLocaleString('fr-FR')} DH<span>/an</span></div>
          </div>`
       : '';
 
     tunnelWrapper.innerHTML = `
       <div class="payment-section">
-        <h3 style="margin-bottom: 24px; text-align: center; font-size: 20px; font-weight: 600;">Choisir une méthode de paiement</h3>
+        <h3>Choisir une méthode de paiement</h3>
         ${amountHTML}
-        <p style="text-align: center; color: var(--color-neutral-600); margin-bottom: 24px;">
-          Choisis ta méthode de paiement
-        </p>
-        <p style="text-align: center; font-size: 12px; color: var(--color-neutral-600); margin-bottom: 20px;">
-          En payant, tu acceptes les <a href="conditions.html" target="_blank" style="color: var(--color-primary);">Conditions générales</a>.
+        <p class="payment-transparency">Le montant affiché est définitif, toutes taxes comprises. Aucun frais caché, aucune condition surprise.</p>
+        <p class="payment-legal">
+          En payant, tu acceptes les <a href="conditions.html" target="_blank" rel="noopener">conditions générales</a> — consultables à tout moment avant validation.
         </p>
 
-        <div class="payment-methods" style="display: grid; gap: 12px; margin-bottom: 24px;">
-          <button class="payment-method-btn" onclick="window.SURO_FORM.selectPaymentMethod('card', '${applicationId}')">
-            <span style="font-size: 24px;">💳</span>
-            <div style="flex: 1;">
-              <div style="font-weight: 600;">Carte Bancaire</div>
-              <div style="font-size: 12px; opacity: 0.7;">Visa, Mastercard, Amex</div>
+        <div class="payment-methods">
+          <button type="button" class="payment-method-btn" onclick="window.SURO_FORM.selectPaymentMethod('card', '${applicationId}')">
+            <span class="payment-method-icon">
+              <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+            </span>
+            <div>
+              <div class="payment-method-label">Carte bancaire</div>
+              <div class="payment-method-desc">Visa, Mastercard, Amex</div>
             </div>
-            <span style="font-size: 20px;">→</span>
+            <span class="payment-method-arrow">→</span>
           </button>
 
-          <button class="payment-method-btn" onclick="window.SURO_FORM.selectPaymentMethod('mtn', '${applicationId}')">
-            <span style="font-size: 24px;">📱</span>
-            <div style="flex: 1;">
-              <div style="font-weight: 600;">MTN Mobile Money</div>
-              <div style="font-size: 12px; opacity: 0.7;">Paiement par SMS</div>
+          <button type="button" class="payment-method-btn" onclick="window.SURO_FORM.selectPaymentMethod('mtn', '${applicationId}')">
+            <span class="payment-method-icon">
+              <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+            </span>
+            <div>
+              <div class="payment-method-label">MTN Mobile Money</div>
+              <div class="payment-method-desc">Paiement par SMS</div>
             </div>
-            <span style="font-size: 20px;">→</span>
+            <span class="payment-method-arrow">→</span>
           </button>
 
-          <button class="payment-method-btn" onclick="window.SURO_FORM.selectPaymentMethod('bank', '${applicationId}')">
-            <span style="font-size: 24px;">🏦</span>
-            <div style="flex: 1;">
-              <div style="font-weight: 600;">Virement Bancaire</div>
-              <div style="font-size: 12px; opacity: 0.7;">Transfert direct</div>
+          <button type="button" class="payment-method-btn" onclick="window.SURO_FORM.selectPaymentMethod('bank', '${applicationId}')">
+            <span class="payment-method-icon">
+              <svg viewBox="0 0 24 24"><path d="M3 21h18M4 18h16M6 18V9M10 18V9M14 18V9M18 18V9M2 10l10-5 10 5"/></svg>
+            </span>
+            <div>
+              <div class="payment-method-label">Virement bancaire</div>
+              <div class="payment-method-desc">Transfert direct</div>
             </div>
-            <span style="font-size: 20px;">→</span>
+            <span class="payment-method-arrow">→</span>
           </button>
         </div>
       </div>
     `;
-
-    this.addPaymentStyles();
   }
 
   async selectPaymentMethod(method, applicationId) {
     this.api.track('payment_method_selected', null, { method });
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     tunnelWrapper.innerHTML = `
-      <div style="text-align: center; padding: 48px 32px;">
-        <div class="loading-spinner"></div>
-        <p style="font-size: 16px; color: var(--color-neutral-600); margin-top: 24px;">Traitement du paiement...</p>
+      <div class="tunnel-state">
+        <div class="tunnel-spinner"></div>
+        <p>Traitement du paiement...</p>
       </div>
     `;
-    this.addLoadingStyles();
 
     try {
       const quote = this.store.getState('onboarding.quote') || {};
@@ -948,13 +949,17 @@ class OnboardingForm {
       // Le compte et le contrat existent déjà : on réessaie le PAIEMENT
       // (surtout pas un reset() qui créerait un doublon de contrat).
       tunnelWrapper.innerHTML = `
-        <div style="text-align: center; padding: 32px;">
-          <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
-          <p style="font-size: 16px; color: var(--color-error);">Erreur de paiement</p>
-          <p style="font-size: 13px; color: var(--color-neutral-600); margin-top: 8px;">Ton contrat est déjà enregistré, il ne reste que le paiement.</p>
-          <button class="btn btn-primary" onclick="window.SURO_FORM.showPaymentOptions('${applicationId}')" style="margin-top: 16px;">
-            Réessayer le paiement
-          </button>
+        <div class="tunnel-state">
+          <div class="tunnel-error-icon">
+            <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </div>
+          <p class="tunnel-error-msg">Erreur de paiement</p>
+          <p class="tunnel-error-hint">Ton contrat est déjà enregistré, il ne reste que le paiement.</p>
+          <div class="tunnel-error-actions">
+            <button class="btn btn-primary" onclick="window.SURO_FORM.showPaymentOptions('${applicationId}')">
+              Réessayer le paiement
+            </button>
+          </div>
         </div>
       `;
     }
@@ -976,9 +981,10 @@ class OnboardingForm {
 
     tunnelWrapper.innerHTML = `
       <div class="success-container">
-        <div class="confetti" id="confetti"></div>
         <div class="success-section">
-          <div class="success-icon">✓</div>
+          <div class="success-icon-wrap">
+            <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
           <h2 class="success-heading">C'est bon, t'es couvert</h2>
           <p class="success-description">Ta souscription est confirmée${premium ? ` — ${Number(premium).toLocaleString('fr-FR')} DH/an` : ''}.</p>
 
@@ -988,30 +994,28 @@ class OnboardingForm {
             <div class="contract-card-holder">${holder}</div>
           </div>
 
-          <div style="margin-top: 24px; padding: 16px; background: rgba(15, 118, 110, 0.06); border-radius: 12px; font-size: 14px; color: var(--color-neutral-600); text-align: left;">
-            <div style="margin-bottom: 8px;">📄 <strong>Tes documents officiels</strong> (carte verte, attestation) seront préparés par nos équipes et mis à disposition dans ton espace client.</div>
-            <div>📮 Ils seront aussi envoyés à : <strong>${address}</strong></div>
+          <div class="success-info">
+            <strong>Tes documents officiels</strong> (carte verte, attestation) seront préparés par nos équipes et mis à disposition dans ton espace client.
+            ${address ? `<br><br>Envoi postal à : <strong>${address}</strong>` : ''}
           </div>
 
           ${this.accountStatus === 'confirmation_required' ? `
-          <div style="margin-top: 12px; padding: 16px; background: rgba(249, 115, 22, 0.08); border-radius: 12px; font-size: 14px; color: var(--color-neutral-600); text-align: left;">
-            📬 Ton compte est créé — <strong>confirme ton email</strong> (lien envoyé à ${email}) pour accéder à ton espace client.
+          <div class="success-info success-info--warn">
+            Ton compte est créé — <strong>confirme ton email</strong> (lien envoyé à ${email}) pour accéder à ton espace client.
           </div>` : ''}
 
           <div class="success-actions">
-            <button class="btn btn-primary" onclick="window.SURO_FORM.handleGoToSpace()">
-              Accéder à mon espace client →
+            <button class="btn btn-primary btn-block" onclick="window.SURO_FORM.handleGoToSpace()">
+              Accéder à mon espace client
             </button>
           </div>
 
-          <p style="margin-top: 32px; font-size: 12px; color: var(--color-neutral-600); text-align: center;">
-            Questions? On est là → <strong>support@suro.ma</strong>
+          <p class="success-foot">
+            Questions ? <strong>support@suro.ma</strong>
           </p>
         </div>
       </div>
     `;
-    this.addSuccessStyles();
-    this.triggerConfetti();
   }
 
   handleGoToSpace() {
@@ -1027,237 +1031,15 @@ class OnboardingForm {
     window.location.href = 'customer-login.html';
   }
 
-  addSuccessStyles() {
-    if (document.querySelector('style[data-success-styles]')) return;
-
-    const style = document.createElement('style');
-    style.setAttribute('data-success-styles', 'true');
-    style.textContent = `
-      .success-container {
-        position: relative;
-        overflow: hidden;
-      }
-
-      .success-section {
-        animation: slideInUp 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-
-      @keyframes slideInUp {
-        from {
-          opacity: 0;
-          transform: translateY(40px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .success-icon {
-        animation: scaleAndBounce 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-
-      @keyframes scaleAndBounce {
-        0% {
-          transform: scale(0) rotate(-180deg);
-          opacity: 0;
-        }
-        60% {
-          transform: scale(1.1) rotate(20deg);
-          opacity: 1;
-        }
-        80% {
-          transform: scale(0.95) rotate(-5deg);
-        }
-        100% {
-          transform: scale(1) rotate(0deg);
-          opacity: 1;
-        }
-      }
-
-      .contract-card {
-        animation: scaleIn 500ms 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
-      }
-
-      @keyframes scaleIn {
-        from {
-          opacity: 0;
-          transform: scale(0.8);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
-      }
-
-      .success-actions {
-        animation: fadeInUp 500ms 400ms ease both;
-      }
-
-      @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .confetti {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        pointer-events: none;
-      }
-
-      .confetti-piece {
-        position: absolute;
-        width: 8px;
-        height: 8px;
-        background: var(--color-accent);
-        opacity: 1;
-      }
-
-      .confetti-piece.blue {
-        background: var(--color-primary);
-      }
-
-      .confetti-piece.gold {
-        background: #FDB022;
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  triggerConfetti() {
-    const confettiContainer = document.getElementById('confetti');
-    if (!confettiContainer) return;
-
-    const colors = ['blue', 'gold', 'var(--color-accent)'];
-    const pieceCount = 50;
-
-    for (let i = 0; i < pieceCount; i++) {
-      const piece = document.createElement('div');
-      piece.className = 'confetti-piece ' + colors[Math.floor(Math.random() * 3)];
-
-      const startX = Math.random() * 100;
-      const delay = Math.random() * 200;
-      const duration = 2000 + Math.random() * 1000;
-      const angle = (Math.random() - 0.5) * 60 + 90;
-      const velocity = 3 + Math.random() * 4;
-
-      piece.style.left = startX + '%';
-      piece.style.top = '-10px';
-      piece.style.animation = `confettiFall ${duration}ms linear ${delay}ms infinite`;
-      piece.style.setProperty('--angle', angle + 'deg');
-      piece.style.setProperty('--velocity', velocity);
-
-      confettiContainer.appendChild(piece);
-    }
-
-    // Add keyframes for confetti fall
-    if (!document.querySelector('style[data-confetti-fall]')) {
-      const style = document.createElement('style');
-      style.setAttribute('data-confetti-fall', 'true');
-      style.textContent = `
-        @keyframes confettiFall {
-          0% {
-            transform: translateY(0) rotateZ(0deg);
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(600px) rotateZ(720deg);
-            opacity: 0;
-          }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  }
-
-  addLoadingStyles() {
-    if (document.querySelector('style[data-loading-styles]')) return;
-
-    const style = document.createElement('style');
-    style.setAttribute('data-loading-styles', 'true');
-    style.textContent = `
-      .loading-spinner {
-        width: 60px;
-        height: 60px;
-        margin: 0 auto;
-        position: relative;
-      }
-
-      .loading-spinner::before {
-        content: '';
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        border: 4px solid var(--color-neutral-200);
-        border-top-color: var(--color-primary);
-        border-radius: 50%;
-        animation: spin 1.2s linear infinite;
-      }
-
-      .loading-spinner::after {
-        content: '';
-        position: absolute;
-        width: 80%;
-        height: 80%;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        border: 3px solid var(--color-neutral-100);
-        border-right-color: var(--color-accent);
-        border-radius: 50%;
-        animation: spin-reverse 1.8s linear infinite;
-      }
-
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-
-      @keyframes spin-reverse {
-        to { transform: rotate(-360deg); }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  addPaymentStyles() {
-    if (document.querySelector('style[data-payment-styles]')) return;
-
-    const style = document.createElement('style');
-    style.setAttribute('data-payment-styles', 'true');
-    style.textContent = `
-      .payment-method-btn {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 16px;
-        border: 1px solid var(--color-neutral-200);
-        border-radius: var(--radius-lg);
-        background: white;
-        cursor: pointer;
-        transition: all 150ms ease;
-        text-align: left;
-      }
-
-      .payment-method-btn:hover {
-        border-color: var(--color-primary);
-        box-shadow: var(--shadow-md);
-        transform: translateY(-2px);
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
   attachListeners() {
-    // Keyboard support
+    this.setupMobileFocus();
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.body.classList.contains('tunnel-focus')) {
+        this.closeFocusMode();
+      }
+    });
+
     document.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         const field = this.fields[this.currentStep];

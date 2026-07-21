@@ -4,7 +4,7 @@ import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
 import { DataTable } from '../components/DataTable.js';
 import { Badge, Spinner, Empty } from '../components/ui.js';
-import { fmtDate, fmtDateTime, fmtMoney, coverageLabel, vehicleLabel, subStatus, paymentStatus } from '../lib/format.js';
+import { fmtDate, fmtDateTime, fmtMoney, coverageLabel, vehicleLabel, vehicleTypeLabel, subStatus, paymentStatus } from '../lib/format.js';
 
 function Page({ title, subtitle, children }) {
   return html`<div><div class="page-head"><h1>${title}</h1><p>${subtitle}</p></div>${children}</div>`;
@@ -14,7 +14,7 @@ function Loading() { return html`<div style="padding:40px"><${Spinner}/></div>`;
 /* Clients : voir routes/clients.js (fiche client 360). */
 
 /* ---------------- CONTRATS (souscriptions actives/expirées) ---------------- */
-export function Contracts() {
+export function Contracts({ caps }) {
   const { data, loading, error } = useAsync(() => api.applications().catch(() => []), []);
   if (loading) return html`<${Loading}/>`;
   if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;
@@ -22,6 +22,7 @@ export function Contracts() {
   const columns = [
     { key: 'policy_number', label: 'N° / Réf.', render: (a) => a.policy_number || html`<span class="muted">${a.id.slice(0, 8)}…</span>` },
     { key: 'customer_email', label: 'Client', sortable: true },
+    { key: 'vehicle_type', label: 'Type', sortable: true, render: (a) => html`<${Badge} tone=${a.vehicle_type === 'moto' ? 'amber' : 'blue'}>${vehicleTypeLabel(a.vehicle_type)}<//>` },
     { key: 'vehicle', label: 'Véhicule', render: (a) => vehicleLabel(a) },
     { key: 'coverage_type', label: 'Couverture', render: (a) => coverageLabel(a.coverage_type) },
     { key: 'annual_premium', label: 'Prime', sortable: true, render: (a) => fmtMoney(a.annual_premium) },
@@ -34,7 +35,7 @@ export function Contracts() {
 }
 
 /* ---------------- PAIEMENTS ---------------- */
-export function Payments() {
+export function Payments({ caps }) {
   const { data, loading, error } = useAsync(() => api.payments().catch(() => []), []);
   const [filter, setFilter] = useState('');
   if (loading) return html`<${Loading}/>`;
@@ -59,7 +60,7 @@ export function Payments() {
 /* Sinistres : voir routes/claims.js (fiche de traitement complète). */
 
 /* ---------------- JOURNAL D'ACTIVITÉ ---------------- */
-export function Audit() {
+export function Audit({ caps }) {
   const { data, loading, error } = useAsync(() => api.auditRecent(200).catch(() => []), []);
   if (loading) return html`<${Loading}/>`;
   if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;

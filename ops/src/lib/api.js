@@ -56,6 +56,7 @@ export const api = {
   // --- staff (super_admin) ---
   listStaff: () => rpc('suro_list_staff'),
   setStaff: (email, role) => rpc('suro_set_staff', { p_email: email, p_role: role }),
+  createStaff: (payload) => SB().adminCreateStaff(payload),
   removeStaff: (email) => rpc('suro_remove_staff', { p_email: email }),
 
   // --- sinistres ---

@@ -688,6 +688,16 @@ class API {
     });
   }
 
+  // Crée (ou rattache) un collaborateur via l'Edge Function (service_role).
+  // Réservé au Super Admin (contrôlé côté fonction). Renvoie { ok, user_id, created, attached }.
+  static async adminCreateStaff({ email, password, role, name }) {
+    return this.sb('/functions/v1/suro-create-staff', {
+      method: 'POST',
+      asUser: true,
+      body: JSON.stringify({ email, password, role, name }),
+    });
+  }
+
   // ===== NOTIFICATIONS (client ou admin selon l'audience) =====
   static getNotifications(audience, limit) {
     const aud = audience || 'customer';

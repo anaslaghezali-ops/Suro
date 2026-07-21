@@ -74,6 +74,8 @@ class CustomerDashboard {
     this.session = this.api.getSession();
     this.currentPage = 'dashboard';
     this.policies = null; // cache
+    this._profileSnapshot = null;
+    this._profileFormBound = false;
     this.init();
   }
 
@@ -154,8 +156,14 @@ class CustomerDashboard {
 
     const phone = document.getElementById('sos-phone');
     const wa = document.getElementById('sos-whatsapp');
+    const profileSupport = document.getElementById('profile-support-link');
     if (phone) phone.href = 'tel:' + phoneNumber;
     if (wa) wa.href = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent('Bonjour SURO, j\'ai une urgence sinistre.');
+    if (profileSupport) {
+      profileSupport.href = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent('Bonjour SURO, j\'ai une question sur mon compte.');
+      profileSupport.target = '_blank';
+      profileSupport.rel = 'noopener';
+    }
   }
 
   // Redirige vers la connexion si le token a expiré
@@ -400,42 +408,223 @@ class CustomerDashboard {
     }
   }
 
+  formatProfileDate(dateStr) {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+
+  getProfileInitials(name, email) {
+    const source = (name || email || 'C').trim();
+    if (!source) return 'C';
+    if (source.includes('@')) return source[0].toUpperCase();
+    const parts = source.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return source[0].toUpperCase();
+  }
+
+  setProfileLoading(loading) {
+    const hero = document.getElementById('profile-hero');
+    const skeleton = document.getElementById('profile-hero-skeleton');
+    const content = document.getElementById('profile-hero-content');
+    const form = document.getElementById('profile-form');
+    if (hero) hero.setAttribute('aria-busy', loading ? 'true' : 'false');
+    if (skeleton) skeleton.hidden = !loading;
+    if (content) content.hidden = loading;
+    if (form) {
+      form.querySelectorAll('input, button').forEach((el) => {
+        el.disabled = loading;
+      });
+    }
+  }
+
+  renderProfileHero(user) {
+    const meta = user.user_metadata || {};
+    const displayName = meta.name || user.email || 'Client';
+    const email = user.email || '—';
+    const createdLabel = user.created_at
+      ? `Membre depuis ${this.formatProfileDate(user.created_at)}`
+      : 'Membre SURO';
+
+    const nameEl = document.getElementById('profile-display-name');
+    const emailEl = document.getElementById('profile-display-email');
+    const badgeEl = document.getElementById('profile-member-badge');
+    const avatarEl = document.getElementById('profile-avatar-lg');
+    const detailEmail = document.getElementById('profile-detail-email');
+    const detailCreated = document.getElementById('profile-detail-created');
+
+    if (nameEl) nameEl.textContent = displayName;
+    if (emailEl) emailEl.textContent = email;
+    if (badgeEl) badgeEl.textContent = createdLabel;
+    if (avatarEl) avatarEl.textContent = this.getProfileInitials(meta.name, user.email);
+    if (detailEmail) detailEmail.textContent = email;
+    if (detailCreated) {
+      detailCreated.textContent = user.created_at
+        ? this.formatProfileDate(user.created_at)
+        : '—';
+    }
+  }
+
+  setProfileFieldError(fieldId, message) {
+    const input = document.getElementById(fieldId);
+    const errorEl = document.getElementById(`${fieldId}-error`);
+    if (!input) return false;
+    if (message) {
+      input.classList.add('is-invalid');
+      input.setAttribute('aria-invalid', 'true');
+      if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.hidden = false;
+      }
+      return false;
+    }
+    input.classList.remove('is-invalid');
+    input.removeAttribute('aria-invalid');
+    if (errorEl) {
+      errorEl.textContent = '';
+      errorEl.hidden = true;
+    }
+    return true;
+  }
+
+  validateProfileField(fieldId) {
+    const input = document.getElementById(fieldId);
+    if (!input) return true;
+    const value = input.value.trim();
+    if (fieldId === 'profile-name') {
+      if (!value) return this.setProfileFieldError(fieldId, 'Le nom est requis');
+      if (value.length < 2) return this.setProfileFieldError(fieldId, 'Nom trop court');
+      return this.setProfileFieldError(fieldId, '');
+    }
+    if (fieldId === 'profile-phone') {
+      if (!value) return this.setProfileFieldError(fieldId, '');
+      if (!/^[+]?[\d\s\-()]{10,}$/.test(value.replace(/\s/g, ''))) {
+        return this.setProfileFieldError(fieldId, 'Numéro invalide (ex: +212 6 XX XX XX XX)');
+      }
+      return this.setProfileFieldError(fieldId, '');
+    }
+    return true;
+  }
+
+  validateProfileForm() {
+    const nameOk = this.validateProfileField('profile-name');
+    const phoneOk = this.validateProfileField('profile-phone');
+    return nameOk && phoneOk;
+  }
+
+  isProfileDirty() {
+    if (!this._profileSnapshot) return false;
+    const name = document.getElementById('profile-name')?.value.trim() || '';
+    const phone = document.getElementById('profile-phone')?.value.trim() || '';
+    return name !== this._profileSnapshot.name || phone !== this._profileSnapshot.phone;
+  }
+
+  updateProfileDirtyState() {
+    const footer = document.getElementById('profile-form-footer');
+    const saveBtn = document.getElementById('profile-save-btn');
+    const dirty = this.isProfileDirty();
+    if (footer) footer.hidden = !dirty;
+    if (saveBtn) saveBtn.disabled = !dirty;
+  }
+
+  bindProfileForm() {
+    if (this._profileFormBound) return;
+    const form = document.getElementById('profile-form');
+    const resetBtn = document.getElementById('profile-reset-btn');
+    if (!form) return;
+
+    form.addEventListener('input', () => this.updateProfileDirtyState());
+    form.addEventListener('submit', (e) => this.updateProfile(e));
+
+    ['profile-name', 'profile-phone'].forEach((id) => {
+      const input = document.getElementById(id);
+      if (input) input.addEventListener('blur', () => this.validateProfileField(id));
+    });
+
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (!this._profileSnapshot) return;
+        document.getElementById('profile-name').value = this._profileSnapshot.name;
+        document.getElementById('profile-phone').value = this._profileSnapshot.phone;
+        this.validateProfileField('profile-name');
+        this.validateProfileField('profile-phone');
+        this.updateProfileDirtyState();
+      });
+    }
+
+    this._profileFormBound = true;
+  }
+
   async loadProfilePage() {
+    this.setProfileLoading(true);
+    this.bindProfileForm();
+
     try {
       const user = await this.api.getUser();
       const meta = user.user_metadata || {};
+      const name = meta.name || '';
+      const phone = meta.phone || '';
 
-      document.getElementById('profile-email').value = user.email || '';
-      document.getElementById('profile-name').value = meta.name || '';
-      document.getElementById('profile-phone').value = meta.phone || '';
-      document.getElementById('profile-created').value =
-        user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : '';
+      this._profileSnapshot = { name, phone };
+      document.getElementById('profile-name').value = name;
+      document.getElementById('profile-phone').value = phone;
 
-      document.getElementById('profile-form').onsubmit = (e) => this.updateProfile(e);
+      this.renderProfileHero(user);
+      this.validateProfileField('profile-name');
+      this.validateProfileField('profile-phone');
+      this.updateProfileDirtyState();
     } catch (error) {
       if (this.handleAuthError(error)) return;
       console.error('Error loading profile:', error);
+      toast('Impossible de charger ton profil', 'err');
+    } finally {
+      this.setProfileLoading(false);
     }
   }
 
   async updateProfile(e) {
     e.preventDefault();
-    const name = document.getElementById('profile-name').value;
-    const phone = document.getElementById('profile-phone').value;
+    if (!this.validateProfileForm()) {
+      toast('Corrige les champs en erreur avant d\'enregistrer', 'err');
+      return;
+    }
+
+    const name = document.getElementById('profile-name').value.trim();
+    const phone = document.getElementById('profile-phone').value.trim();
+    const saveBtn = document.getElementById('profile-save-btn');
+
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Enregistrement…';
+    }
 
     try {
       await this.api.updateUser({ data: { name, phone } });
-      const displayName = name || this.session.email;
+      this._profileSnapshot = { name, phone };
+      this.updateProfileDirtyState();
+
+      const user = await this.api.getUser();
+      const displayName = name || user.email || this.session.email;
       document.getElementById('user-name').textContent = displayName;
       const firstName = displayName.includes('@') ? displayName.split('@')[0] : displayName.split(' ')[0];
       const welcome = document.getElementById('welcome-name');
       const avatar = document.getElementById('user-avatar');
       if (welcome) welcome.textContent = firstName;
       if (avatar) avatar.textContent = (firstName[0] || 'C').toUpperCase();
+
+      this.renderProfileHero(user);
       toast('Profil mis à jour');
     } catch (error) {
       if (this.handleAuthError(error)) return;
       toast('Erreur lors de la mise à jour du profil', 'err');
+    } finally {
+      if (saveBtn) {
+        saveBtn.textContent = 'Enregistrer';
+        this.updateProfileDirtyState();
+      }
     }
   }
 

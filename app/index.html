@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SURO — Mon espace</title>
   <meta name="description" content="Gère tes contrats, sinistres et paiements SURO.">
-  <link rel="stylesheet" href="../css/tokens.css?v=24">
-  <link rel="stylesheet" href="../css/notifications.css?v=24">
-  <link rel="stylesheet" href="../css/toast.css?v=24">
-  <link rel="stylesheet" href="css/dashboard.css?v=24">
-  <link rel="stylesheet" href="css/customer.css?v=24">
+  <link rel="stylesheet" href="../css/tokens.css?v=25">
+  <link rel="stylesheet" href="../css/notifications.css?v=25">
+  <link rel="stylesheet" href="../css/toast.css?v=25">
+  <link rel="stylesheet" href="css/dashboard.css?v=25">
+  <link rel="stylesheet" href="css/customer.css?v=25">
 </head>
 <body>
   <div class="admin-container">
@@ -277,44 +277,129 @@
         <!-- Profile Page -->
         <div class="page" id="profile-page" style="display: none;">
           <div class="page-header">
-            <h1>Mon profil</h1>
-            <p>Mets à jour tes informations personnelles</p>
-          </div>
-
-          <div class="section-card">
-            <h3>Informations personnelles</h3>
-            <form id="profile-form" class="profile-form">
-              <div class="form-group">
-                <label for="profile-email">Email</label>
-                <input type="email" id="profile-email" readonly>
-                <small class="form-hint">Non modifiable</small>
-              </div>
-
-              <div class="form-group">
-                <label for="profile-name">Nom Complet</label>
-                <input type="text" id="profile-name" placeholder="Ton nom complet" autocomplete="name">
-              </div>
-
-              <div class="form-group">
-                <label for="profile-phone">Téléphone</label>
-                <input type="tel" id="profile-phone" placeholder="Ton numéro de téléphone" autocomplete="tel">
-              </div>
-
-              <div class="form-group">
-                <label for="profile-created">Inscrit depuis</label>
-                <input type="text" id="profile-created" readonly>
-              </div>
-
-              <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
-            </form>
-          </div>
-
-          <div class="section-card">
-            <h3>Sécurité</h3>
-            <div class="security-group">
-              <p>Gère ton mot de passe et tes préférences de sécurité.</p>
-              <button class="btn btn-secondary" onclick="openChangePasswordModal()">Changer le mot de passe</button>
+            <div>
+              <p class="page-eyebrow">Compte</p>
+              <h1>Mon profil</h1>
+              <p>Gère tes informations et la sécurité de ton compte.</p>
             </div>
+          </div>
+
+          <div class="profile-hero section-card" id="profile-hero" aria-busy="true">
+            <div class="profile-hero-skeleton" id="profile-hero-skeleton">
+              <span class="skeleton profile-hero-skel-avatar"></span>
+              <div class="profile-hero-skel-meta">
+                <span class="skeleton skeleton-text" style="width: 42%; height: 18px;"></span>
+                <span class="skeleton skeleton-text" style="width: 58%; height: 14px;"></span>
+                <span class="skeleton skeleton-text" style="width: 36%; height: 22px; border-radius: 999px;"></span>
+              </div>
+            </div>
+            <div class="profile-hero-content" id="profile-hero-content" hidden>
+              <div class="profile-avatar-lg" id="profile-avatar-lg" aria-hidden="true">C</div>
+              <div class="profile-hero-meta">
+                <h2 class="profile-display-name" id="profile-display-name">—</h2>
+                <p class="profile-display-email" id="profile-display-email">—</p>
+                <span class="profile-member-badge" id="profile-member-badge">Membre depuis —</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-grid">
+            <div class="profile-main">
+              <div class="section-card profile-card">
+                <div class="profile-card-head">
+                  <div>
+                    <span class="section-kicker">Identité</span>
+                    <h3>Informations personnelles</h3>
+                  </div>
+                </div>
+
+                <form id="profile-form" class="profile-form" novalidate>
+                  <div class="profile-field-grid">
+                    <div class="form-group profile-field">
+                      <label for="profile-name">
+                        <span class="profile-field-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 22a8 8 0 0 1 16 0"/></svg></span>
+                        Nom complet
+                      </label>
+                      <input type="text" id="profile-name" placeholder="Ex. Ahmed Benali" autocomplete="name" required>
+                      <small class="form-hint form-error" id="profile-name-error" hidden></small>
+                    </div>
+
+                    <div class="form-group profile-field">
+                      <label for="profile-phone">
+                        <span class="profile-field-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+                        Téléphone
+                      </label>
+                      <input type="tel" id="profile-phone" placeholder="+212 6 XX XX XX XX" autocomplete="tel" inputmode="tel">
+                      <small class="form-hint" id="profile-phone-hint">Pour te joindre en cas de sinistre ou d'urgence.</small>
+                      <small class="form-hint form-error" id="profile-phone-error" hidden></small>
+                    </div>
+                  </div>
+
+                  <div class="profile-form-footer" id="profile-form-footer" hidden>
+                    <p class="profile-unsaved-hint" id="profile-unsaved-hint">Modifications non enregistrées</p>
+                    <div class="profile-form-actions">
+                      <button type="button" class="btn btn-ghost btn-sm" id="profile-reset-btn">Annuler</button>
+                      <button type="submit" class="btn btn-primary btn-sm" id="profile-save-btn">Enregistrer</button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <aside class="profile-aside">
+              <div class="section-card profile-card profile-side-card">
+                <div class="profile-card-head">
+                  <div>
+                    <span class="section-kicker">Compte</span>
+                    <h3>Détails du compte</h3>
+                  </div>
+                </div>
+                <dl class="profile-details">
+                  <div class="profile-detail-row">
+                    <dt>
+                      <span class="profile-field-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>
+                      Email
+                    </dt>
+                    <dd id="profile-detail-email">—</dd>
+                  </div>
+                  <div class="profile-detail-row">
+                    <dt>
+                      <span class="profile-field-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+                      Inscrit depuis
+                    </dt>
+                    <dd id="profile-detail-created">—</dd>
+                  </div>
+                </dl>
+                <p class="profile-detail-note">L'adresse email est liée à ton compte et ne peut pas être modifiée ici.</p>
+              </div>
+
+              <div class="section-card profile-card profile-side-card">
+                <div class="profile-card-head">
+                  <div>
+                    <span class="section-kicker">Protection</span>
+                    <h3>Sécurité</h3>
+                  </div>
+                </div>
+                <div class="profile-security-list">
+                  <div class="profile-security-item">
+                    <div class="profile-security-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+                    <div class="profile-security-copy">
+                      <strong>Mot de passe</strong>
+                      <p>Mets à jour ton mot de passe régulièrement pour sécuriser ton espace.</p>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="openChangePasswordModal()">Modifier</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section-card profile-card profile-side-card profile-support-card">
+                <div class="profile-support-copy">
+                  <strong>Besoin d'aide ?</strong>
+                  <p>Notre équipe peut t'assister pour toute question sur ton compte.</p>
+                </div>
+                <a id="profile-support-link" href="#" class="btn btn-ghost btn-sm">Contacter le support</a>
+              </div>
+            </aside>
           </div>
         </div>
       </div>
@@ -396,9 +481,9 @@
     </div>
   </div>
 
-  <script src="../js/services/api.js?v=24"></script>
-  <script src="../js/notifications.js?v=24"></script>
-  <script src="../js/toast.js?v=24"></script>
-  <script src="js/customer.js?v=24"></script>
+  <script src="../js/services/api.js?v=25"></script>
+  <script src="../js/notifications.js?v=25"></script>
+  <script src="../js/toast.js?v=25"></script>
+  <script src="js/customer.js?v=25"></script>
 </body>
 </html>

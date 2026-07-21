@@ -134,6 +134,7 @@ a:hover { color: var(--color-primary-hover); }
   padding: var(--space-3xl) var(--space-lg) var(--space-lg);
   max-width: var(--max-width-wide);
   margin: 0 auto;
+  scroll-margin-top: calc(var(--header-height) + 16px);
 }
 
 .hero-grid {
@@ -950,6 +951,7 @@ a:hover { color: var(--color-primary-hover); }
 /* ====== SECTIONS ====== */
 .section {
   padding: var(--space-3xl) var(--space-lg) var(--space-2xl);
+  scroll-margin-top: calc(var(--header-height) + 16px);
 }
 
 .section + .section {

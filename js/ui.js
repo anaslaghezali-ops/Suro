@@ -1,6 +1,17 @@
 /* SURO UI — Navigation, FAQ, sticky CTA */
 
 (function () {
+  const HEADER_SCROLL_OFFSET = 80;
+
+  function scrollToSection(hash, behavior) {
+    if (!hash || hash === '#') return;
+    const id = hash.replace(/^#/, '');
+    const el = document.getElementById(id);
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY - HEADER_SCROLL_OFFSET;
+    window.scrollTo({ top: Math.max(0, top), behavior: behavior || 'smooth' });
+  }
+
   // Mobile nav
   const toggle = document.getElementById('nav-toggle');
   const mobileNav = document.getElementById('nav-mobile');
@@ -29,6 +40,28 @@
       }
     });
   }
+
+  // Ancres internes (menu + footer)
+  document.querySelectorAll('a[href^="#"]').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      const hash = link.getAttribute('href');
+      if (!hash || hash === '#') return;
+      const target = document.getElementById(hash.slice(1));
+      if (!target) return;
+      e.preventDefault();
+      setMobileNavOpen(false);
+      scrollToSection(hash, 'smooth');
+      history.pushState(null, '', hash);
+    });
+  });
+
+  if (location.hash) {
+    requestAnimationFrame(() => scrollToSection(location.hash, 'auto'));
+  }
+
+  window.addEventListener('hashchange', () => {
+    if (location.hash) scrollToSection(location.hash, 'smooth');
+  });
 
   // FAQ accordion (WAI-ARIA pattern)
   document.querySelectorAll('.faq-item').forEach((item, index) => {
@@ -65,8 +98,7 @@
 
   function scrollToTunnel() {
     if (window.SURO_API) window.SURO_API.track('cta_sticky_click');
-    const target = document.getElementById('souscrire-form') || document.querySelector('.hero-form') || tunnel;
-    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollToSection('#souscrire', 'smooth');
     if (window.SURO_FORM && window.SURO_FORM.openFocusMode && window.matchMedia('(max-width: 768px)').matches) {
       window.SURO_FORM.openFocusMode();
     }
@@ -81,6 +113,8 @@
       (entries) => cta.classList.toggle('hidden', entries[0].isIntersecting),
       { threshold: 0.2 }
     ).observe(tunnel);
+  } else if (cta) {
+    cta.classList.remove('hidden');
   }
 
   // Enter key on form inputs → next step

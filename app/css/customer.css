@@ -1113,6 +1113,162 @@ textarea {
   color: var(--color-primary);
 }
 
+/* ===== POLICIES ===== */
+.policies-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 20px;
+  align-items: start;
+}
+
+.policies-main .filter-bar {
+  margin-bottom: 16px;
+}
+
+.policies-card-head {
+  padding: 18px 20px 0;
+}
+
+.policies-card-head h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.policies-side-card {
+  padding-bottom: 18px !important;
+}
+
+.policies-renewal-body {
+  padding: 12px 20px 0;
+}
+
+.policies-renewal-date {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-neutral-900);
+}
+
+.policies-renewal-hint {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--color-neutral-600);
+  line-height: 1.45;
+}
+
+.policies-side-note {
+  margin: 0;
+  padding: 8px 20px 0;
+  font-size: 13px;
+  color: var(--color-neutral-600);
+  line-height: 1.5;
+}
+
+.policies-support-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px !important;
+  background: var(--color-neutral-50);
+}
+
+.policies-support-copy strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.policies-support-copy p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-neutral-600);
+}
+
+.pending-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 14px 18px;
+  border-radius: var(--radius-lg);
+  background: #fff8f1;
+  border: 1px solid #fcd9b6;
+}
+
+.pending-banner-title {
+  font-weight: 700;
+  color: #b26a00;
+}
+
+.pending-banner-desc {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #7a4e00;
+  line-height: 1.45;
+}
+
+.pending-banner-copy {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* ===== CLAIMS ===== */
+.claims-intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 16px 18px !important;
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.06) 0%, var(--color-surface) 70%);
+  border: 1px solid #ccfbf1;
+}
+
+.claims-intro-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: var(--color-primary);
+  background: #f0fdfa;
+}
+
+.claims-intro-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.claims-intro strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: var(--color-neutral-900);
+}
+
+.claims-intro p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-neutral-600);
+  line-height: 1.45;
+}
+
+.stat-skeleton {
+  display: block;
+  width: 52px;
+  height: 22px;
+  border-radius: 6px;
+}
+
 /* ===== FORMS ===== */
 
 .form-group {
@@ -1440,6 +1596,31 @@ textarea {
 
   .payments-grid {
     grid-template-columns: 1fr;
+  }
+
+  .policies-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .policies-support-card,
+  .claims-intro {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .policies-support-card .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pending-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pending-banner .btn {
+    width: 100%;
+    justify-content: center;
   }
 
   .payments-hero-skel-grid,
@@ -1780,6 +1961,21 @@ textarea {
 :root[data-theme="dark"] .payments-trust-icon,
 :root[data-theme="dark"] .payments-support-card {
   background: var(--color-neutral-100);
+}
+
+:root[data-theme="dark"] .claims-intro {
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, var(--color-surface) 60%);
+  border-color: var(--color-border);
+}
+
+:root[data-theme="dark"] .claims-intro-icon,
+:root[data-theme="dark"] .policies-support-card {
+  background: var(--color-neutral-100);
+}
+
+:root[data-theme="dark"] .pending-banner {
+  background: rgba(180, 83, 9, 0.12);
+  border-color: rgba(180, 83, 9, 0.25);
 }
 
 :root[data-theme="dark"] .profile-field-icon,

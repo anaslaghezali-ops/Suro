@@ -105,7 +105,7 @@ class AdminDashboard {
         const rows = apps.slice(0, 5);
         tbody.innerHTML = rows.length ? rows.map(a => `
           <tr>
-            <td data-label="Client">${this.escape(a.customer_email)}</td>
+            <td data-label="Client">${this.vehicleLabel(a)}</td>
             <td data-label="Email">${this.escape(a.customer_email)}</td>
             <td data-label="Couverture">${this.coverageLabel(a.coverage_type)}</td>
             <td data-label="Statut"><span class="status-badge status-${a.status}">${this.formatStatus(a.status)}</span></td>

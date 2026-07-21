@@ -90,12 +90,12 @@ class OnboardingForm {
           {
             label: 'Voiture',
             value: 'voiture',
-            description: 'Tarif selon la puissance fiscale (CV)',
+            icon: 'voiture',
           },
           {
             label: 'Moto',
             value: 'moto',
-            description: 'Tarif selon la cylindrée (cm³)',
+            icon: 'moto',
           },
         ],
         required: true,
@@ -278,6 +278,14 @@ class OnboardingForm {
     return this.fields.map((f) => labels[f.id] || f.id);
   }
 
+  renderChoiceIcon(icon) {
+    const icons = {
+      voiture: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16h14M6 16l-1-4.5 1.2-3.2A2 2 0 0 1 8.1 7h7.8a2 2 0 0 1 1.9 1.3L19 11.5 18 16"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/><path d="M8 11h8"/></svg>',
+      moto: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/><path d="M9 17.5h5.5M6.5 15 9 11h4l2-2h3l1 3h-3"/><path d="M11 11 13.5 7H16"/></svg>',
+    };
+    return icons[icon] || '';
+  }
+
   render() {
     // Recalcule les étapes : le champ de tarification s'adapte au type choisi
     // (puissance CV pour voiture, cylindrée cm³ pour moto).
@@ -324,10 +332,15 @@ class OnboardingForm {
               ? `<div class="choice-price">${Number(price).toLocaleString('fr-FR')} <span class="choice-price-unit">DH/an</span></div>`
               : '';
             const selected = selectedValue === choice.value ? ' selected' : '';
+            const iconHTML = choice.icon
+              ? `<span class="choice-icon choice-icon--${choice.icon}">${this.renderChoiceIcon(choice.icon)}</span>`
+              : '';
+            const bodyClass = choice.icon ? ' choice-body--with-icon' : '';
             return `
             <button type="button" class="choice-btn choice-card${selected}" data-value="${choice.value}" onclick="window.SURO_FORM.selectChoice('${choice.value}')">
               ${choice.tag ? `<span class="choice-tag">${choice.tag}</span>` : ''}
-              <div class="choice-body">
+              <div class="choice-body${bodyClass}">
+                ${iconHTML}
                 <div class="choice-content">
                   <div class="choice-label">${choice.label}</div>
                   ${priceHTML}

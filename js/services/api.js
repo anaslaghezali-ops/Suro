@@ -123,7 +123,7 @@ class API {
       body: JSON.stringify({
         id: appId,
         product_id: products[0].id,
-        customer_email: data.email,
+        customer_email: (data.email || '').trim().toLowerCase(),
         customer_name: data.customer_name || null,
         customer_phone: data.phone || null,
         coverage_type: data.coverage || null,
@@ -177,9 +177,12 @@ class API {
   }
 
   static async signup(email, password, metadata) {
+    // Email normalisé en minuscules (Supabase Auth le fait aussi côté serveur) :
+    // garantit la correspondance avec customer_email dans les demandes.
+    const normEmail = (email || '').trim().toLowerCase();
     const data = await this.sb('/auth/v1/signup', {
       method: 'POST',
-      body: JSON.stringify({ email, password, data: metadata || {} }),
+      body: JSON.stringify({ email: normEmail, password, data: metadata || {} }),
     });
 
     if (data && data.access_token) {
@@ -197,7 +200,7 @@ class API {
   static async login(email, password) {
     const data = await this.sb('/auth/v1/token?grant_type=password', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email: (email || '').trim().toLowerCase(), password }),
     });
 
     this.setSession({

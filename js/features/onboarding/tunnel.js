@@ -701,8 +701,8 @@ class OnboardingForm {
       this.store.setState('onboarding.applicationId', application.application.id);
       this.api.track('application_created', null, { coverage: data.coverage });
 
-      // 3. Paiement
-      this.showPaymentOptions(application.application.id);
+      // 3. Choix : payer maintenant, ou enregistrer le devis pour payer plus tard
+      this.showPaymentChoice(application.application.id);
     } catch (error) {
       const msg = String(error.message || '');
       this.api.track('tunnel_error', 'submit', { message: msg.slice(0, 200) });
@@ -739,6 +739,106 @@ class OnboardingForm {
   retryLastStep() {
     this.currentStep = this.fields.length - 1;
     this.render();
+  }
+
+  // Écran final : payer maintenant ou enregistrer le devis pour payer plus tard.
+  showPaymentChoice(applicationId) {
+    const tunnelWrapper = document.querySelector('.tunnel-wrapper');
+    if (!tunnelWrapper) return;
+    this.api.track('payment_choice_view');
+
+    const quote = this.store.getState('onboarding.quote') || {};
+    const coverage = this.store.getState('onboarding.data.coverage');
+    const premium = quote[coverage];
+    const amountHTML = premium
+      ? `<div class="payment-amount">
+           <div class="payment-amount-label">Prime annuelle — ${coverage === 'complete' ? 'Couverture complète' : 'Couverture minimale'}</div>
+           <div class="payment-amount-value">${Number(premium).toLocaleString('fr-FR')} DH<span>/an</span></div>
+         </div>`
+      : '';
+
+    tunnelWrapper.innerHTML = `
+      <div class="payment-section">
+        <h3>Ton contrat est prêt</h3>
+        ${amountHTML}
+        <p class="payment-legal">Paie maintenant pour l'activer, ou garde ton devis et paie plus tard depuis ton espace client.</p>
+
+        <div class="payment-methods">
+          <button type="button" class="payment-method-btn" onclick="window.SURO_FORM.payNow('${applicationId}')">
+            <span class="payment-method-icon">
+              <svg viewBox="0 0 24 24"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
+            </span>
+            <div>
+              <div class="payment-method-label">Payer maintenant
+                <span style="display:inline-block;background:var(--color-primary,#0F766E);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle;letter-spacing:.02em;">Recommandé</span>
+              </div>
+              <div class="payment-method-desc">Active ton contrat et reçois ton attestation</div>
+            </div>
+            <span class="payment-method-arrow">→</span>
+          </button>
+
+          <button type="button" class="payment-method-btn" onclick="window.SURO_FORM.payLater('${applicationId}')">
+            <span class="payment-method-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            </span>
+            <div>
+              <div class="payment-method-label">Payer plus tard</div>
+              <div class="payment-method-desc">On garde ton devis dans ton espace — paie quand tu veux</div>
+            </div>
+            <span class="payment-method-arrow">→</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  payNow(applicationId) {
+    this.api.track('pay_now_selected');
+    this.showPaymentOptions(applicationId);
+  }
+
+  payLater(applicationId) {
+    this.api.track('pay_later_selected');
+    this.showSavedConfirmation();
+  }
+
+  // Confirmation « devis enregistré » : le compte/espace existe, le contrat
+  // reste en attente de paiement (aucune couverture tant que non payé).
+  showSavedConfirmation() {
+    const tunnelWrapper = document.querySelector('.tunnel-wrapper');
+    if (!tunnelWrapper) return;
+    this.api.track('quote_saved_view');
+
+    const email = (this.loggedIn && this.session ? this.session.email : this.store.getState('onboarding.data.email')) || '';
+    const quote = this.store.getState('onboarding.quote') || {};
+    const coverage = this.store.getState('onboarding.data.coverage');
+    const premium = quote[coverage];
+
+    tunnelWrapper.innerHTML = `
+      <div class="success-container">
+        <div class="success-section">
+          <div class="success-icon-wrap">
+            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+          </div>
+          <h2 class="success-heading">Devis enregistré</h2>
+          <p class="success-description">Ton espace client est prêt${premium ? ` — ${Number(premium).toLocaleString('fr-FR')} DH/an` : ''}. Ton devis t'y attend.</p>
+
+          <div class="success-info success-info--warn">
+            Ton contrat n'est <strong>pas encore actif</strong> : aucune couverture ni attestation tant que le paiement n'est pas effectué.
+          </div>
+
+          <div class="success-info">
+            Connecte-toi avec <strong>${email}</strong> et clique sur <strong>Payer</strong> quand tu veux pour activer ton contrat.
+          </div>
+
+          <div class="success-actions">
+            <button class="btn btn-primary btn-block" onclick="window.SURO_FORM.handleGoToSpace()">
+              Aller à mon espace client
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   showPaymentOptions(applicationId) {

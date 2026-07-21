@@ -121,7 +121,9 @@ textarea {
 
 .main-content {
   min-width: 0;
-  padding-left: 232px;
+  grid-column: 2;
+  margin-left: 0;
+  padding-left: 0;
 }
 
 .sidebar-toggle {
@@ -1542,6 +1544,7 @@ textarea {
   }
 
   .main-content {
+    grid-column: 1;
     padding-left: 0;
   }
 

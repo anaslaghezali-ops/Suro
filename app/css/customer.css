@@ -350,6 +350,35 @@ textarea {
   border-color: var(--color-neutral-300);
 }
 
+.stat-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.stat-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  color: var(--color-primary);
+  background: var(--color-primary-ghost);
+  border: 1px solid var(--color-primary-muted);
+}
+
+.stat-icon svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .stat-card h3 {
   margin: 0;
   font-size: 11px;

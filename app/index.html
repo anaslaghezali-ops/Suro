@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="../css/notifications.css?v=37">
   <link rel="stylesheet" href="../css/toast.css?v=37">
   <link rel="stylesheet" href="css/dashboard.css?v=37">
-  <link rel="stylesheet" href="css/customer.css?v=40">
+  <link rel="stylesheet" href="css/customer.css?v=41">
 </head>
 <body>
   <div class="admin-container">
@@ -95,22 +95,34 @@
 
           <div class="stats-grid" id="dashboard-stats" aria-busy="true">
             <div class="stat-card">
-              <h3>Contrats actifs</h3>
+              <div class="stat-card-head">
+                <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg></span>
+                <h3>Contrats actifs</h3>
+              </div>
               <div class="stat-value" id="stat-active-policies"><span class="stat-skeleton skeleton skeleton-text"></span></div>
             </div>
 
             <div class="stat-card">
-              <h3>Sinistres</h3>
+              <div class="stat-card-head">
+                <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19z"/><path d="M12 9v4M12 17h.01"/></svg></span>
+                <h3>Sinistres</h3>
+              </div>
               <div class="stat-value" id="stat-claims"><span class="stat-skeleton skeleton skeleton-text"></span></div>
             </div>
 
             <div class="stat-card">
-              <h3>Paiements effectués</h3>
+              <div class="stat-card-head">
+                <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>
+                <h3>Paiements effectués</h3>
+              </div>
               <div class="stat-value" id="stat-payments"><span class="stat-skeleton skeleton skeleton-text"></span></div>
             </div>
 
             <div class="stat-card">
-              <h3>Prochaine échéance</h3>
+              <div class="stat-card-head">
+                <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+                <h3>Prochaine échéance</h3>
+              </div>
               <div class="stat-value stat-value--date" id="stat-next-renewal"><span class="stat-skeleton skeleton skeleton-text"></span></div>
             </div>
           </div>

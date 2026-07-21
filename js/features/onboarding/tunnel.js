@@ -437,6 +437,23 @@ class OnboardingForm {
     document.body.classList.remove('tunnel-focus');
   }
 
+  isMobileViewport() {
+    return window.matchMedia('(max-width: 768px)').matches;
+  }
+
+  setupMobileFocus() {
+    const card = document.getElementById('tunnel-card');
+    if (!card || card.dataset.mobileFocusBound) return;
+    card.dataset.mobileFocusBound = '1';
+
+    card.addEventListener('pointerdown', (e) => {
+      if (!this.isMobileViewport()) return;
+      if (document.body.classList.contains('tunnel-focus')) return;
+      if (e.target.closest('.tunnel-close')) return;
+      this.openFocusMode();
+    }, { passive: true });
+  }
+
   async validateField(fieldId, value) {
     const field = this.fields.find(f => f.id === fieldId);
     if (!field) return true;
@@ -1015,6 +1032,8 @@ class OnboardingForm {
   }
 
   attachListeners() {
+    this.setupMobileFocus();
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && document.body.classList.contains('tunnel-focus')) {
         this.closeFocusMode();

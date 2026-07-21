@@ -334,10 +334,14 @@ textarea {
 }
 
 .stat-card {
-  position: relative;
-  min-height: 142px;
-  padding: 20px;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 108px;
+  padding: 18px 20px;
+  text-align: center;
   background: var(--color-surface);
   border: 1px solid var(--color-neutral-200);
   border-radius: var(--radius-lg);
@@ -345,23 +349,33 @@ textarea {
 }
 
 .stat-card:hover {
-  border-color: #ccfbf1;
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  border-color: var(--color-neutral-300);
+}
+
+.stat-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+  width: 100%;
 }
 
 .stat-icon {
   display: grid;
   place-items: center;
+  flex-shrink: 0;
   width: 34px;
   height: 34px;
-  margin: 0 0 20px;
-  border-radius: 10px;
+  border-radius: 9px;
+  color: var(--color-primary);
+  background: var(--color-primary-ghost);
+  border: 1px solid var(--color-primary-muted);
 }
 
 .stat-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
@@ -369,28 +383,33 @@ textarea {
   stroke-linejoin: round;
 }
 
-.stat-icon-policy { color: #0f766e; background: #ccfbf1; }
-.stat-icon-claim { color: #c2410c; background: #ffedd5; }
-.stat-icon-payment { color: #1d4ed8; background: #dbeafe; }
-.stat-icon-renewal { color: #7c3aed; background: #ede9fe; }
-
 .stat-card h3 {
   margin: 0;
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-neutral-600);
+  color: var(--color-neutral-500);
 }
 
 .stat-value {
-  position: absolute;
-  top: 18px;
-  right: 20px;
+  margin: 0;
+  width: 100%;
+  text-align: center;
   color: var(--color-neutral-900);
-  font-size: 25px;
-  font-weight: 750;
-  letter-spacing: -0.04em;
+  font-size: clamp(24px, 3vw, 28px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.stat-value .stat-skeleton {
+  margin: 0 auto;
+}
+
+.stat-value--date {
+  font-size: clamp(18px, 2.5vw, 22px);
+  letter-spacing: -0.02em;
 }
 
 /* ===== SOS ===== */
@@ -1600,25 +1619,21 @@ textarea {
   }
 
   .stat-card {
-    min-height: 122px;
-    padding: 14px;
-  }
-
-  .stat-icon {
-    width: 30px;
-    height: 30px;
-    margin-bottom: 16px;
+    min-height: 96px;
+    padding: 14px 16px;
+    gap: 10px;
   }
 
   .stat-value {
-    top: 14px;
-    right: 14px;
-    max-width: 100px;
-    font-size: 19px;
+    font-size: 22px;
+  }
+
+  .stat-value--date {
+    font-size: 17px;
   }
 
   .stat-card h3 {
-    font-size: 9px;
+    font-size: 10px;
   }
 
   .sos-card {

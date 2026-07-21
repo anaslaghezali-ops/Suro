@@ -909,8 +909,7 @@ class CustomerDashboard {
               <button class="btn btn-primary btn-sm" onclick="dashboard.downloadDoc('${this.escape(d.storage_path)}', '${this.escape(d.name).replace(/'/g, "\\'")}')">Télécharger</button>
             </div>`).join('')
         : `<p style="font-size:13px;color:#9CA3AF;margin:0;">
-             Tes documents officiels (carte verte, attestation) apparaîtront ici dès que nos équipes les auront préparés.
-             Un exemplaire te sera aussi envoyé à ton adresse.
+             Tes documents apparaîtront ici. L'attestation est téléchargeable en PDF ; ta carte verte physique est expédiée à l'adresse indiquée lors de la souscription.
            </p>`;
 
       body.innerHTML = `

@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../css/notifications.css?v=31">
   <link rel="stylesheet" href="../css/toast.css?v=31">
   <link rel="stylesheet" href="css/dashboard.css?v=31">
-  <link rel="stylesheet" href="css/customer.css?v=31">
+  <link rel="stylesheet" href="css/customer.css?v=32">
 </head>
 <body>
   <div class="admin-container">
@@ -240,42 +240,142 @@
         <!-- Payments Page -->
         <div class="page" id="payments-page" style="display: none;">
           <div class="page-header">
-            <h1>Mes paiements</h1>
-            <p>Retrouvez vos règlements et renouvellements.</p>
+            <div>
+              <p class="page-eyebrow">Finances</p>
+              <h1>Mes paiements</h1>
+              <p>Suis tes règlements et retrouve l'historique de chaque contrat.</p>
+            </div>
+            <button type="button" class="btn btn-primary page-primary-action" onclick="dashboard.newSubscription()">Nouvelle assurance</button>
           </div>
 
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon">💳</div>
-              <h3>Total Payé</h3>
-              <div class="stat-value" id="payment-total">0 DH</div>
+          <div class="payments-hero section-card" id="payments-hero" aria-busy="true">
+            <div class="payments-hero-skeleton" id="payments-hero-skeleton">
+              <div class="payments-hero-skel-grid">
+                <div class="payments-hero-skel-block">
+                  <span class="skeleton skeleton-text" style="width: 48%; height: 12px;"></span>
+                  <span class="skeleton skeleton-text" style="width: 72%; height: 32px; margin-top: 10px;"></span>
+                </div>
+                <div class="payments-hero-skel-block">
+                  <span class="skeleton skeleton-text" style="width: 56%; height: 12px;"></span>
+                  <span class="skeleton skeleton-text" style="width: 40%; height: 24px; margin-top: 10px;"></span>
+                </div>
+                <div class="payments-hero-skel-block">
+                  <span class="skeleton skeleton-text" style="width: 52%; height: 12px;"></span>
+                  <span class="skeleton skeleton-text" style="width: 64%; height: 24px; margin-top: 10px;"></span>
+                </div>
+              </div>
             </div>
-            <div class="stat-card">
-              <div class="stat-icon">📊</div>
-              <h3>Nombre de Paiements</h3>
-              <div class="stat-value" id="payment-count">0</div>
+            <div class="payments-hero-content" id="payments-hero-content" hidden>
+              <div class="payments-hero-stat payments-hero-stat--primary">
+                <div class="payments-hero-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+                <div>
+                  <p class="payments-hero-label">Total payé</p>
+                  <p class="payments-hero-value" id="payment-total">—</p>
+                </div>
+              </div>
+              <div class="payments-hero-stat">
+                <div class="payments-hero-icon payments-hero-icon--count" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M7 16V8"/><path d="M12 16V5"/><path d="M17 16v-6"/></svg></div>
+                <div>
+                  <p class="payments-hero-label">Paiements effectués</p>
+                  <p class="payments-hero-value payments-hero-value--sm" id="payment-count">—</p>
+                </div>
+              </div>
+              <div class="payments-hero-stat">
+                <div class="payments-hero-icon payments-hero-icon--recent" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+                <div>
+                  <p class="payments-hero-label">Dernier règlement</p>
+                  <p class="payments-hero-value payments-hero-value--sm" id="payment-last-date">—</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="section-card">
-            <h3>Détail des Paiements</h3>
-            <div class="table-responsive">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Montant</th>
-                    <th>Contrat</th>
-                    <th>Date</th>
-                    <th>Statut</th>
-                  </tr>
-                </thead>
-                <tbody id="payments-tbody">
-                  <tr>
-                    <td colspan="4" class="text-center">Chargement...</td>
-                  </tr>
-                </tbody>
-              </table>
+          <div class="payments-grid">
+            <div class="payments-main">
+              <div class="filter-bar">
+                <select id="filter-payment-kind" class="filter-select" aria-label="Filtrer par type de paiement">
+                  <option value="">Tous les paiements</option>
+                  <option value="initial">Souscriptions</option>
+                  <option value="renewal">Renouvellements</option>
+                </select>
+              </div>
+
+              <div class="section-card">
+                <div class="section-header">
+                  <div>
+                    <span class="section-kicker">Historique</span>
+                    <h3>Détail des paiements</h3>
+                  </div>
+                  <button type="button" class="link-view-all" onclick="dashboard.navigateTo('policies')">Voir mes contrats</button>
+                </div>
+                <div class="table-responsive">
+                  <table class="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Montant</th>
+                        <th>Contrat</th>
+                        <th>Type</th>
+                        <th>Date</th>
+                        <th>Statut</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="payments-tbody">
+                      <tr>
+                        <td colspan="6" class="text-center">Chargement...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
+
+            <aside class="payments-aside">
+              <div class="section-card payments-side-card" id="payments-renewal-card">
+                <div class="payments-card-head">
+                  <div>
+                    <span class="section-kicker">Échéance</span>
+                    <h3>Prochain renouvellement</h3>
+                  </div>
+                </div>
+                <div class="payments-renewal-body" id="payments-renewal-body">
+                  <p class="payments-renewal-date" id="payments-next-renewal">—</p>
+                  <p class="payments-renewal-hint" id="payments-renewal-hint">Chargement…</p>
+                  <button type="button" class="btn btn-primary btn-sm" id="payments-renew-btn" hidden onclick="dashboard.renewFromPaymentsAside()">Renouveler</button>
+                </div>
+              </div>
+
+              <div class="section-card payments-side-card">
+                <div class="payments-card-head">
+                  <div>
+                    <span class="section-kicker">Sécurité</span>
+                    <h3>Paiement protégé</h3>
+                  </div>
+                </div>
+                <ul class="payments-trust-list">
+                  <li>
+                    <span class="payments-trust-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+                    <span>Transactions chiffrées et sécurisées</span>
+                  </li>
+                  <li>
+                    <span class="payments-trust-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19z"/><path d="M12 9v4M12 17h.01"/></svg></span>
+                    <span>Reçu disponible pour chaque règlement</span>
+                  </li>
+                  <li>
+                    <span class="payments-trust-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+                    <span>Assistance disponible en cas de question</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="section-card payments-side-card payments-support-card">
+                <div class="payments-support-copy">
+                  <strong>Une question sur un paiement ?</strong>
+                  <p>Notre équipe peut t'aider à retrouver un reçu ou clarifier un règlement.</p>
+                </div>
+                <a id="payments-support-link" href="#" class="btn btn-ghost btn-sm">Contacter le support</a>
+              </div>
+            </aside>
           </div>
         </div>
 

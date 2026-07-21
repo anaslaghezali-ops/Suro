@@ -74,6 +74,8 @@ class CustomerDashboard {
     this.session = this.api.getSession();
     this.currentPage = 'dashboard';
     this.policies = null; // cache
+    this.payments = null;
+    this._nextRenewalPolicyId = null;
     this._profileSnapshot = null;
     this._profileFormBound = false;
     this.init();
@@ -93,7 +95,12 @@ class CustomerDashboard {
     this.setupFilters();
     this.setupSupportLinks();
     this.loadProfileHeader();
-    this.loadDashboard();
+    const hashPage = (location.hash || '').replace(/^#/, '');
+    if (hashPage && document.getElementById(`${hashPage}-page`)) {
+      this.navigateTo(hashPage);
+    } else {
+      this.loadDashboard();
+    }
   }
 
   setupFilters() {
@@ -104,6 +111,10 @@ class CustomerDashboard {
     const claimFilter = document.getElementById('filter-claim-status');
     if (claimFilter) {
       claimFilter.addEventListener('change', () => this.loadClaims());
+    }
+    const paymentFilter = document.getElementById('filter-payment-kind');
+    if (paymentFilter) {
+      paymentFilter.addEventListener('change', () => this.loadPayments());
     }
   }
 
@@ -157,12 +168,19 @@ class CustomerDashboard {
     const phone = document.getElementById('sos-phone');
     const wa = document.getElementById('sos-whatsapp');
     const profileSupport = document.getElementById('profile-support-link');
+    const paymentsSupport = document.getElementById('payments-support-link');
     if (phone) phone.href = 'tel:' + phoneNumber;
     if (wa) wa.href = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent('Bonjour SURO, j\'ai une urgence sinistre.');
+    const supportHref = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent('Bonjour SURO, j\'ai une question sur mon compte.');
     if (profileSupport) {
-      profileSupport.href = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent('Bonjour SURO, j\'ai une question sur mon compte.');
+      profileSupport.href = supportHref;
       profileSupport.target = '_blank';
       profileSupport.rel = 'noopener';
+    }
+    if (paymentsSupport) {
+      paymentsSupport.href = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent('Bonjour SURO, j\'ai une question sur un paiement.');
+      paymentsSupport.target = '_blank';
+      paymentsSupport.rel = 'noopener';
     }
   }
 
@@ -199,6 +217,9 @@ class CustomerDashboard {
     closeSidebar();
 
     this.currentPage = page;
+    if (page) {
+      history.replaceState(null, '', `#${page}`);
+    }
 
     switch (page) {
       case 'dashboard': this.loadDashboard(); break;
@@ -365,46 +386,236 @@ class CustomerDashboard {
     }
   }
 
+  async fetchPayments(force = false) {
+    if (!this.payments || force) {
+      this.payments = await this.api.getMyPayments().catch(() => []);
+    }
+    return this.payments;
+  }
+
+  setPaymentsLoading(loading) {
+    const hero = document.getElementById('payments-hero');
+    const skeleton = document.getElementById('payments-hero-skeleton');
+    const content = document.getElementById('payments-hero-content');
+    if (!hero) return;
+    hero.setAttribute('aria-busy', loading ? 'true' : 'false');
+    if (skeleton) skeleton.hidden = !loading;
+    if (content) content.hidden = loading;
+  }
+
+  paymentKindLabel(kind) {
+    return kind === 'renewal' ? 'Renouvellement' : 'Souscription';
+  }
+
+  paymentKindClass(kind) {
+    return kind === 'renewal' ? 'payment-kind-badge--renewal' : 'payment-kind-badge--initial';
+  }
+
+  paymentStatusLabel(status) {
+    const labels = {
+      succeeded: 'Payé',
+      pending: 'En attente',
+      failed: 'Échoué',
+    };
+    return labels[status] || 'Payé';
+  }
+
+  paymentStatusClass(status) {
+    if (status === 'pending') return 'pending';
+    if (status === 'failed') return 'failed';
+    return 'succeeded';
+  }
+
+  paymentMethodLabel(method) {
+    const labels = {
+      card: 'Carte bancaire',
+      cmi: 'Paiement en ligne',
+      transfer: 'Virement',
+    };
+    return labels[method] || (method ? method : 'Paiement en ligne');
+  }
+
+  renderPaymentsHero(payments) {
+    const succeeded = (payments || []).filter(p => (p.status || 'succeeded') === 'succeeded');
+    const total = succeeded.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    const lastPayment = (payments || [])[0];
+
+    const totalEl = document.getElementById('payment-total');
+    const countEl = document.getElementById('payment-count');
+    const lastEl = document.getElementById('payment-last-date');
+
+    if (totalEl) {
+      totalEl.textContent = succeeded.length
+        ? `${total.toLocaleString('fr-FR')} DH`
+        : '0 DH';
+    }
+    if (countEl) countEl.textContent = String((payments || []).length);
+    if (lastEl) {
+      lastEl.textContent = lastPayment?.paid_at
+        ? new Date(lastPayment.paid_at).toLocaleDateString('fr-FR', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })
+        : '—';
+    }
+  }
+
+  async renderPaymentsAside(policies) {
+    const dateEl = document.getElementById('payments-next-renewal');
+    const hintEl = document.getElementById('payments-renewal-hint');
+    const renewBtn = document.getElementById('payments-renew-btn');
+    if (!dateEl || !hintEl) return;
+
+    const active = (policies || []).filter(p => p.status === 'active' && p.expires_at);
+    const sorted = active
+      .map(p => ({ policy: p, expiry: new Date(p.expires_at) }))
+      .sort((a, b) => a.expiry - b.expiry);
+
+    if (!sorted.length) {
+      this._nextRenewalPolicyId = null;
+      dateEl.textContent = '—';
+      hintEl.textContent = 'Aucun renouvellement à prévoir pour le moment.';
+      if (renewBtn) renewBtn.hidden = true;
+      return;
+    }
+
+    const next = sorted[0];
+    this._nextRenewalPolicyId = next.policy.id;
+    const daysLeft = Math.ceil((next.expiry - Date.now()) / (1000 * 60 * 60 * 24));
+    dateEl.textContent = next.expiry.toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+
+    const vehicle = this.vehicleLabel(next.policy);
+    if (daysLeft <= 0) {
+      hintEl.textContent = `${vehicle} — contrat expiré, pense à le renouveler.`;
+    } else if (daysLeft <= 30) {
+      hintEl.textContent = `${vehicle} — échéance dans ${daysLeft} jour${daysLeft > 1 ? 's' : ''}.`;
+    } else {
+      hintEl.textContent = `${vehicle} — tu peux renouveler à tout moment.`;
+    }
+
+    if (renewBtn) renewBtn.hidden = false;
+  }
+
+  renewFromPaymentsAside() {
+    if (this._nextRenewalPolicyId) {
+      this.renewPolicy(this._nextRenewalPolicyId);
+    }
+  }
+
   async loadPayments() {
-    this.setTableSkeleton('payments-tbody', 4, 3);
+    this.setPaymentsLoading(true);
+    this.setTableSkeleton('payments-tbody', 6, 4);
     try {
-      // Historique réel : une ligne par paiement (initial ET chaque renouvellement)
       const [payments, policies] = await Promise.all([
-        this.api.getMyPayments().catch(() => []),
+        this.fetchPayments(true),
         this.fetchPolicies(),
       ]);
 
-      // Associer chaque paiement à son contrat (pour afficher le véhicule)
+      this.renderPaymentsHero(payments);
+      await this.renderPaymentsAside(policies);
+      this.setPaymentsLoading(false);
+
+      const kindFilter = document.getElementById('filter-payment-kind')?.value || '';
+      const filtered = kindFilter
+        ? (payments || []).filter(p => (p.kind || 'initial') === kindFilter)
+        : (payments || []);
+
       const byId = {};
       (policies || []).forEach(p => { byId[p.id] = p; });
 
-      const total = (payments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-
-      document.getElementById('payment-total').textContent = `${total.toLocaleString('fr-FR')} DH`;
-      document.getElementById('payment-count').textContent = (payments || []).length;
-
       const tbody = document.getElementById('payments-tbody');
-      tbody.innerHTML = (payments || []).length ? payments.map(pay => {
+      tbody.innerHTML = filtered.length ? filtered.map(pay => {
         const policy = byId[pay.application_id];
         const contractLabel = policy ? this.vehicleLabel(policy) : 'Contrat auto';
-        const kindLabel = pay.kind === 'renewal' ? 'Renouvellement' : 'Souscription';
+        const status = pay.status || 'succeeded';
+        const kind = pay.kind || 'initial';
         return `
         <tr>
-          <td data-label="Montant">${pay.amount != null ? `${Number(pay.amount).toLocaleString('fr-FR')} DH` : '—'}</td>
-          <td data-label="Contrat">${this.escape(contractLabel)} <span style="color:#9CA3AF;font-size:12px;">(${kindLabel})</span></td>
-          <td data-label="Date">${new Date(pay.paid_at).toLocaleDateString('fr-FR')}</td>
-          <td data-label="Statut"><span class="status-badge status-active">Payé</span></td>
+          <td data-label="Montant"><span class="payment-amount">${pay.amount != null ? `${Number(pay.amount).toLocaleString('fr-FR')} DH` : '—'}</span></td>
+          <td data-label="Contrat">${this.escape(contractLabel)}</td>
+          <td data-label="Type"><span class="payment-kind-badge ${this.paymentKindClass(kind)}">${this.paymentKindLabel(kind)}</span></td>
+          <td data-label="Date">${pay.paid_at ? new Date(pay.paid_at).toLocaleDateString('fr-FR') : '—'}</td>
+          <td data-label="Statut"><span class="status-badge status-${this.paymentStatusClass(status)}">${this.paymentStatusLabel(status)}</span></td>
+          <td data-label=""><button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.viewPaymentDetail('${pay.id}')">Détails</button></td>
         </tr>`;
-      }).join('') : this.emptyStateHTML(4, {
-        title: 'Aucun paiement',
-        desc: 'Tes paiements apparaîtront ici après ta souscription.',
+      }).join('') : this.emptyStateHTML(6, {
+        title: kindFilter ? 'Aucun paiement pour ce filtre' : 'Aucun paiement',
+        desc: kindFilter
+          ? 'Essaie un autre type ou souscris une nouvelle assurance.'
+          : 'Tes paiements apparaîtront ici après ta souscription.',
         ctaLabel: 'Souscrire une assurance',
         ctaOnclick: 'dashboard.newSubscription()',
       });
     } catch (error) {
+      this.setPaymentsLoading(false);
       if (this.handleAuthError(error)) return;
       const tbody = document.getElementById('payments-tbody');
-      if (tbody) tbody.innerHTML = this.errorStateHTML(4, 'dashboard.loadPayments()');
+      if (tbody) tbody.innerHTML = this.errorStateHTML(6, 'dashboard.loadPayments()');
+    }
+  }
+
+  async viewPaymentDetail(paymentId) {
+    try {
+      const payments = await this.fetchPayments();
+      const pay = (payments || []).find(p => String(p.id) === String(paymentId));
+      if (!pay) return;
+
+      const policies = await this.fetchPolicies();
+      const policy = (policies || []).find(p => p.id === pay.application_id);
+      const body = document.getElementById('modal-body');
+      const status = pay.status || 'succeeded';
+      const kind = pay.kind || 'initial';
+
+      body.innerHTML = `
+        <p class="page-eyebrow" style="margin-bottom: 8px;">Reçu de paiement</p>
+        <h2>${pay.amount != null ? `${Number(pay.amount).toLocaleString('fr-FR')} DH` : 'Paiement'}</h2>
+        <p class="payment-detail-amount">${this.paymentStatusLabel(status)}</p>
+
+        <dl class="payment-detail-grid">
+          <div class="payment-detail-row">
+            <dt>Contrat</dt>
+            <dd>${this.escape(policy ? this.vehicleLabel(policy) : 'Contrat auto')}</dd>
+          </div>
+          <div class="payment-detail-row">
+            <dt>Immatriculation</dt>
+            <dd>${this.escape(policy?.immatriculation || '—')}</dd>
+          </div>
+          <div class="payment-detail-row">
+            <dt>Type</dt>
+            <dd><span class="payment-kind-badge ${this.paymentKindClass(kind)}">${this.paymentKindLabel(kind)}</span></dd>
+          </div>
+          <div class="payment-detail-row">
+            <dt>Date</dt>
+            <dd>${pay.paid_at ? new Date(pay.paid_at).toLocaleDateString('fr-FR', {
+              day: 'numeric', month: 'long', year: 'numeric',
+            }) : '—'}</dd>
+          </div>
+          <div class="payment-detail-row">
+            <dt>Méthode</dt>
+            <dd>${this.escape(this.paymentMethodLabel(pay.method))}</dd>
+          </div>
+          <div class="payment-detail-row">
+            <dt>Référence</dt>
+            <dd>PAY-${String(pay.id).replace(/-/g, '').slice(0, 8).toUpperCase()}</dd>
+          </div>
+        </dl>
+
+        ${policy ? `
+          <div style="margin-top: 24px; display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary btn-sm" onclick="dashboard.viewPolicyDetail('${policy.id}')">Voir le contrat</button>
+            ${kind === 'renewal' || policy.status === 'active' ? `<button type="button" class="btn btn-secondary btn-sm" onclick="dashboard.renewPolicy('${policy.id}')">Renouveler</button>` : ''}
+          </div>
+        ` : ''}
+      `;
+
+      openModal('detail-modal');
+    } catch (error) {
+      toast('Impossible d\'afficher ce paiement', 'err');
     }
   }
 
@@ -893,6 +1104,8 @@ class CustomerDashboard {
       'approved': 'Approuvé',
       'rejected': 'Rejeté',
       'paid': 'Payé',
+      'succeeded': 'Payé',
+      'failed': 'Échoué',
     };
     return labels[status] || status;
   }

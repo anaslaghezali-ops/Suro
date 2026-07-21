@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SURO — Mon espace</title>
   <meta name="description" content="Gère tes contrats, sinistres et paiements SURO.">
+  <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../css/tokens.css?v=31">
-  <link rel="stylesheet" href="../css/components.css?v=31">
-  <link rel="stylesheet" href="../css/notifications.css?v=31">
-  <link rel="stylesheet" href="../css/toast.css?v=31">
-  <link rel="stylesheet" href="css/dashboard.css?v=31">
-  <link rel="stylesheet" href="css/customer.css?v=32">
+  <link rel="stylesheet" href="../css/tokens.css?v=37">
+  <link rel="stylesheet" href="../css/components.css?v=37">
+  <link rel="stylesheet" href="../css/notifications.css?v=37">
+  <link rel="stylesheet" href="../css/toast.css?v=37">
+  <link rel="stylesheet" href="css/dashboard.css?v=37">
+  <link rel="stylesheet" href="css/customer.css?v=39">
 </head>
 <body>
   <div class="admin-container">
@@ -92,29 +93,29 @@
 
           <div id="pending-payment-banner-dashboard"></div>
 
-          <div class="stats-grid">
+          <div class="stats-grid" id="dashboard-stats" aria-busy="true">
             <div class="stat-card">
               <div class="stat-icon stat-icon-policy" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg></div>
               <h3>Contrats actifs</h3>
-              <div class="stat-value" id="stat-active-policies">0</div>
+              <div class="stat-value" id="stat-active-policies"><span class="stat-skeleton skeleton skeleton-text"></span></div>
             </div>
 
             <div class="stat-card">
               <div class="stat-icon stat-icon-claim" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19z"/><path d="M12 9v4M12 17h.01"/></svg></div>
               <h3>Sinistres</h3>
-              <div class="stat-value" id="stat-claims">0</div>
+              <div class="stat-value" id="stat-claims"><span class="stat-skeleton skeleton skeleton-text"></span></div>
             </div>
 
             <div class="stat-card">
               <div class="stat-icon stat-icon-payment" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
               <h3>Paiements effectués</h3>
-              <div class="stat-value" id="stat-payments">0</div>
+              <div class="stat-value" id="stat-payments"><span class="stat-skeleton skeleton skeleton-text"></span></div>
             </div>
 
             <div class="stat-card">
               <div class="stat-icon stat-icon-renewal" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
               <h3>Prochaine échéance</h3>
-              <div class="stat-value" id="stat-next-renewal">—</div>
+              <div class="stat-value" id="stat-next-renewal"><span class="stat-skeleton skeleton skeleton-text"></span></div>
             </div>
           </div>
 
@@ -137,7 +138,7 @@
                 <span class="section-kicker">Protection</span>
                 <h3>Mes contrats actifs</h3>
               </div>
-              <a href="#policies" class="link-view-all">Voir tous les contrats</a>
+              <button type="button" class="link-view-all" onclick="dashboard.navigateTo('policies')">Voir tous les contrats</button>
             </div>
             <div class="table-responsive">
               <table class="admin-table">
@@ -162,64 +163,129 @@
         <!-- Policies Page -->
         <div class="page" id="policies-page" style="display: none;">
           <div class="page-header">
-            <h1>Mes contrats</h1>
-            <p>Consultez vos garanties, documents et échéances.</p>
+            <div>
+              <p class="page-eyebrow">Protection</p>
+              <h1>Mes contrats</h1>
+              <p>Consulte tes garanties, documents et échéances.</p>
+            </div>
+            <button type="button" class="btn btn-primary page-primary-action" onclick="dashboard.newSubscription()">Nouvelle assurance</button>
           </div>
 
           <div id="pending-payment-banner"></div>
 
-          <div class="filter-bar">
-            <select id="filter-policy-status" class="filter-select">
-              <option value="">Tous les statuts</option>
-              <option value="active">Active</option>
-              <option value="expired">Expirée</option>
-              <option value="cancelled">Annulée</option>
-            </select>
-            <button class="btn btn-primary" onclick="dashboard.newSubscription()">Nouvelle assurance</button>
-          </div>
+          <div class="policies-grid">
+            <div class="policies-main">
+              <div class="filter-bar">
+                <select id="filter-policy-status" class="filter-select" aria-label="Filtrer par statut">
+                  <option value="">Tous les statuts</option>
+                  <option value="active">Active</option>
+                  <option value="nouvelle">En attente de paiement</option>
+                  <option value="expired">Expirée</option>
+                  <option value="cancelled">Annulée</option>
+                </select>
+              </div>
 
-          <div class="section-card">
-            <div class="table-responsive">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Immatriculation</th>
-                    <th>Véhicule</th>
-                    <th>Couverture</th>
-                    <th>Prime</th>
-                    <th>Statut</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="policies-tbody">
-                  <tr>
-                    <td colspan="6" class="text-center">Chargement...</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="section-card">
+                <div class="section-header">
+                  <div>
+                    <span class="section-kicker">Garanties</span>
+                    <h3>Tous mes contrats</h3>
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table class="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Immatriculation</th>
+                        <th>Véhicule</th>
+                        <th>Couverture</th>
+                        <th>Prime</th>
+                        <th>Statut</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="policies-tbody">
+                      <tr>
+                        <td colspan="6" class="text-center">Chargement...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
+
+            <aside class="policies-aside">
+              <div class="section-card policies-side-card" id="policies-renewal-card">
+                <div class="policies-card-head">
+                  <div>
+                    <span class="section-kicker">Échéance</span>
+                    <h3>Prochain renouvellement</h3>
+                  </div>
+                </div>
+                <div class="policies-renewal-body" id="policies-renewal-body">
+                  <p class="policies-renewal-date" id="policies-next-renewal">—</p>
+                  <p class="policies-renewal-hint" id="policies-renewal-hint">Chargement…</p>
+                  <button type="button" class="btn btn-primary btn-sm" id="policies-renew-btn" hidden onclick="dashboard.renewFromPoliciesAside()">Renouveler</button>
+                </div>
+              </div>
+
+              <div class="section-card policies-side-card">
+                <div class="policies-card-head">
+                  <div>
+                    <span class="section-kicker">Documents</span>
+                    <h3>Tes attestations</h3>
+                  </div>
+                </div>
+                <p class="policies-side-note">Carte verte et contrat disponibles dans le détail de chaque contrat, dès validation du paiement.</p>
+              </div>
+
+              <div class="section-card policies-side-card policies-support-card">
+                <div class="policies-support-copy">
+                  <strong>Une question sur ton contrat ?</strong>
+                  <p>Notre équipe peut t'aider pour les garanties, documents ou renouvellement.</p>
+                </div>
+                <a id="policies-support-link" href="#" class="btn btn-ghost btn-sm">Contacter le support</a>
+              </div>
+            </aside>
           </div>
         </div>
 
         <!-- Claims Page -->
         <div class="page" id="claims-page" style="display: none;">
           <div class="page-header">
-            <h1>Mes sinistres</h1>
-            <p>Déclarez un incident et suivez chaque étape du dossier.</p>
+            <div>
+              <p class="page-eyebrow">Assistance</p>
+              <h1>Mes sinistres</h1>
+              <p>Déclare un incident et suis chaque étape de ton dossier.</p>
+            </div>
+            <button type="button" class="btn btn-primary page-primary-action" onclick="openNewClaimModal()">Déclarer un sinistre</button>
+          </div>
+
+          <div class="claims-intro section-card">
+            <div class="claims-intro-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+            <div>
+              <strong>En cas de sinistre</strong>
+              <p>Déclare l'incident dès que possible avec photos si tu peux. Tu suis l'avancement ici et tu peux échanger avec notre équipe depuis le détail du dossier.</p>
+            </div>
           </div>
 
           <div class="filter-bar">
-            <select id="filter-claim-status" class="filter-select">
+            <select id="filter-claim-status" class="filter-select" aria-label="Filtrer par statut">
               <option value="">Tous les statuts</option>
               <option value="pending">En attente</option>
               <option value="approved">Approuvé</option>
               <option value="rejected">Rejeté</option>
               <option value="paid">Payé</option>
             </select>
-            <button class="btn btn-primary" onclick="openNewClaimModal()">Déclarer un sinistre</button>
           </div>
 
           <div class="section-card">
+            <div class="section-header">
+              <div>
+                <span class="section-kicker">Historique</span>
+                <h3>Mes déclarations</h3>
+              </div>
+            </div>
             <div class="table-responsive">
               <table class="admin-table">
                 <thead>
@@ -590,9 +656,9 @@
     </div>
   </div>
 
-  <script src="../js/services/api.js?v=25"></script>
-  <script src="../js/notifications.js?v=25"></script>
-  <script src="../js/toast.js?v=25"></script>
-  <script src="js/customer.js?v=27"></script>
+  <script src="../js/services/api.js?v=37"></script>
+  <script src="../js/notifications.js?v=37"></script>
+  <script src="../js/toast.js?v=37"></script>
+  <script src="js/customer.js?v=37"></script>
 </body>
 </html>

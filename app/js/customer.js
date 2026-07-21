@@ -182,6 +182,12 @@ class CustomerDashboard {
       paymentsSupport.target = '_blank';
       paymentsSupport.rel = 'noopener';
     }
+    const policiesSupport = document.getElementById('policies-support-link');
+    if (policiesSupport) {
+      policiesSupport.href = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent('Bonjour SURO, j\'ai une question sur mon contrat.');
+      policiesSupport.target = '_blank';
+      policiesSupport.rel = 'noopener';
+    }
   }
 
   // Redirige vers la connexion si le token a expiré
@@ -201,6 +207,28 @@ class CustomerDashboard {
         this.navigateTo(item.dataset.page);
       });
     });
+
+    window.addEventListener('hashchange', () => {
+      const page = (location.hash || '').replace(/^#/, '');
+      if (page && document.getElementById(`${page}-page`)) {
+        this.navigateTo(page);
+      }
+    });
+
+    document.querySelectorAll('a[href^="#"]').forEach((link) => {
+      const page = (link.getAttribute('href') || '').replace(/^#/, '');
+      if (!page || !document.getElementById(`${page}-page`)) return;
+      if (link.classList.contains('nav-item')) return;
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.navigateTo(page);
+      });
+    });
+  }
+
+  setDashboardStatsLoading(loading) {
+    const grid = document.getElementById('dashboard-stats');
+    if (grid) grid.setAttribute('aria-busy', loading ? 'true' : 'false');
   }
 
   navigateTo(page) {
@@ -254,6 +282,7 @@ class CustomerDashboard {
   }
 
   async loadDashboard() {
+    this.setDashboardStatsLoading(true);
     this.setTableSkeleton('active-policies-tbody', 4, 3);
     try {
       const policies = await this.fetchPolicies(true);
@@ -282,7 +311,7 @@ class CustomerDashboard {
           <td data-label="Véhicule">${this.vehicleLabel(p)}</td>
           <td data-label="Prime">${this.premiumLabel(p)}</td>
           <td data-label="Statut"><span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></td>
-          <td data-label=""><button class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button></td>
+          <td data-label=""><button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button></td>
         </tr>
       `).join('') : this.emptyStateHTML(4, {
         title: 'Aucun contrat actif',
@@ -290,7 +319,9 @@ class CustomerDashboard {
         ctaLabel: 'Nouvelle assurance',
         ctaOnclick: 'dashboard.newSubscription()',
       });
+      this.setDashboardStatsLoading(false);
     } catch (error) {
+      this.setDashboardStatsLoading(false);
       if (this.handleAuthError(error)) return;
       const tbody = document.getElementById('active-policies-tbody');
       if (tbody) tbody.innerHTML = this.errorStateHTML(4, 'dashboard.loadDashboard()');
@@ -302,6 +333,7 @@ class CustomerDashboard {
     try {
       const policies = await this.fetchPolicies(true);
       this.renderPendingPaymentBanner(policies);
+      await this.renderRenewalAside(policies, 'policies');
       const statusFilter = document.getElementById('filter-policy-status')?.value || '';
       const filtered = statusFilter ? policies.filter(p => p.status === statusFilter) : policies;
       const tbody = document.getElementById('policies-tbody');
@@ -465,10 +497,10 @@ class CustomerDashboard {
     }
   }
 
-  async renderPaymentsAside(policies) {
-    const dateEl = document.getElementById('payments-next-renewal');
-    const hintEl = document.getElementById('payments-renewal-hint');
-    const renewBtn = document.getElementById('payments-renew-btn');
+  async renderRenewalAside(policies, prefix = 'payments') {
+    const dateEl = document.getElementById(`${prefix}-next-renewal`);
+    const hintEl = document.getElementById(`${prefix}-renewal-hint`);
+    const renewBtn = document.getElementById(`${prefix}-renew-btn`);
     if (!dateEl || !hintEl) return;
 
     const active = (policies || []).filter(p => p.status === 'active' && p.expires_at);
@@ -477,7 +509,7 @@ class CustomerDashboard {
       .sort((a, b) => a.expiry - b.expiry);
 
     if (!sorted.length) {
-      this._nextRenewalPolicyId = null;
+      if (prefix === 'payments') this._nextRenewalPolicyId = null;
       dateEl.textContent = '—';
       hintEl.textContent = 'Aucun renouvellement à prévoir pour le moment.';
       if (renewBtn) renewBtn.hidden = true;
@@ -485,7 +517,9 @@ class CustomerDashboard {
     }
 
     const next = sorted[0];
-    this._nextRenewalPolicyId = next.policy.id;
+    if (prefix === 'payments' || prefix === 'policies') {
+      this._nextRenewalPolicyId = next.policy.id;
+    }
     const daysLeft = Math.ceil((next.expiry - Date.now()) / (1000 * 60 * 60 * 24));
     dateEl.textContent = next.expiry.toLocaleDateString('fr-FR', {
       day: 'numeric',
@@ -505,10 +539,18 @@ class CustomerDashboard {
     if (renewBtn) renewBtn.hidden = false;
   }
 
+  async renderPaymentsAside(policies) {
+    await this.renderRenewalAside(policies, 'payments');
+  }
+
   renewFromPaymentsAside() {
     if (this._nextRenewalPolicyId) {
       this.renewPolicy(this._nextRenewalPolicyId);
     }
+  }
+
+  renewFromPoliciesAside() {
+    this.renewFromPaymentsAside();
   }
 
   async loadPayments() {
@@ -924,26 +966,25 @@ class CustomerDashboard {
     const pending = (policies || []).filter(p => p.status === 'nouvelle');
     if (!pending.length) { el.innerHTML = ''; return; }
 
-    const box = (inner) => `
-      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#FFF8F1;border:1px solid #FCD9B6;border-radius:12px;padding:14px 18px;margin-bottom:16px;">
-        ${inner}
-      </div>`;
-
     if (pending.length === 1) {
       const p = pending[0];
       const amount = p.annual_premium ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH/an` : '';
-      el.innerHTML = box(`
-        <div style="flex:1;min-width:200px;">
-          <div style="font-weight:700;color:#B26A00;">Devis en attente de paiement</div>
-          <div style="font-size:13.5px;color:#7A4E00;margin-top:2px;">${this.escape(this.vehicleLabel(p))}${amount ? ` — ${amount}` : ''}. Ton contrat n'est pas actif tant que le paiement n'est pas effectué.</div>
-        </div>
-        <button class="btn btn-primary" onclick="dashboard.payPolicy('${p.id}')">Payer maintenant</button>`);
+      el.innerHTML = `
+        <div class="pending-banner" role="status">
+          <div class="pending-banner-copy">
+            <div class="pending-banner-title">Devis en attente de paiement</div>
+            <p class="pending-banner-desc">${this.escape(this.vehicleLabel(p))}${amount ? ` — ${amount}` : ''}. Ton contrat n'est pas actif tant que le paiement n'est pas effectué.</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="dashboard.payPolicy('${p.id}')">Payer maintenant</button>
+        </div>`;
     } else {
-      el.innerHTML = box(`
-        <div style="flex:1;min-width:200px;">
-          <div style="font-weight:700;color:#B26A00;">${pending.length} devis en attente de paiement</div>
-          <div style="font-size:13.5px;color:#7A4E00;margin-top:2px;">Règle-les depuis la liste ci-dessous (bouton « Payer ») pour activer tes contrats.</div>
-        </div>`);
+      el.innerHTML = `
+        <div class="pending-banner" role="status">
+          <div class="pending-banner-copy">
+            <div class="pending-banner-title">${pending.length} devis en attente de paiement</div>
+            <p class="pending-banner-desc">Règle-les depuis la liste ci-dessous (bouton « Payer ») pour activer tes contrats.</p>
+          </div>
+        </div>`;
     }
   }
 

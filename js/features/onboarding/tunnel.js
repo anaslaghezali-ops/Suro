@@ -13,6 +13,7 @@ class OnboardingForm {
     // Pré-remplissage (renouvellement : on récupère les infos du contrat existant)
     this.applyPrefill();
 
+    this.quoteError = false;
     this.fields = this.getFields();
     this.currentStep = 0;
     this.init();
@@ -324,19 +325,21 @@ class OnboardingForm {
     }
 
     const stepLabels = this.getStepLabels();
+    const progressPct = Math.round(((this.currentStep + 1) / this.fields.length) * 100);
     const stepperHTML = stepLabels.map((label, i) => {
       const state = i < this.currentStep ? 'done' : i === this.currentStep ? 'active' : '';
-      return `<div class="stepper-item ${state}"><span class="stepper-dot">${i < this.currentStep ? '<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>' : i + 1}</span><span class="stepper-label">${label}</span></div>`;
+      const ariaCurrent = i === this.currentStep ? ' aria-current="step"' : '';
+      return `<div class="stepper-item ${state}" role="listitem"${ariaCurrent}><span class="stepper-dot">${i < this.currentStep ? '<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>' : i + 1}</span><span class="stepper-label">${label}</span></div>`;
     }).join('');
 
     let formHTML = `
-      <div class="form-stepper">${stepperHTML}</div>
-      <div class="form-progress">
-        <div class="progress-bar"><div class="progress-fill" style="width: ${((this.currentStep + 1) / this.fields.length) * 100}%"></div></div>
+      <div class="form-stepper" role="list" aria-label="Étapes du devis">${stepperHTML}</div>
+      <div class="form-progress" role="progressbar" aria-valuenow="${this.currentStep + 1}" aria-valuemin="1" aria-valuemax="${this.fields.length}" aria-label="Progression du devis">
+        <div class="progress-bar"><div class="progress-fill" style="width: ${progressPct}%"></div></div>
       </div>
 
       <form class="form-step" id="form-step">
-        <h3 class="form-title">${field.label}</h3>
+        <h3 class="form-title" id="form-step-title">${field.label}</h3>
         ${field.hint ? `<p class="form-hint-text">${field.hint}</p>` : ''}
     `;
 
@@ -344,27 +347,30 @@ class OnboardingForm {
       const quote = this.store.getState('onboarding.quote') || {};
       const selectedValue = this.store.getState(`onboarding.data.${field.id}`) || '';
       const hasPrices = field.choices.some((c) => quote[c.value]);
-      if (field.id === 'coverage' && !hasPrices) {
+      if (field.id === 'coverage' && !hasPrices && !this.quoteError) {
         formHTML += `<div class="tunnel-info-banner" role="status">Complète les infos de ton véhicule pour afficher ton tarif exact — sans engagement.</div>`;
+      }
+      if (field.id === 'coverage' && this.quoteError) {
+        formHTML += `<div class="tunnel-info-banner tunnel-info-banner--error" role="alert">Impossible d'afficher ton tarif. <button type="button" class="tunnel-inline-link" onclick="window.SURO_FORM.retryQuote()">Réessayer le calcul</button></div>`;
       }
       if (field.id === 'coverage' && hasPrices) {
         formHTML += `<div class="tunnel-info-banner" role="status">Prix définitif TTC. Les garanties ci-dessous sont celles de ton contrat — consulte les <a href="conditions.html" target="_blank" rel="noopener">conditions générales</a> avant de valider.</div>`;
       }
       formHTML += `
         <p class="form-sublabel">${field.sublabel || ''}</p>
-        <div class="form-choices">
+        <div class="form-choices" role="radiogroup" aria-labelledby="form-step-title">
           ${field.choices.map((choice) => {
             const price = quote[choice.value];
             const priceHTML = price
               ? `<div class="choice-price">${Number(price).toLocaleString('fr-FR')} <span class="choice-price-unit">DH/an</span></div>`
               : '';
-            const selected = selectedValue === choice.value ? ' selected' : '';
+            const selected = selectedValue === choice.value;
             const iconHTML = choice.icon
               ? `<span class="choice-icon choice-icon--${choice.icon}">${this.renderChoiceIcon(choice.icon)}</span>`
               : '';
             const bodyClass = choice.icon ? ' choice-body--with-icon' : '';
             return `
-            <button type="button" class="choice-btn choice-card${selected}" data-value="${choice.value}" onclick="window.SURO_FORM.selectChoice('${choice.value}')">
+            <button type="button" class="choice-btn choice-card${selected ? ' selected' : ''}" data-value="${choice.value}" role="radio" aria-checked="${selected ? 'true' : 'false'}" tabindex="${selected ? '0' : '-1'}" onclick="window.SURO_FORM.selectChoice('${choice.value}')">
               ${choice.tag ? `<span class="choice-tag">${choice.tag}</span>` : ''}
               <div class="choice-body${bodyClass}">
                 ${iconHTML}
@@ -440,6 +446,10 @@ class OnboardingForm {
     `;
 
     tunnelWrapper.innerHTML = formHTML;
+
+    if (field.type === 'choice') {
+      this.setupChoiceKeyboard();
+    }
 
     // Focus input if not choice
     if (field.type !== 'choice') {
@@ -569,9 +579,13 @@ class OnboardingForm {
             vehicle_type: this.store.getState('onboarding.data.vehicle_type') || 'voiture',
           });
           this.store.setState('onboarding.quote', quote);
+          this.quoteError = false;
           this.api.track('quote_shown', 'coverage', quote);
         } catch (e) {
-          this.store.setState('onboarding.quote', {});
+          this.quoteError = true;
+          this.api.track('quote_error', 'vehicle');
+          this.showQuoteError();
+          return;
         }
       }
 
@@ -650,10 +664,11 @@ class OnboardingForm {
     this.api.track('choice_selected', field.id, { value });
 
     document.querySelectorAll('.choice-btn').forEach((btn) => {
-      btn.classList.remove('selected');
+      const isSelected = btn.dataset.value === value;
+      btn.classList.toggle('selected', isSelected);
+      btn.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+      btn.setAttribute('tabindex', isSelected ? '0' : '-1');
     });
-    const selectedBtn = document.querySelector(`[data-value="${value}"]`);
-    if (selectedBtn) selectedBtn.classList.add('selected');
 
     const errorEl = document.querySelector(`#error-${field.id}`);
     if (errorEl) {
@@ -663,6 +678,83 @@ class OnboardingForm {
 
     if (field.id === 'coverage') {
       setTimeout(() => this.nextStep(), 300);
+    }
+  }
+
+  setupChoiceKeyboard() {
+    const buttons = [...document.querySelectorAll('.form-choices .choice-btn')];
+    if (!buttons.length) return;
+
+    buttons.forEach((btn, index) => {
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          buttons[(index + 1) % buttons.length].focus();
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          buttons[(index - 1 + buttons.length) % buttons.length].focus();
+        } else if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          this.selectChoice(btn.dataset.value);
+        }
+      });
+    });
+  }
+
+  showQuoteError() {
+    const tunnelWrapper = document.querySelector('.tunnel-wrapper');
+    if (!tunnelWrapper) return;
+
+    tunnelWrapper.innerHTML = `
+      <div class="tunnel-state">
+        <div class="tunnel-error-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+        </div>
+        <p class="tunnel-error-msg">Impossible de calculer ton devis</p>
+        <p class="tunnel-error-hint">Vérifie ta connexion internet et réessaie. Tes informations sont conservées.</p>
+        <div class="tunnel-error-actions">
+          <button type="button" class="btn btn-primary" onclick="window.SURO_FORM.retryQuote()">Réessayer</button>
+          <button type="button" class="btn btn-ghost" onclick="window.SURO_FORM.renderVehicleStep()">Modifier mes infos</button>
+        </div>
+      </div>
+    `;
+  }
+
+  renderVehicleStep() {
+    this.quoteError = false;
+    const vehicleIndex = this.fields.findIndex((f) => f.id === 'vehicle');
+    if (vehicleIndex !== -1) this.currentStep = vehicleIndex;
+    this.render();
+  }
+
+  async retryQuote() {
+    const tunnelWrapper = document.querySelector('.tunnel-wrapper');
+    if (tunnelWrapper) {
+      tunnelWrapper.innerHTML = `
+        <div class="tunnel-state">
+          <div class="tunnel-spinner"></div>
+          <p>Calcul de ton devis…</p>
+        </div>`;
+    }
+
+    try {
+      const quote = await this.api.getQuote({
+        annee: this.store.getState('onboarding.data.annee'),
+        puissance: this.store.getState('onboarding.data.puissance'),
+        marque: this.store.getState('onboarding.data.marque'),
+        modele: this.store.getState('onboarding.data.modele'),
+        vehicle_type: this.store.getState('onboarding.data.vehicle_type') || 'voiture',
+      });
+      this.store.setState('onboarding.quote', quote);
+      this.quoteError = false;
+      this.api.track('quote_shown', 'coverage', quote);
+      const coverageIndex = this.fields.findIndex((f) => f.id === 'coverage');
+      if (coverageIndex !== -1) this.currentStep = coverageIndex;
+      this.render();
+    } catch (e) {
+      this.quoteError = true;
+      this.api.track('quote_error', 'vehicle');
+      this.showQuoteError();
     }
   }
 

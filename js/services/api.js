@@ -124,6 +124,7 @@ class API {
         id: appId,
         product_id: products[0].id,
         customer_email: data.email,
+        customer_name: data.customer_name || null,
         customer_phone: data.phone || null,
         coverage_type: data.coverage || null,
         vehicle_type: data.vehicle_type || 'voiture',

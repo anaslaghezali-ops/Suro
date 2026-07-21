@@ -90,9 +90,11 @@ a:hover { color: var(--color-primary-hover); }
 
 .logo {
   font-size: var(--text-xl);
-  font-weight: var(--weight-extrabold);
   color: var(--color-primary);
-  letter-spacing: -0.03em;
+}
+
+.logo .logo-word {
+  color: var(--color-primary);
 }
 
 .nav {
@@ -554,10 +556,22 @@ a:hover { color: var(--color-primary-hover); }
 }
 
 .mockup-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: var(--text-lg);
   font-weight: var(--weight-extrabold);
   color: var(--color-primary);
   letter-spacing: -0.03em;
+}
+
+.mockup-logo .logo-mark {
+  width: 24px;
+  height: 24px;
+}
+
+.mockup-logo .logo-word {
+  color: var(--color-primary);
 }
 
 .mockup-badge {
@@ -1109,13 +1123,13 @@ a:hover { color: var(--color-primary-hover); }
 }
 
 .footer-logo {
-  display: inline-block;
-  font-size: var(--text-2xl);
-  font-weight: var(--weight-extrabold);
   color: #5eead4;
-  letter-spacing: -0.03em;
-  text-decoration: none;
   margin-bottom: var(--space-sm);
+}
+
+.footer-logo .logo-word {
+  font-size: var(--text-2xl);
+  color: #5eead4;
 }
 
 .footer-tagline {

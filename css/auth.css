@@ -40,10 +40,12 @@ body {
 
 .auth-brand-logo {
   font-size: var(--text-2xl);
-  font-weight: var(--weight-extrabold);
+  color: var(--auth-brand-accent);
+}
+
+.auth-brand-logo .logo-word {
   color: var(--auth-brand-accent);
   letter-spacing: -0.04em;
-  text-decoration: none;
 }
 
 .auth-brand-content {
@@ -99,12 +101,13 @@ body {
 /* Logo mobile (panneau brand masqué) */
 .auth-mobile-logo {
   display: none;
-  font-size: var(--text-2xl);
-  font-weight: var(--weight-extrabold);
+  color: var(--color-primary);
+  margin-bottom: var(--space-lg);
+}
+
+.auth-mobile-logo .logo-word {
   color: var(--color-primary);
   letter-spacing: -0.04em;
-  text-decoration: none;
-  margin-bottom: var(--space-lg);
 }
 
 /* Panneau droit — formulaire */

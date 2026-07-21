@@ -319,3 +319,33 @@
   color: var(--color-neutral-600);
   line-height: var(--line-relaxed);
 }
+
+/* ====== BRAND / LOGO ====== */
+.logo,
+.footer-logo,
+.auth-brand-logo,
+.auth-mobile-logo,
+.sidebar-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.logo-mark {
+  display: block;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.logo-mark--sm {
+  width: 28px;
+  height: 28px;
+}
+
+.logo-word {
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}

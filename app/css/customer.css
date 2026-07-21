@@ -39,12 +39,13 @@ textarea {
 }
 
 .sidebar-logo {
-  display: inline-block;
   color: var(--auth-brand-accent);
   font-size: 24px;
-  font-weight: 800;
+}
+
+.sidebar-logo .logo-word {
+  color: var(--auth-brand-accent);
   letter-spacing: -0.04em;
-  text-decoration: none;
 }
 
 .sidebar-subtitle {
@@ -1406,6 +1407,17 @@ textarea {
   .admin-header {
     background: rgba(21, 26, 35, 0.92);
     border-bottom: 1px solid var(--color-border);
+  }
+
+  .profile-hero {
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, var(--color-surface) 60%);
+    border-color: var(--color-border);
+  }
+
+  .profile-field-icon,
+  .profile-security-item,
+  .profile-support-card {
+    background: var(--color-neutral-100);
   }
 
   .admin-table thead {

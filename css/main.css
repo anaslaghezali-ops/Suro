@@ -438,7 +438,7 @@ a:hover { color: var(--color-primary-hover); }
 }
 
 .how-cta {
-  margin-top: var(--space-3xl);
+  margin-top: var(--space-2xl);
   text-align: center;
 }
 
@@ -505,8 +505,8 @@ a:hover { color: var(--color-primary-hover); }
   align-items: center;
   justify-content: space-between;
   gap: var(--space-xl);
-  margin-top: var(--space-2xl);
-  padding: var(--space-xl);
+  margin-top: var(--space-xl);
+  padding: var(--space-lg) var(--space-xl);
   border-radius: var(--radius-xl);
   background: linear-gradient(135deg, var(--color-primary-ghost) 0%, rgba(20, 184, 166, 0.04) 100%);
   border: 1px solid var(--color-primary-muted);
@@ -781,7 +781,7 @@ a:hover { color: var(--color-primary-hover); }
   justify-content: center;
   flex-wrap: wrap;
   gap: var(--space-lg) var(--space-2xl);
-  margin-bottom: var(--space-2xl);
+  margin-bottom: var(--space-xl);
   padding: var(--space-lg) var(--space-xl);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -944,12 +944,16 @@ a:hover { color: var(--color-primary-hover); }
 
 .testimonials-cta {
   text-align: center;
-  margin-top: var(--space-3xl);
+  margin-top: var(--space-2xl);
 }
 
 /* ====== SECTIONS ====== */
 .section {
-  padding: var(--space-4xl) var(--space-lg);
+  padding: var(--space-3xl) var(--space-lg) var(--space-2xl);
+}
+
+.section + .section {
+  padding-top: var(--space-2xl);
 }
 
 .section-inner {
@@ -960,7 +964,7 @@ a:hover { color: var(--color-primary-hover); }
 .section-header {
   text-align: center;
   max-width: 560px;
-  margin: 0 auto var(--space-3xl);
+  margin: 0 auto var(--space-2xl);
 }
 
 .section-label {
@@ -1110,7 +1114,7 @@ a:hover { color: var(--color-primary-hover); }
 
 /* ====== FOOTER ====== */
 .footer {
-  padding: var(--space-3xl) var(--space-lg) var(--space-xl);
+  padding: var(--space-2xl) var(--space-lg) var(--space-xl);
   background: #0e1726;
   color: #94a3b8;
   border-top: none;
@@ -1119,9 +1123,9 @@ a:hover { color: var(--color-primary-hover); }
 .footer-inner {
   display: grid;
   grid-template-columns: 1.4fr repeat(3, 1fr);
-  gap: var(--space-2xl);
+  gap: var(--space-xl);
   max-width: var(--max-width-wide);
-  margin: 0 auto var(--space-2xl);
+  margin: 0 auto var(--space-xl);
 }
 
 .footer-logo {
@@ -1391,7 +1395,17 @@ body.nav-open {
     grid-template-columns: 1fr;
   }
 
-  .section { padding: var(--space-3xl) var(--space-md); }
+  .section {
+    padding: var(--space-2xl) var(--space-md) var(--space-xl);
+  }
+
+  .section + .section {
+    padding-top: var(--space-xl);
+  }
+
+  .section-header {
+    margin-bottom: var(--space-xl);
+  }
 
   .hero-visual {
     max-width: 100%;

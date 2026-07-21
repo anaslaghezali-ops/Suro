@@ -257,6 +257,7 @@ class CustomerDashboard {
     this.setTableSkeleton('active-policies-tbody', 4, 3);
     try {
       const policies = await this.fetchPolicies(true);
+      this.renderPendingPaymentBanner(policies, 'pending-payment-banner-dashboard');
       const claims = await this.api.getMyClaims() || [];
       // Nombre réel de paiements (initial + renouvellements), pas de contrats
       const payments = await this.api.getMyPayments().catch(() => []);
@@ -916,9 +917,9 @@ class CustomerDashboard {
   }
 
   // Renouveler : PROLONGE le contrat existant d'un an (même contrat)
-  // Bandeau « devis en attente de paiement » en tête de « Mes contrats »
-  renderPendingPaymentBanner(policies) {
-    const el = document.getElementById('pending-payment-banner');
+  // Bandeau « devis en attente de paiement » (accueil + « Mes contrats »)
+  renderPendingPaymentBanner(policies, elId = 'pending-payment-banner') {
+    const el = document.getElementById(elId);
     if (!el) return;
     const pending = (policies || []).filter(p => p.status === 'nouvelle');
     if (!pending.length) { el.innerHTML = ''; return; }

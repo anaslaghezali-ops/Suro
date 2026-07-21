@@ -327,7 +327,7 @@ a:hover { color: var(--color-primary-hover); }
 .proof-strip {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--space-xl) var(--space-2xl);
   padding: var(--space-2xl) var(--space-lg);
   margin-top: var(--space-3xl);
@@ -340,6 +340,8 @@ a:hover { color: var(--color-primary-hover); }
   gap: var(--space-sm);
   font-size: var(--text-sm);
   color: var(--color-neutral-600);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .proof-item svg {
@@ -1377,11 +1379,12 @@ body.nav-open {
   }
 
   .proof-strip {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-md);
+    gap: var(--space-md) var(--space-lg);
     padding: var(--space-xl) var(--space-md);
     margin-top: var(--space-2xl);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
   }
 
   .steps-row {

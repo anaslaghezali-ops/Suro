@@ -300,6 +300,7 @@ class CustomerDashboard {
     this.setTableSkeleton('policies-tbody', 6, 4);
     try {
       const policies = await this.fetchPolicies(true);
+      this.renderPendingPaymentBanner(policies);
       const statusFilter = document.getElementById('filter-policy-status')?.value || '';
       const filtered = statusFilter ? policies.filter(p => p.status === statusFilter) : policies;
       const tbody = document.getElementById('policies-tbody');
@@ -313,7 +314,9 @@ class CustomerDashboard {
           <td data-label="Statut"><span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></td>
           <td data-label="" style="white-space:nowrap;">
             <button class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button>
-            <button class="btn btn-ghost btn-sm" onclick="dashboard.renewPolicy('${p.id}')">Renouveler</button>
+            ${p.status === 'nouvelle'
+              ? `<button class="btn btn-primary btn-sm" onclick="dashboard.payPolicy('${p.id}')">Payer</button>`
+              : `<button class="btn btn-ghost btn-sm" onclick="dashboard.renewPolicy('${p.id}')">Renouveler</button>`}
           </td>
         </tr>
       `).join('') : this.emptyStateHTML(6, {
@@ -872,7 +875,7 @@ class CustomerDashboard {
         <div style="margin-top: 20px;">
           <p><strong>N° de contrat:</strong> SR-${String(p.id).replace(/-/g, '').slice(0, 8).toUpperCase()}</p>
           <p><strong>Immatriculation:</strong> ${this.escape(p.immatriculation || '—')}</p>
-          <p><strong>Année:</strong> ${p.annee || '—'} — <strong>Puissance:</strong> ${p.puissance || '—'} CV</p>
+          <p><strong>Année:</strong> ${p.annee || '—'} — <strong>${p.vehicle_type === 'moto' ? 'Cylindrée' : 'Puissance'}:</strong> ${p.puissance || '—'} ${p.vehicle_type === 'moto' ? 'cm³' : 'CV'}</p>
           <p><strong>Couverture:</strong> ${this.coverageLabel(p.coverage_type)}</p>
           <p><strong>Prime annuelle:</strong> ${this.premiumLabel(p)}</p>
           <p><strong>Adresse de livraison:</strong> ${this.escape(p.address || '—')}</p>
@@ -887,7 +890,9 @@ class CustomerDashboard {
         </div>
 
         <div style="margin-top: 24px;">
-          <button class="btn btn-primary" onclick="dashboard.renewPolicy('${p.id}')">🔄 Renouveler ce contrat</button>
+          ${p.status === 'nouvelle'
+            ? `<button class="btn btn-primary" onclick="dashboard.payPolicy('${p.id}')">Payer et activer mon contrat</button>`
+            : `<button class="btn btn-primary" onclick="dashboard.renewPolicy('${p.id}')">🔄 Renouveler ce contrat</button>`}
         </div>
       `;
 
@@ -911,6 +916,63 @@ class CustomerDashboard {
   }
 
   // Renouveler : PROLONGE le contrat existant d'un an (même contrat)
+  // Bandeau « devis en attente de paiement » en tête de « Mes contrats »
+  renderPendingPaymentBanner(policies) {
+    const el = document.getElementById('pending-payment-banner');
+    if (!el) return;
+    const pending = (policies || []).filter(p => p.status === 'nouvelle');
+    if (!pending.length) { el.innerHTML = ''; return; }
+
+    const box = (inner) => `
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#FFF8F1;border:1px solid #FCD9B6;border-radius:12px;padding:14px 18px;margin-bottom:16px;">
+        ${inner}
+      </div>`;
+
+    if (pending.length === 1) {
+      const p = pending[0];
+      const amount = p.annual_premium ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH/an` : '';
+      el.innerHTML = box(`
+        <div style="flex:1;min-width:200px;">
+          <div style="font-weight:700;color:#B26A00;">Devis en attente de paiement</div>
+          <div style="font-size:13.5px;color:#7A4E00;margin-top:2px;">${this.escape(this.vehicleLabel(p))}${amount ? ` — ${amount}` : ''}. Ton contrat n'est pas actif tant que le paiement n'est pas effectué.</div>
+        </div>
+        <button class="btn btn-primary" onclick="dashboard.payPolicy('${p.id}')">Payer maintenant</button>`);
+    } else {
+      el.innerHTML = box(`
+        <div style="flex:1;min-width:200px;">
+          <div style="font-weight:700;color:#B26A00;">${pending.length} devis en attente de paiement</div>
+          <div style="font-size:13.5px;color:#7A4E00;margin-top:2px;">Règle-les depuis la liste ci-dessous (bouton « Payer ») pour activer tes contrats.</div>
+        </div>`);
+    }
+  }
+
+  // Payer un devis en attente (statut 'nouvelle') → active le contrat
+  async payPolicy(policyId) {
+    try {
+      const policies = await this.fetchPolicies();
+      const p = policies.find(x => x.id === policyId);
+      if (!p) return;
+
+      const premium = p.annual_premium
+        ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH`
+        : 'le montant de ta prime';
+      if (!await confirmAction(`Payer ${premium} pour activer ton contrat ?\nTon attestation sera préparée dès le paiement confirmé.`, { title: 'Payer mon contrat', okLabel: 'Payer maintenant' })) {
+        return;
+      }
+
+      await this.api.submitPayment(policyId, { method: 'card', amount: p.annual_premium || null, currency: 'MAD' });
+      toast('Paiement confirmé — ton contrat est actif');
+
+      closeModal();
+      await this.fetchPolicies(true);
+      this.loadDashboard();
+      if (this.currentPage === 'policies') this.loadPolicies();
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      toast('Erreur lors du paiement : ' + (error.message || ''), 'err');
+    }
+  }
+
   async renewPolicy(policyId) {
     try {
       const policies = await this.fetchPolicies();
@@ -1096,7 +1158,7 @@ class CustomerDashboard {
 
   formatStatus(status) {
     const labels = {
-      'nouvelle': 'En attente de paiement',
+      'nouvelle': 'À payer',
       'active': 'Active',
       'expired': 'Expirée',
       'cancelled': 'Annulée',

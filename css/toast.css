@@ -80,9 +80,37 @@
 .suro-confirm-body {
   font-size: 14px;
   color: var(--color-neutral-600);
-  margin: 0 0 18px;
+  margin: 0 0 14px;
   line-height: 1.55;
   white-space: pre-line;
+}
+
+.suro-confirm-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-neutral-700);
+  cursor: pointer;
+}
+
+.suro-confirm-consent input {
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: var(--color-primary, #0F766E);
+}
+
+.suro-confirm-consent a {
+  color: var(--color-primary, #0F766E);
+  font-weight: 600;
+}
+
+.suro-confirm-consent-hint {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: var(--color-error, #DC2626);
 }
 
 .suro-confirm-actions {

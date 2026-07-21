@@ -71,9 +71,10 @@ export function Layout({ role, route, session, children }) {
         <div class="ops-content">
           ${children}
           <footer class="ops-legal-foot">
-            © 2026 SURO ·
+            © 2026 SURO · intermédiaire technologique ·
             <a href="../conditions.html" target="_blank" rel="noopener">Conditions</a> ·
-            <a href="../confidentialite.html" target="_blank" rel="noopener">Confidentialité</a>
+            <a href="../confidentialite.html" target="_blank" rel="noopener">Confidentialité</a> ·
+            <a href="../mentions-legales.html" target="_blank" rel="noopener">Mentions légales</a>
           </footer>
         </div>
       </div>

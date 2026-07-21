@@ -997,7 +997,12 @@ class CustomerDashboard {
       const premium = p.annual_premium
         ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH`
         : 'le montant de ta prime';
-      if (!await confirmAction(`Payer ${premium} pour activer ton contrat ?\nTon attestation sera préparée dès le paiement confirmé.`, { title: 'Payer mon contrat', okLabel: 'Payer maintenant' })) {
+      if (!await confirmAction(`Payer ${premium} pour activer ton contrat ?\nTon attestation sera préparée dès le paiement confirmé.`, {
+        title: 'Payer mon contrat',
+        okLabel: 'Payer maintenant',
+        requireLegalConsent: true,
+        legalBase: '../',
+      })) {
         return;
       }
 
@@ -1023,7 +1028,12 @@ class CustomerDashboard {
       const premium = p.annual_premium
         ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH`
         : 'le montant de ta prime';
-      if (!await confirmAction(`Renouveler ce contrat pour un an (${premium}) ?\nTon contrat sera prolongé, tu gardes le même numéro.`, { title: 'Renouveler', okLabel: 'Renouveler' })) {
+      if (!await confirmAction(`Renouveler ce contrat pour un an (${premium}) ?\nTon contrat sera prolongé, tu gardes le même numéro.`, {
+        title: 'Renouveler',
+        okLabel: 'Renouveler',
+        requireLegalConsent: true,
+        legalBase: '../',
+      })) {
         return;
       }
 

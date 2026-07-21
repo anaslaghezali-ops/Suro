@@ -303,6 +303,54 @@ class OnboardingForm {
     return this.fields.map((f) => labels[f.id] || f.id);
   }
 
+  renderLegalConsentBlock(inputId, variant = 'subscription') {
+    const copyByVariant = {
+      account: `J'ai lu et j'accepte les <a href="conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a> de la plateforme SURO.`,
+      subscription: `J'ai lu et j'accepte les <a href="conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>. Je reconnais que SURO agit en qualité d'intermédiaire technologique, que le contrat d'assurance est conclu avec <strong>Wafa Assurance</strong> et que SURO n'est pas partie à ce contrat.`,
+      payment: `En validant mon paiement, j'accepte les <a href="conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>, ainsi que les conditions contractuelles de l'assureur. Je reconnais que SURO agit en qualité d'intermédiaire technologique et que le contrat d'assurance est conclu avec <strong>Wafa Assurance</strong>.`,
+    };
+    const copy = copyByVariant[variant] || copyByVariant.subscription;
+    return `
+      <div class="tunnel-legal-consent" role="group" aria-labelledby="${inputId}-label">
+        <label class="tunnel-consent-label" for="${inputId}" id="${inputId}-label">
+          <input type="checkbox" id="${inputId}" class="tunnel-consent-input" required aria-required="true" />
+          <span>${copy}</span>
+        </label>
+        <span class="form-error" id="error-${inputId}" role="alert"></span>
+      </div>
+    `;
+  }
+
+  validateLegalConsent(inputId) {
+    const consent = document.querySelector(`#${inputId}`);
+    if (!consent || !consent.checked) {
+      this.setFieldError(inputId, 'Tu dois accepter les conditions pour continuer');
+      consent?.focus();
+      return false;
+    }
+    this.clearFieldError(inputId);
+    this.store.setState('onboarding.legalConsentAt', new Date().toISOString());
+    return true;
+  }
+
+  setupPaymentConsentGate() {
+    const consent = document.getElementById('payment-consent');
+    const buttons = document.querySelectorAll('.payment-method-btn');
+    if (!consent || !buttons.length) return;
+
+    const sync = () => {
+      const enabled = consent.checked;
+      buttons.forEach((btn) => {
+        btn.disabled = !enabled;
+        btn.classList.toggle('payment-method-btn--disabled', !enabled);
+        btn.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+      });
+    };
+
+    consent.addEventListener('change', sync);
+    sync();
+  }
+
   renderChoiceIcon(icon) {
     const icons = {
       voiture: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16h14M6 16l-1-4.5 1.2-3.2A2 2 0 0 1 8.1 7h7.8a2 2 0 0 1 1.9 1.3L19 11.5 18 16"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/><path d="M8 11h8"/></svg>',
@@ -354,7 +402,7 @@ class OnboardingForm {
         formHTML += `<div class="tunnel-info-banner tunnel-info-banner--error" role="alert">Impossible d'afficher ton tarif. <button type="button" class="tunnel-inline-link" onclick="window.SURO_FORM.retryQuote()">Réessayer le calcul</button></div>`;
       }
       if (field.id === 'coverage' && hasPrices) {
-        formHTML += `<div class="tunnel-info-banner" role="status">Prix définitif TTC. Les garanties ci-dessous sont celles de ton contrat — consulte les <a href="conditions.html" target="_blank" rel="noopener">conditions générales</a> avant de valider.</div>`;
+        formHTML += `<div class="tunnel-info-banner" role="status">Tarif estimatif TTC selon les informations saisies. La prime définitive et les garanties sont confirmées par Wafa Assurance — consulte les <a href="conditions.html#statut" target="_blank" rel="noopener">conditions</a> avant de valider.</div>`;
       }
       formHTML += `
         <p class="form-sublabel">${field.sublabel || ''}</p>
@@ -415,6 +463,12 @@ class OnboardingForm {
         `;
       });
       formHTML += `</div>`;
+      if (field.id === 'account') {
+        formHTML += this.renderLegalConsentBlock('account-consent', 'account');
+      }
+      if (field.id === 'contact') {
+        formHTML += this.renderLegalConsentBlock('legal-consent', 'subscription');
+      }
     } else {
       const currentValue = this.store.getState(`onboarding.data.${field.id}`) || '';
       formHTML += `
@@ -558,6 +612,15 @@ class OnboardingForm {
       });
 
       if (!allValid) return;
+
+      if (field.id === 'account' && !this.validateLegalConsent('account-consent')) {
+        return;
+      }
+
+      if (field.id === 'contact' && !this.validateLegalConsent('legal-consent')) {
+        return;
+      }
+
       this.api.track('step_complete', field.id);
 
       // Après l'étape véhicule : calcul du devis (prix affichés à l'étape couverture)
@@ -920,7 +983,7 @@ class OnboardingForm {
       <div class="payment-section">
         <h3>Ton contrat est prêt</h3>
         ${amountHTML}
-        <p class="payment-legal">Paie maintenant pour l'activer, ou garde ton devis et paie plus tard depuis ton espace client.</p>
+        <p class="payment-legal">Paie maintenant pour l'activer, ou garde ton devis et paie plus tard depuis ton espace client. Le paiement implique l'acceptation des <a href="conditions.html" target="_blank" rel="noopener">CGU/CGV</a>.</p>
 
         <div class="payment-methods">
           <button type="button" class="payment-method-btn" onclick="window.SURO_FORM.payNow('${applicationId}')">
@@ -1019,10 +1082,9 @@ class OnboardingForm {
       <div class="payment-section">
         <h3>Choisir une méthode de paiement</h3>
         ${amountHTML}
-        <p class="payment-transparency">Le montant affiché est définitif, toutes taxes comprises. Aucun frais caché, aucune condition surprise.</p>
-        <p class="payment-legal">
-          En payant, tu acceptes les <a href="conditions.html" target="_blank" rel="noopener">conditions générales</a> — consultables à tout moment avant validation.
-        </p>
+        <p class="payment-transparency">Le montant affiché est estimatif TTC selon les informations saisies. La prime définitive est confirmée par Wafa Assurance, assureur du contrat.</p>
+        ${this.renderLegalConsentBlock('payment-consent', 'payment')}
+        <p class="payment-legal payment-legal--hint">Coche la case ci-dessus pour activer le paiement. Les CGU/CGV sont consultables à tout moment avant validation.</p>
 
         <div class="payment-methods">
           <button type="button" class="payment-method-btn" onclick="window.SURO_FORM.selectPaymentMethod('card', '${applicationId}')">
@@ -1060,9 +1122,13 @@ class OnboardingForm {
         </div>
       </div>
     `;
+    this.setupPaymentConsentGate();
   }
 
   async selectPaymentMethod(method, applicationId) {
+    if (!this.validateLegalConsent('payment-consent')) {
+      return;
+    }
     this.api.track('payment_method_selected', null, { method });
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     tunnelWrapper.innerHTML = `
@@ -1129,9 +1195,13 @@ class OnboardingForm {
           <p class="success-description">Ta souscription est confirmée${premium ? ` — ${Number(premium).toLocaleString('fr-FR')} DH/an` : ''}.</p>
 
           <div class="contract-card">
-            <div class="contract-card-header">Contrat SURO</div>
+            <div class="contract-card-header">Référence souscription</div>
             <div class="contract-card-number">${contractNumber}</div>
             <div class="contract-card-holder">${holder}</div>
+          </div>
+
+          <div class="success-info success-info--warn">
+            Contrat d'assurance souscrit auprès de <strong>Wafa Assurance</strong>. SURO facilite la souscription en qualité d'intermédiaire technologique.
           </div>
 
           <div class="success-info">

@@ -45,6 +45,8 @@
       const title = opts.title || 'Confirmer';
       const okLabel = opts.okLabel || 'Confirmer';
       const cancelLabel = opts.cancelLabel || 'Annuler';
+      const requireLegalConsent = !!opts.requireLegalConsent;
+      const legalBase = opts.legalBase || '';
 
       return new Promise((resolve) => {
         const scrim = document.createElement('div');
@@ -52,16 +54,29 @@
         scrim.innerHTML = `
           <div class="suro-confirm" role="dialog" aria-modal="true">
             <h3 class="suro-confirm-title"></h3>
-            <p class="suro-confirm-body"></p>
+            <div class="suro-confirm-body"></div>
+            ${requireLegalConsent ? `
+              <label class="suro-confirm-consent" for="suro-confirm-legal">
+                <input type="checkbox" id="suro-confirm-legal" />
+                <span>En validant, j'accepte les
+                  <a href="${legalBase}conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a>
+                  et la
+                  <a href="${legalBase}confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>.
+                </span>
+              </label>
+              <p class="suro-confirm-consent-hint" id="suro-confirm-legal-error" hidden>Tu dois accepter les CGU/CGV pour continuer.</p>
+            ` : ''}
             <div class="suro-confirm-actions">
               <button type="button" class="btn btn-ghost" data-act="cancel"></button>
               <button type="button" class="btn btn-primary" data-act="ok"></button>
             </div>
           </div>`;
         scrim.querySelector('.suro-confirm-title').textContent = title;
-        scrim.querySelector('.suro-confirm-body').textContent = String(message || '');
+        const bodyEl = scrim.querySelector('.suro-confirm-body');
+        bodyEl.textContent = String(message || '');
         scrim.querySelector('[data-act="cancel"]').textContent = cancelLabel;
-        scrim.querySelector('[data-act="ok"]').textContent = okLabel;
+        const okBtn = scrim.querySelector('[data-act="ok"]');
+        okBtn.textContent = okLabel;
 
         function close(result) {
           scrim.remove();
@@ -77,10 +92,33 @@
           if (e.target === scrim) close(false);
         });
         scrim.querySelector('[data-act="cancel"]').addEventListener('click', () => close(false));
-        scrim.querySelector('[data-act="ok"]').addEventListener('click', () => close(true));
+
+        if (requireLegalConsent) {
+          const consent = scrim.querySelector('#suro-confirm-legal');
+          const errorEl = scrim.querySelector('#suro-confirm-legal-error');
+          const sync = () => {
+            const enabled = consent.checked;
+            okBtn.disabled = !enabled;
+            okBtn.classList.toggle('btn-disabled', !enabled);
+            if (errorEl) errorEl.hidden = true;
+          };
+          consent.addEventListener('change', sync);
+          sync();
+          okBtn.addEventListener('click', () => {
+            if (!consent.checked) {
+              if (errorEl) errorEl.hidden = false;
+              consent.focus();
+              return;
+            }
+            close(true);
+          });
+        } else {
+          okBtn.addEventListener('click', () => close(true));
+        }
+
         document.addEventListener('keydown', onKey);
         document.body.appendChild(scrim);
-        scrim.querySelector('[data-act="ok"]').focus();
+        (requireLegalConsent ? scrim.querySelector('#suro-confirm-legal') : okBtn).focus();
       });
     },
   };

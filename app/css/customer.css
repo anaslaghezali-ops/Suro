@@ -336,10 +336,12 @@ textarea {
 .stat-card {
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   min-height: 108px;
   padding: 18px 20px;
+  text-align: center;
   background: var(--color-surface);
   border: 1px solid var(--color-neutral-200);
   border-radius: var(--radius-lg);
@@ -353,8 +355,10 @@ textarea {
 .stat-card-head {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   min-width: 0;
+  width: 100%;
 }
 
 .stat-icon {
@@ -390,11 +394,17 @@ textarea {
 
 .stat-value {
   margin: 0;
+  width: 100%;
+  text-align: center;
   color: var(--color-neutral-900);
   font-size: clamp(24px, 3vw, 28px);
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.15;
+}
+
+.stat-value .stat-skeleton {
+  margin: 0 auto;
 }
 
 .stat-value--date {

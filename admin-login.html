@@ -3,125 +3,149 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SURO — Connexion Admin</title>
-  <link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/components.css">
-  <style>
-    body {
-      background: linear-gradient(135deg, #0F172A 0%, #0F766E 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .auth-container { width: 100%; max-width: 420px; }
-    .auth-card {
-      background: white;
-      border-radius: var(--radius-lg);
-      padding: 40px 32px;
-      box-shadow: 0 20px 25px rgba(0, 0, 0, 0.25);
-    }
-    .auth-header { text-align: center; margin-bottom: 32px; }
-    .auth-logo { font-size: 36px; font-weight: 800; color: var(--color-primary); margin-bottom: 4px; }
-    .auth-badge {
-      display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--color-primary);
-      background: rgba(15, 118, 110, 0.1); padding: 4px 10px; border-radius: 6px; margin-bottom: 12px;
-    }
-    .auth-subtitle { font-size: 14px; color: var(--color-neutral-600); }
-    .form-group { margin-bottom: 20px; }
-    .form-group label {
-      display: block; font-weight: 600; color: var(--color-neutral-900);
-      margin-bottom: 8px; font-size: 14px;
-    }
-    .form-group input {
-      width: 100%; padding: 12px 16px; border: 1px solid var(--color-neutral-200);
-      border-radius: var(--radius-md); font-size: 16px; font-family: inherit;
-      transition: all 200ms ease;
-    }
-    .form-group input:focus {
-      outline: none; border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
-    }
-    .form-group button { width: 100%; }
-    .error-message {
-      color: var(--color-error); font-size: 13px; margin-top: 12px; display: none; text-align: center;
-    }
-    .error-message.show { display: block; }
-    .loading-spinner {
-      display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3);
-      border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @media (max-width: 640px) { .auth-card { padding: 32px 20px; } }
-  </style>
+  <title>SURO — Connexion équipe</title>
+  <meta name="description" content="Espace réservé à l'équipe SURO — gestion des contrats, sinistres et clients.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/tokens.css?v=31">
+  <link rel="stylesheet" href="css/components.css?v=31">
+  <link rel="stylesheet" href="css/auth.css?v=32">
 </head>
 <body>
-  <div class="auth-container">
-    <div class="auth-card">
-      <div class="auth-header">
-        <div class="auth-logo">SURO</div>
-        <div class="auth-badge">Administration</div>
-        <p class="auth-subtitle">Espace réservé à l'équipe SURO</p>
+  <div class="auth-layout">
+    <aside class="auth-brand auth-brand--staff">
+      <a href="index.html" class="auth-brand-logo" aria-label="SURO — Accueil">
+        <img class="logo-mark" src="assets/brand/suro-mark.svg" width="32" height="32" alt="">
+        <span class="logo-word">SURO</span>
+      </a>
+      <div class="auth-brand-content">
+        <h1>Portail équipe<br>et opérations.</h1>
+        <p>Gère les souscriptions, valide les sinistres et accompagne les clients depuis un seul espace.</p>
+        <ul class="auth-brand-features">
+          <li>
+            <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+            Suivi des contrats et paiements en temps réel
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+            Traitement des dossiers sinistres
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+            Accès sécurisé réservé au personnel autorisé
+          </li>
+        </ul>
+        <div class="auth-staff-note">
+          <strong>Accès restreint</strong>
+          Cet espace est réservé aux membres de l'équipe SURO. Si tu es client, utilise l'espace personnel.
+        </div>
       </div>
+      <p class="auth-brand-footer">© 2026 SURO · Usage interne</p>
+    </aside>
 
-      <form id="login-form">
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input type="email" id="email" placeholder="admin@suro.ma" autocomplete="email" required>
+    <main class="auth-panel">
+      <a href="index.html" class="auth-mobile-logo" aria-label="SURO — Accueil">
+        <img class="logo-mark" src="assets/brand/suro-mark.svg" width="32" height="32" alt="">
+        <span class="logo-word">SURO</span>
+      </a>
+      <div class="auth-card">
+        <a href="index.html" class="auth-back">
+          <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Retour au site
+        </a>
+
+        <div class="auth-header">
+          <span class="auth-eyebrow">Équipe SURO</span>
+          <h1 class="auth-title">Connexion admin</h1>
+          <p class="auth-subtitle">Identifie-toi pour accéder au portail opérations</p>
         </div>
-        <div class="form-group">
-          <label for="password">Mot de passe</label>
-          <input type="password" id="password" placeholder="Votre mot de passe" autocomplete="current-password" required>
+
+        <form id="login-form" class="auth-form">
+          <div class="form-group">
+            <label for="email">Email professionnel</label>
+            <input type="email" id="email" name="email" placeholder="admin@suro.ma" autocomplete="email" required>
+            <div class="field-error" id="email-error"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <div class="password-wrap">
+              <input type="password" id="password" name="password" placeholder="Ton mot de passe" autocomplete="current-password" required>
+              <button type="button" class="password-toggle" onclick="togglePassword(this)" aria-label="Afficher le mot de passe">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="field-error" id="password-error"></div>
+          </div>
+
+          <div class="form-row">
+            <label>
+              <input type="checkbox" name="remember" value="true">
+              Se souvenir de moi
+            </label>
+            <a href="reset-password.html" class="form-link">Mot de passe oublié ?</a>
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            <span class="loading-spinner"></span>
+            <span data-btn-text>Se connecter</span>
+          </button>
+
+          <div class="error-message" id="form-error"></div>
+        </form>
+
+        <div class="auth-footer">
+          Tu es client ? <a href="customer-login.html">Accéder à mon espace</a>
         </div>
-        <button type="submit" class="btn btn-primary">
-          <span class="loading-spinner" id="spinner"></span>
-          <span id="button-text">Se connecter</span>
-        </button>
-        <div class="error-message" id="form-error"></div>
-        <p style="text-align:center;margin-top:16px;font-size:13px;">
-          <a href="reset-password.html" style="color:var(--color-primary);text-decoration:none;font-weight:600;">Mot de passe oublié?</a>
-        </p>
-      </form>
-    </div>
+      </div>
+    </main>
   </div>
 
-  <script src="js/services/api.js?v=17"></script>
+  <script src="js/services/api.js?v=26"></script>
+  <script src="js/auth.js?v=22"></script>
   <script>
-    const form = document.getElementById('login-form');
-    const spinner = document.getElementById('spinner');
-    const buttonText = document.getElementById('button-text');
-    const formError = document.getElementById('form-error');
-
-    function showError(msg) {
-      formError.textContent = msg;
-      formError.classList.add('show');
-      spinner.style.display = 'none';
-      buttonText.textContent = 'Se connecter';
-      form.querySelector('button').disabled = false;
+    const REMEMBER_KEY = 'suroAdminRememberEmail';
+    const emailInput = document.getElementById('email');
+    const rememberInput = document.querySelector('input[name="remember"]');
+    const savedEmail = localStorage.getItem(REMEMBER_KEY);
+    if (savedEmail && emailInput) {
+      emailInput.value = savedEmail;
+      if (rememberInput) rememberInput.checked = true;
     }
 
-    form.addEventListener('submit', async (e) => {
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      formError.classList.remove('show');
+      clearErrors();
 
-      const email = document.getElementById('email').value;
+      const btn = e.target.querySelector('button[type="submit"]');
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
 
-      spinner.style.display = 'inline-block';
-      buttonText.textContent = 'Connexion...';
-      form.querySelector('button').disabled = true;
+      if (!email) {
+        showFieldError('email-error', 'email', 'L\'email est requis');
+        return;
+      }
+      if (!password) {
+        showFieldError('password-error', 'password', 'Le mot de passe est requis');
+        return;
+      }
+
+      setLoading(btn, true, 'Connexion…', 'Se connecter');
 
       try {
         await window.SURO_API.login(email, password);
 
-        // Vérifie que ce compte fait partie de l'équipe SURO (tout rôle)
         const staff = await window.SURO_API.isStaff();
         if (!staff) {
           await window.SURO_API.logout();
-          showError('Ce compte n\'a pas accès à l\'espace équipe.');
+          showFormError('form-error', 'Ce compte n\'a pas accès à l\'espace équipe.');
           return;
+        }
+
+        if (rememberInput && rememberInput.checked) {
+          localStorage.setItem(REMEMBER_KEY, email);
+        } else {
+          localStorage.removeItem(REMEMBER_KEY);
         }
 
         window.location.href = 'ops/';
@@ -130,9 +154,11 @@
         if (/invalid login credentials/i.test(message)) {
           message = 'Email ou mot de passe incorrect';
         } else if (/email not confirmed/i.test(message)) {
-          message = 'Email non confirmé';
+          message = 'Confirme ton email avant de te connecter';
         }
-        showError(message);
+        showFormError('form-error', message);
+      } finally {
+        setLoading(btn, false, 'Connexion…', 'Se connecter');
       }
     });
   </script>

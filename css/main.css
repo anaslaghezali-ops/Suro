@@ -321,7 +321,55 @@ a:hover { color: var(--color-primary-hover); }
   height: 44px;
 }
 
-/* Proof strip */
+/* Proof strip + metrics */
+.hero-metrics {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-lg);
+  margin-top: var(--space-2xl);
+  padding: var(--space-lg) var(--space-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-metric {
+  text-align: center;
+  min-width: 0;
+}
+
+.hero-metric-value {
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  font-weight: var(--weight-extrabold);
+  color: var(--color-neutral-900);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.hero-metric-suffix {
+  font-size: 0.72em;
+  font-weight: var(--weight-bold);
+  color: var(--color-neutral-500);
+}
+
+.hero-metric-label {
+  margin-top: 6px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--color-neutral-600);
+  letter-spacing: 0.02em;
+}
+
+.hero-metric-divider {
+  width: 1px;
+  height: 42px;
+  background: var(--color-border-subtle);
+  justify-self: center;
+}
+
 .proof-strip {
   display: flex;
   justify-content: center;
@@ -1012,6 +1060,36 @@ body.nav-open {
 
   .hero-stats {
     justify-content: center;
+  }
+
+  .hero-metrics {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+  }
+
+  .hero-metric-divider {
+    display: none;
+  }
+
+  .hero-metric {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    text-align: left;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .hero-metric:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .hero-metric-label {
+    margin-top: 0;
+    text-align: right;
   }
 
   .hero-form {

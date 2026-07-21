@@ -12,7 +12,7 @@ export const NAV = [
   { id: 'documents',     label: 'Documents',     icon: '⎙', roles: ALL },
   { id: 'payments',      label: 'Paiements',     icon: '⛁', roles: ALL },
   { id: 'claims',        label: 'Sinistres',     icon: '⚠', roles: ALL },
-  { id: 'analytics',     label: 'Funnel',        icon: '▽', roles: ['super_admin', 'admin'] },
+  { id: 'analytics',     label: 'Funnel',        icon: '▽', roles: ['super_admin'] },
   { id: 'users',         label: 'Utilisateurs',  icon: '⚑', roles: ['super_admin'] },
   { id: 'privileges',    label: 'Privilèges',    icon: '⚿', roles: ['super_admin'] },
   { id: 'settings',      label: 'Paramètres',    icon: '⚙', roles: ['super_admin', 'admin'] },

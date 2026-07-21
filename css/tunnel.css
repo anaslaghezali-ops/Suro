@@ -251,6 +251,23 @@ body.tunnel-focus .tunnel-close {
   line-height: 1.5;
 }
 
+.tunnel-info-banner a {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.payment-transparency {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  font-size: 13px;
+  color: var(--color-neutral-700);
+  line-height: 1.5;
+  text-align: center;
+}
+
 /* Choices */
 .form-choices {
   display: flex;

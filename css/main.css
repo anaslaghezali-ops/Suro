@@ -183,7 +183,36 @@ a:hover { color: var(--color-primary-hover); }
 .hero-description {
   font-size: var(--text-lg);
   max-width: 42ch;
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.hero-points {
+  list-style: none;
+  margin: 0 0 var(--space-md);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 42ch;
+}
+
+.hero-points li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: var(--text-base);
+  color: var(--color-neutral-700);
+  line-height: 1.45;
+}
+
+.hero-points li::before {
+  content: '';
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  margin-top: 0.55em;
+  border-radius: 50%;
+  background: var(--color-primary);
 }
 
 .hero-price-hint {

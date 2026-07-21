@@ -1033,7 +1033,7 @@ class OnboardingForm {
           <div class="success-icon-wrap">
             <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
           </div>
-          <h2 class="success-heading">C'est bon, t'es couvert</h2>
+          <h2 class="success-heading">Souscription confirmée</h2>
           <p class="success-description">Ta souscription est confirmée${premium ? ` — ${Number(premium).toLocaleString('fr-FR')} DH/an` : ''}.</p>
 
           <div class="contract-card">

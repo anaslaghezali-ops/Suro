@@ -402,7 +402,7 @@ class OnboardingForm {
         formHTML += `<div class="tunnel-info-banner tunnel-info-banner--error" role="alert">Impossible d'afficher ton tarif. <button type="button" class="tunnel-inline-link" onclick="window.SURO_FORM.retryQuote()">Réessayer le calcul</button></div>`;
       }
       if (field.id === 'coverage' && hasPrices) {
-        formHTML += `<div class="tunnel-info-banner" role="status">Tarif estimatif TTC selon les informations saisies. La prime définitive et les garanties sont confirmées par Wafa Assurance — consulte les <a href="conditions.html#statut" target="_blank" rel="noopener">conditions</a> avant de valider.</div>`;
+        formHTML += `<div class="tunnel-info-banner" role="status">Tarif annuel TTC selon ton véhicule — sans engagement à ce stade. Tu confirmes tout avant le paiement.</div>`;
       }
       formHTML += `
         <p class="form-sublabel">${field.sublabel || ''}</p>

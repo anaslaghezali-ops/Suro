@@ -4,124 +4,216 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SURO — Politique de confidentialité</title>
-  <link rel="stylesheet" href="css/tokens.css?v=20">
-  <link rel="stylesheet" href="css/components.css?v=20">
-  <link rel="stylesheet" href="css/legal.css?v=20">
+  <meta name="description" content="Politique de confidentialité et protection des données SURO.">
+  <link rel="stylesheet" href="css/tokens.css?v=30">
+  <link rel="stylesheet" href="css/components.css?v=30">
+  <link rel="stylesheet" href="css/main.css?v=30">
+  <link rel="stylesheet" href="css/legal.css?v=30">
 </head>
-<body class="legal-page">
-  <header class="legal-header">
-    <div class="legal-header-inner">
-      <a href="index.html" class="legal-logo">SURO</a>
-      <a href="index.html" class="legal-back">← Retour au site</a>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">SURO</a>
+      <nav class="nav" aria-label="Navigation principale">
+        <a href="index.html#comment">Comment ça marche</a>
+        <a href="index.html#pourquoi">Pourquoi SURO</a>
+        <a href="index.html#avis">Avis clients</a>
+        <a href="index.html#faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <a href="customer-login.html" class="btn btn-primary btn-sm">Mon Espace</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
 
-  <main class="legal-container">
-    <h1>Politique de confidentialité</h1>
-    <p class="legal-updated">Dernière mise à jour : 16 juillet 2026</p>
+  <nav class="nav-mobile" id="nav-mobile" aria-hidden="true">
+    <a href="index.html#comment">Comment ça marche</a>
+    <a href="index.html#pourquoi">Pourquoi SURO</a>
+    <a href="index.html#avis">Avis clients</a>
+    <a href="index.html#faq">FAQ</a>
+    <a href="customer-login.html">Mon Espace</a>
+  </nav>
 
-    <h2>1. Responsable du traitement</h2>
-    <p>
-      Les données personnelles collectées sur le site SURO sont traitées par
-      <strong>SURO Assurances SARL AU</strong>, dont le siège social est situé
-      <strong>12 Boulevard Zerktouni, Casablanca 20000, Maroc</strong>. Ce traitement fait l'objet d'une
-      déclaration auprès de la Commission Nationale de contrôle de la protection des Données
-      à caractère Personnel (CNDP) sous le numéro <strong>D-PO-2024/458</strong>,
-      conformément à la loi n° 09-08.
-    </p>
+  <main>
+    <section class="legal-hero">
+      <div class="legal-hero-inner">
+        <p class="section-label">Légal</p>
+        <h1>Politique de confidentialité</h1>
+        <p class="legal-updated">Dernière mise à jour : 16 juillet 2026</p>
+      </div>
+    </section>
 
-    <h2>2. Données collectées et finalités</h2>
-    <table>
-      <thead>
-        <tr><th>Données</th><th>Finalité</th><th>Conservation</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Email, mot de passe (chiffré)</td>
-          <td>Création et sécurisation de l'espace client</td>
-          <td>Durée de la relation contractuelle + obligations légales</td>
-        </tr>
-        <tr>
-          <td>Téléphone, adresse postale</td>
-          <td>Gestion du contrat, envoi des documents, contact en cas de sinistre</td>
-          <td>Durée de la relation contractuelle + obligations légales</td>
-        </tr>
-        <tr>
-          <td>Informations du véhicule (immatriculation, marque, modèle, année, puissance)</td>
-          <td>Calcul du tarif et établissement du contrat</td>
-          <td>Durée de la relation contractuelle + obligations légales</td>
-        </tr>
-        <tr>
-          <td>Déclarations de sinistre, photos et vidéos transmises</td>
-          <td>Instruction et gestion des sinistres</td>
-          <td>Durées légales applicables aux dossiers sinistres</td>
-        </tr>
-        <tr>
-          <td>Données de navigation (étapes du parcours, identifiant de session technique)</td>
-          <td>Mesure d'audience interne et amélioration du parcours</td>
-          <td>13 mois maximum</td>
-        </tr>
-      </tbody>
-    </table>
+    <section class="legal-section">
+      <div class="legal-section-inner">
+        <div class="legal-layout">
+          <nav class="legal-toc" aria-label="Sommaire">
+            <p class="legal-toc-title">Sommaire</p>
+            <ol>
+              <li><a href="#responsable">Responsable du traitement</a></li>
+              <li><a href="#collecte">Données collectées</a></li>
+              <li><a href="#base">Base du traitement</a></li>
+              <li><a href="#destinataires">Destinataires</a></li>
+              <li><a href="#securite">Sécurité</a></li>
+              <li><a href="#droits">Vos droits</a></li>
+              <li><a href="#stockage">Stockage local</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ol>
+          </nav>
 
-    <h2>3. Base du traitement</h2>
-    <p>
-      Les traitements sont fondés sur l'exécution du contrat d'assurance (souscription, gestion,
-      sinistres), le respect d'obligations légales, et l'intérêt légitime de SURO pour la mesure
-      d'audience interne du site.
-    </p>
+          <article class="legal-document">
+            <p class="legal-related">
+              Voir aussi :
+              <a href="conditions.html">Conditions générales</a>
+            </p>
 
-    <h2>4. Destinataires</h2>
-    <ul>
-      <li>Les équipes habilitées de SURO ;</li>
-      <li>L'assureur porteur de risque <strong>Wafa Assurance</strong>, pour l'établissement et la gestion du contrat ;</li>
-      <li>Notre hébergeur de données, Supabase, dont les serveurs utilisés sont situés dans l'Union européenne (Francfort, Allemagne) ;</li>
-      <li>Les autorités lorsque la loi l'exige.</li>
-    </ul>
-    <p>Vos données ne sont ni vendues ni louées à des tiers.</p>
+            <h2 id="responsable">1. Responsable du traitement</h2>
+            <p>
+              Les données personnelles collectées sur le site SURO sont traitées par
+              <strong>SURO Assurances SARL AU</strong>, dont le siège social est situé
+              <strong>12 Boulevard Zerktouni, Casablanca 20000, Maroc</strong>. Ce traitement fait l'objet d'une
+              déclaration auprès de la Commission Nationale de contrôle de la protection des Données
+              à caractère Personnel (CNDP) sous le numéro <strong>D-PO-2024/458</strong>,
+              conformément à la loi n° 09-08.
+            </p>
 
-    <h2>5. Sécurité</h2>
-    <p>
-      Les échanges avec le site sont chiffrés (HTTPS). Les mots de passe sont stockés sous forme
-      chiffrée et ne sont jamais accessibles en clair. L'accès aux données est cloisonné : chaque
-      client n'accède qu'à ses propres contrats, documents et sinistres, et les accès de
-      l'équipe SURO sont restreints aux personnes habilitées.
-    </p>
+            <h2 id="collecte">2. Données collectées et finalités</h2>
+            <div class="legal-table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Données</th><th>Finalité</th><th>Conservation</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Email, mot de passe (chiffré)</td>
+                    <td>Création et sécurisation de l'espace client</td>
+                    <td>Durée de la relation contractuelle + obligations légales</td>
+                  </tr>
+                  <tr>
+                    <td>Téléphone, adresse postale</td>
+                    <td>Gestion du contrat, envoi des documents, contact en cas de sinistre</td>
+                    <td>Durée de la relation contractuelle + obligations légales</td>
+                  </tr>
+                  <tr>
+                    <td>Informations du véhicule (immatriculation, marque, modèle, année, puissance)</td>
+                    <td>Calcul du tarif et établissement du contrat</td>
+                    <td>Durée de la relation contractuelle + obligations légales</td>
+                  </tr>
+                  <tr>
+                    <td>Déclarations de sinistre, photos et vidéos transmises</td>
+                    <td>Instruction et gestion des sinistres</td>
+                    <td>Durées légales applicables aux dossiers sinistres</td>
+                  </tr>
+                  <tr>
+                    <td>Données de navigation (étapes du parcours, identifiant de session technique)</td>
+                    <td>Mesure d'audience interne et amélioration du parcours</td>
+                    <td>13 mois maximum</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-    <h2>6. Vos droits</h2>
-    <p>
-      Conformément à la loi n° 09-08, vous disposez d'un droit d'accès, de rectification et
-      d'opposition sur vos données personnelles. Vous pouvez exercer ces droits :
-    </p>
-    <ul>
-      <li>directement depuis votre espace client (rubrique « Mon Profil ») pour vos coordonnées ;</li>
-      <li>par email à <a href="mailto:support@suro.ma">support@suro.ma</a> pour toute autre demande.</li>
-    </ul>
-    <p>
-      Vous pouvez également adresser une réclamation à la CNDP (<a href="https://www.cndp.ma" target="_blank" rel="noopener">www.cndp.ma</a>).
-    </p>
+            <h2 id="base">3. Base du traitement</h2>
+            <p>
+              Les traitements sont fondés sur l'exécution du contrat d'assurance (souscription, gestion,
+              sinistres), le respect d'obligations légales, et l'intérêt légitime de SURO pour la mesure
+              d'audience interne du site.
+            </p>
 
-    <h2>7. Stockage local (cookies et équivalents)</h2>
-    <p>Le site n'utilise aucun cookie publicitaire ni traceur tiers. Il utilise uniquement le stockage local du navigateur pour :</p>
-    <ul>
-      <li>conserver la progression du formulaire de souscription ;</li>
-      <li>maintenir la session de l'espace client ;</li>
-      <li>un identifiant de session technique anonyme servant à la mesure d'audience interne.</li>
-    </ul>
-    <p>Vous pouvez effacer ces éléments à tout moment via les réglages de votre navigateur.</p>
+            <h2 id="destinataires">4. Destinataires</h2>
+            <ul>
+              <li>Les équipes habilitées de SURO ;</li>
+              <li>L'assureur porteur de risque <strong>Wafa Assurance</strong>, pour l'établissement et la gestion du contrat ;</li>
+              <li>Notre hébergeur de données, Supabase, dont les serveurs utilisés sont situés dans l'Union européenne (Francfort, Allemagne) ;</li>
+              <li>Les autorités lorsque la loi l'exige.</li>
+            </ul>
+            <p>Vos données ne sont ni vendues ni louées à des tiers.</p>
 
-    <h2>8. Contact</h2>
-    <p>
-      Pour toute question relative à cette politique :
-      <a href="mailto:support@suro.ma">support@suro.ma</a>.
-    </p>
+            <h2 id="securite">5. Sécurité</h2>
+            <p>
+              Les échanges avec le site sont chiffrés (HTTPS). Les mots de passe sont stockés sous forme
+              chiffrée et ne sont jamais accessibles en clair. L'accès aux données est cloisonné : chaque
+              client n'accède qu'à ses propres contrats, documents et sinistres, et les accès de
+              l'équipe SURO sont restreints aux personnes habilitées.
+            </p>
+
+            <h2 id="droits">6. Vos droits</h2>
+            <p>
+              Conformément à la loi n° 09-08, vous disposez d'un droit d'accès, de rectification et
+              d'opposition sur vos données personnelles. Vous pouvez exercer ces droits :
+            </p>
+            <ul>
+              <li>directement depuis votre espace client (rubrique « Mon Profil ») pour vos coordonnées ;</li>
+              <li>par email à <a href="mailto:support@suro.ma">support@suro.ma</a> pour toute autre demande.</li>
+            </ul>
+            <p>
+              Vous pouvez également adresser une réclamation à la CNDP (<a href="https://www.cndp.ma" target="_blank" rel="noopener">www.cndp.ma</a>).
+            </p>
+
+            <h2 id="stockage">7. Stockage local (cookies et équivalents)</h2>
+            <p>Le site n'utilise aucun cookie publicitaire ni traceur tiers. Il utilise uniquement le stockage local du navigateur pour :</p>
+            <ul>
+              <li>conserver la progression du formulaire de souscription ;</li>
+              <li>maintenir la session de l'espace client ;</li>
+              <li>un identifiant de session technique anonyme servant à la mesure d'audience interne.</li>
+            </ul>
+            <p>Vous pouvez effacer ces éléments à tout moment via les réglages de votre navigateur.</p>
+
+            <h2 id="contact">8. Contact</h2>
+            <p>
+              Pour toute question relative à cette politique :
+              <a href="mailto:support@suro.ma">support@suro.ma</a>.
+            </p>
+
+            <div class="legal-contact-card">
+              <strong>Exercer vos droits sur vos données</strong>
+              <p>Connecte-toi à ton <a href="customer-login.html">espace client</a> ou contacte-nous à <a href="mailto:support@suro.ma">support@suro.ma</a>.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer class="legal-footer">
-    © 2026 SURO —
-    <a href="conditions.html">Conditions</a> •
-    <a href="confidentialite.html">Confidentialité</a> •
-    <a href="mailto:support@suro.ma">Contact</a>
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="index.html" class="footer-logo">SURO</a>
+        <p class="footer-tagline">Assurance auto simple. T'es couvert en 5 minutes.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Produit</h4>
+        <ul>
+          <li><a href="index.html#souscrire">Obtenir un devis</a></li>
+          <li><a href="customer-login.html">Mon espace</a></li>
+          <li><a href="index.html#comment">Comment ça marche</a></li>
+          <li><a href="index.html#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="mailto:support@suro.ma">support@suro.ma</a></li>
+          <li><span class="footer-muted">Assistance sinistre 24/7</span></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Légal</h4>
+        <ul>
+          <li><a href="conditions.html">Conditions générales</a></li>
+          <li><a href="confidentialite.html">Confidentialité</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 SURO · Tous droits réservés</p>
+    </div>
   </footer>
+
+  <script src="js/ui.js?v=30"></script>
 </body>
 </html>

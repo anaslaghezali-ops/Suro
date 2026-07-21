@@ -286,13 +286,37 @@ body {
   line-height: 1.55;
 }
 
-.auth-legal a {
+.auth-consent {
+  margin-bottom: 16px;
+}
+
+.auth-consent-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: var(--text-xs);
+  line-height: 1.55;
+  color: var(--color-neutral-600);
+  cursor: pointer;
+}
+
+.auth-consent-label input {
+  margin-top: 3px;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+}
+
+.auth-legal a,
+.auth-consent-label a {
   color: var(--color-primary);
   text-decoration: none;
   font-weight: var(--weight-medium);
 }
 
-.auth-legal a:hover {
+.auth-legal a:hover,
+.auth-consent-label a:hover {
   text-decoration: underline;
 }
 

@@ -303,14 +303,20 @@ class OnboardingForm {
     return this.fields.map((f) => labels[f.id] || f.id);
   }
 
-  renderLegalConsentBlock(inputId) {
+  renderLegalConsentBlock(inputId, variant = 'subscription') {
+    const copyByVariant = {
+      account: `J'ai lu et j'accepte les <a href="conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a> de la plateforme SURO.`,
+      subscription: `J'ai lu et j'accepte les <a href="conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>. Je reconnais que SURO agit en qualité d'intermédiaire technologique, que le contrat d'assurance est conclu avec <strong>Wafa Assurance</strong> et que SURO n'est pas partie à ce contrat.`,
+      payment: `En validant mon paiement, j'accepte les <a href="conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>, ainsi que les conditions contractuelles de l'assureur. Je reconnais que SURO agit en qualité d'intermédiaire technologique et que le contrat d'assurance est conclu avec <strong>Wafa Assurance</strong>.`,
+    };
+    const copy = copyByVariant[variant] || copyByVariant.subscription;
     return `
-      <div class="tunnel-legal-consent">
-        <label class="tunnel-consent-label" for="${inputId}">
-          <input type="checkbox" id="${inputId}" class="tunnel-consent-input" />
-          <span>J'ai lu et j'accepte les <a href="conditions.html" target="_blank" rel="noopener">conditions générales</a> et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>. Je reconnais que <strong>SURO agit en qualité d'intermédiaire technologique</strong>, que le contrat d'assurance est conclu avec <strong>Wafa Assurance</strong> et que SURO n'est pas partie à ce contrat.</span>
+      <div class="tunnel-legal-consent" role="group" aria-labelledby="${inputId}-label">
+        <label class="tunnel-consent-label" for="${inputId}" id="${inputId}-label">
+          <input type="checkbox" id="${inputId}" class="tunnel-consent-input" required aria-required="true" />
+          <span>${copy}</span>
         </label>
-        <span class="form-error" id="error-${inputId}"></span>
+        <span class="form-error" id="error-${inputId}" role="alert"></span>
       </div>
     `;
   }
@@ -319,10 +325,30 @@ class OnboardingForm {
     const consent = document.querySelector(`#${inputId}`);
     if (!consent || !consent.checked) {
       this.setFieldError(inputId, 'Tu dois accepter les conditions pour continuer');
+      consent?.focus();
       return false;
     }
     this.clearFieldError(inputId);
+    this.store.setState('onboarding.legalConsentAt', new Date().toISOString());
     return true;
+  }
+
+  setupPaymentConsentGate() {
+    const consent = document.getElementById('payment-consent');
+    const buttons = document.querySelectorAll('.payment-method-btn');
+    if (!consent || !buttons.length) return;
+
+    const sync = () => {
+      const enabled = consent.checked;
+      buttons.forEach((btn) => {
+        btn.disabled = !enabled;
+        btn.classList.toggle('payment-method-btn--disabled', !enabled);
+        btn.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+      });
+    };
+
+    consent.addEventListener('change', sync);
+    sync();
   }
 
   renderChoiceIcon(icon) {
@@ -437,8 +463,11 @@ class OnboardingForm {
         `;
       });
       formHTML += `</div>`;
+      if (field.id === 'account') {
+        formHTML += this.renderLegalConsentBlock('account-consent', 'account');
+      }
       if (field.id === 'contact') {
-        formHTML += this.renderLegalConsentBlock('legal-consent');
+        formHTML += this.renderLegalConsentBlock('legal-consent', 'subscription');
       }
     } else {
       const currentValue = this.store.getState(`onboarding.data.${field.id}`) || '';
@@ -583,6 +612,10 @@ class OnboardingForm {
       });
 
       if (!allValid) return;
+
+      if (field.id === 'account' && !this.validateLegalConsent('account-consent')) {
+        return;
+      }
 
       if (field.id === 'contact' && !this.validateLegalConsent('legal-consent')) {
         return;
@@ -950,7 +983,7 @@ class OnboardingForm {
       <div class="payment-section">
         <h3>Ton contrat est prêt</h3>
         ${amountHTML}
-        <p class="payment-legal">Paie maintenant pour l'activer, ou garde ton devis et paie plus tard depuis ton espace client.</p>
+        <p class="payment-legal">Paie maintenant pour l'activer, ou garde ton devis et paie plus tard depuis ton espace client. Le paiement implique l'acceptation des <a href="conditions.html" target="_blank" rel="noopener">CGU/CGV</a>.</p>
 
         <div class="payment-methods">
           <button type="button" class="payment-method-btn" onclick="window.SURO_FORM.payNow('${applicationId}')">
@@ -1050,10 +1083,8 @@ class OnboardingForm {
         <h3>Choisir une méthode de paiement</h3>
         ${amountHTML}
         <p class="payment-transparency">Le montant affiché est estimatif TTC selon les informations saisies. La prime définitive est confirmée par Wafa Assurance, assureur du contrat.</p>
-        ${this.renderLegalConsentBlock('payment-consent')}
-        <p class="payment-legal">
-          En payant, tu confirmes ton acceptation des conditions générales et reconnais que SURO n'est ni courtier ni intermédiaire d'assurance, mais facilite la souscription auprès de Wafa Assurance.
-        </p>
+        ${this.renderLegalConsentBlock('payment-consent', 'payment')}
+        <p class="payment-legal payment-legal--hint">Coche la case ci-dessus pour activer le paiement. Les CGU/CGV sont consultables à tout moment avant validation.</p>
 
         <div class="payment-methods">
           <button type="button" class="payment-method-btn" onclick="window.SURO_FORM.selectPaymentMethod('card', '${applicationId}')">
@@ -1091,6 +1122,7 @@ class OnboardingForm {
         </div>
       </div>
     `;
+    this.setupPaymentConsentGate();
   }
 
   async selectPaymentMethod(method, applicationId) {

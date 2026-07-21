@@ -96,13 +96,17 @@
             <div class="field-error" id="confirm-error"></div>
           </div>
 
-          <p class="auth-legal">
-            En créant ton compte, tu acceptes les
-            <a href="conditions.html" target="_blank" rel="noopener">conditions générales</a>
-            et la
-            <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>.
-            Tu reconnais que SURO agit en qualité d'intermédiaire technologique et que le contrat d'assurance est conclu avec l'assureur partenaire.
-          </p>
+          <div class="auth-consent">
+            <label class="auth-consent-label" for="legal-consent">
+              <input type="checkbox" id="legal-consent" name="legal-consent" required aria-required="true">
+              <span>J'ai lu et j'accepte les
+                <a href="conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a>
+                et la
+                <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>.
+                Je reconnais que SURO agit en qualité d'intermédiaire technologique et que le contrat d'assurance est conclu avec l'assureur partenaire.</span>
+            </label>
+            <div class="field-error" id="consent-error"></div>
+          </div>
 
           <button type="submit" class="btn btn-primary">
             <span class="loading-spinner"></span>
@@ -148,6 +152,13 @@
         valid = false;
       } else {
         clearFieldError('confirm-error', 'confirm-password');
+      }
+      const consent = document.getElementById('legal-consent');
+      if (!consent?.checked) {
+        showFieldError('consent-error', 'Tu dois accepter les CGU/CGV et la politique de confidentialité');
+        valid = false;
+      } else {
+        clearFieldError('consent-error');
       }
       if (!valid) return;
 

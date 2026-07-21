@@ -594,6 +594,24 @@ body.tunnel-focus .tunnel-close {
   box-shadow: var(--shadow-sm);
 }
 
+.payment-method-btn--disabled,
+.payment-method-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.payment-method-btn--disabled:hover,
+.payment-method-btn:disabled:hover {
+  border-color: var(--color-border);
+  box-shadow: none;
+}
+
+.payment-legal--hint {
+  margin-top: -8px;
+  margin-bottom: 16px;
+}
+
 .payment-method-icon {
   display: grid;
   place-items: center;

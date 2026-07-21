@@ -227,6 +227,30 @@ class OnboardingForm {
         type: 'group',
         fields: [
           {
+            id: 'prenom',
+            label: 'Prénom',
+            type: 'text',
+            autocomplete: 'given-name',
+            placeholder: 'Ex: Youssef',
+            validate: (value) => {
+              if (!value || !value.trim()) return 'Le prénom est nécessaire';
+              if (value.trim().length < 2) return 'Prénom trop court';
+              return true;
+            },
+          },
+          {
+            id: 'nom',
+            label: 'Nom',
+            type: 'text',
+            autocomplete: 'family-name',
+            placeholder: 'Ex: Benali',
+            validate: (value) => {
+              if (!value || !value.trim()) return 'Le nom est nécessaire';
+              if (value.trim().length < 2) return 'Nom trop court';
+              return true;
+            },
+          },
+          {
             id: 'phone',
             label: 'Téléphone',
             type: 'tel',
@@ -358,7 +382,7 @@ class OnboardingForm {
         <span class="form-error" id="error-${field.id}"></span>
       `;
     } else if (field.type === 'group') {
-      const gridClass = field.id === 'vehicle' ? ' form-group-fields--grid' : '';
+      const gridClass = (field.id === 'vehicle' || field.id === 'contact') ? ' form-group-fields--grid' : '';
       formHTML += `<div class="form-group-fields${gridClass}">`;
       field.fields.forEach((sub) => {
         const subValue = sub.secret
@@ -642,6 +666,10 @@ class OnboardingForm {
     }
   }
 
+  getFullName(data) {
+    return [data.prenom, data.nom].filter((v) => v && v.trim()).join(' ').trim();
+  }
+
   async submit() {
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     if (!tunnelWrapper) return;
@@ -655,6 +683,7 @@ class OnboardingForm {
       `;
 
       const data = this.store.getState('onboarding.data');
+      const fullName = this.getFullName(data);
 
       // Email : soit celui de la session (client connecté), soit celui saisi
       const email = this.loggedIn && this.session ? this.session.email : data.email;
@@ -663,11 +692,28 @@ class OnboardingForm {
       // (si le client quitte après avoir payé, son contrat est déjà rattaché à son compte)
       if (this.loggedIn) {
         this.accountStatus = 'logged_in';
+        if (fullName) {
+          try {
+            await this.api.updateUser({
+              data: {
+                name: fullName,
+                prenom: data.prenom || null,
+                nom: data.nom || null,
+                phone: data.phone || null,
+              },
+            });
+          } catch (e) {
+            /* non bloquant */
+          }
+        }
       } else {
         const password = (this.secrets && this.secrets.password) || '';
         try {
           const result = await this.api.signup(email, password, {
             phone: data.phone || null,
+            name: fullName || null,
+            prenom: data.prenom || null,
+            nom: data.nom || null,
           });
           this.accountStatus = result.session ? 'logged_in' : 'confirmation_required';
           this.api.track('account_created', null, { status: this.accountStatus });
@@ -715,6 +761,7 @@ class OnboardingForm {
         coverage: data.coverage,
         email: email,
         phone: data.phone,
+        customer_name: fullName || null,
         address: data.address,
       });
 
@@ -972,7 +1019,8 @@ class OnboardingForm {
 
     const email = (this.loggedIn && this.session ? this.session.email : this.store.getState('onboarding.data.email')) || '';
     const address = this.store.getState('onboarding.data.address') || '';
-    const holder = email ? email.split('@')[0].toUpperCase() : 'CLIENT';
+    const data = this.store.getState('onboarding.data') || {};
+    const holder = (this.getFullName(data) || (email ? email.split('@')[0] : 'CLIENT')).toUpperCase();
     const contractNumber = 'SR-' + String(applicationId).replace(/-/g, '').slice(0, 8).toUpperCase();
 
     const quote = this.store.getState('onboarding.quote') || {};

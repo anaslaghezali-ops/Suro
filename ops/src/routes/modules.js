@@ -4,7 +4,7 @@ import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
 import { DataTable } from '../components/DataTable.js';
 import { Badge, Spinner, Empty } from '../components/ui.js';
-import { fmtDate, fmtDateTime, fmtMoney, coverageLabel, vehicleLabel, subStatus, paymentStatus } from '../lib/format.js';
+import { fmtDate, fmtDateTime, fmtMoney, coverageLabel, vehicleLabel, vehicleTypeLabel, subStatus, paymentStatus } from '../lib/format.js';
 
 function Page({ title, subtitle, children }) {
   return html`<div><div class="page-head"><h1>${title}</h1><p>${subtitle}</p></div>${children}</div>`;
@@ -22,6 +22,7 @@ export function Contracts({ caps }) {
   const columns = [
     { key: 'policy_number', label: 'N° / Réf.', render: (a) => a.policy_number || html`<span class="muted">${a.id.slice(0, 8)}…</span>` },
     { key: 'customer_email', label: 'Client', sortable: true },
+    { key: 'vehicle_type', label: 'Type', sortable: true, render: (a) => html`<${Badge} tone=${a.vehicle_type === 'moto' ? 'amber' : 'blue'}>${vehicleTypeLabel(a.vehicle_type)}<//>` },
     { key: 'vehicle', label: 'Véhicule', render: (a) => vehicleLabel(a) },
     { key: 'coverage_type', label: 'Couverture', render: (a) => coverageLabel(a.coverage_type) },
     { key: 'annual_premium', label: 'Prime', sortable: true, render: (a) => fmtMoney(a.annual_premium) },

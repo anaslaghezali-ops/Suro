@@ -46,10 +46,63 @@ class OnboardingForm {
   }
 
   getFields() {
+    const vt = this.store.getState('onboarding.data.vehicle_type') || 'voiture';
+    const isMoto = vt === 'moto';
+
+    // Champ de tarification adaptatif : CV fiscaux (voiture) ou cylindrée cm³ (moto)
+    const ratingField = isMoto
+      ? {
+          id: 'puissance',
+          label: 'Cylindrée (cm³)',
+          type: 'number',
+          placeholder: 'Ex: 125',
+          validate: (value) => {
+            if (!value) return 'La cylindrée est nécessaire';
+            const cc = parseInt(value, 10);
+            if (isNaN(cc) || cc < 25 || cc > 3000) {
+              return 'Cylindrée invalide (entre 25 et 3000 cm³)';
+            }
+            return true;
+          },
+        }
+      : {
+          id: 'puissance',
+          label: 'Puissance fiscale (chevaux)',
+          type: 'number',
+          placeholder: 'Ex: 6',
+          validate: (value) => {
+            if (!value) return 'La puissance fiscale est nécessaire';
+            const cv = parseInt(value, 10);
+            if (isNaN(cv) || cv < 1 || cv > 100) {
+              return 'Puissance invalide (entre 1 et 100 CV)';
+            }
+            return true;
+          },
+        };
+
     const fields = [
       {
+        id: 'vehicle_type',
+        label: 'Que veux-tu assurer ?',
+        sublabel: 'Sélectionne le type de véhicule',
+        type: 'choice',
+        choices: [
+          {
+            label: 'Voiture',
+            value: 'voiture',
+            description: 'Tarif selon la puissance fiscale (CV)',
+          },
+          {
+            label: 'Moto',
+            value: 'moto',
+            description: 'Tarif selon la cylindrée (cm³)',
+          },
+        ],
+        required: true,
+      },
+      {
         id: 'vehicle',
-        label: 'Parle-nous de ton véhicule',
+        label: isMoto ? 'Parle-nous de ta moto' : 'Parle-nous de ton véhicule',
         hint: 'Ces infos nous permettent de calculer ton tarif',
         type: 'group',
         fields: [
@@ -73,7 +126,7 @@ class OnboardingForm {
             id: 'marque',
             label: 'Marque',
             type: 'text',
-            placeholder: 'Ex: Dacia, Renault, Peugeot',
+            placeholder: isMoto ? 'Ex: Honda, Yamaha, KTM' : 'Ex: Dacia, Renault, Peugeot',
             validate: (value) => {
               if (!value) return 'La marque est nécessaire';
               return true;
@@ -83,7 +136,7 @@ class OnboardingForm {
             id: 'modele',
             label: 'Modèle',
             type: 'text',
-            placeholder: 'Ex: Logan, Clio, 208',
+            placeholder: isMoto ? 'Ex: PCX, MT-07, Duke' : 'Ex: Logan, Clio, 208',
             validate: (value) => {
               if (!value) return 'Le modèle est nécessaire';
               return true;
@@ -104,20 +157,7 @@ class OnboardingForm {
               return true;
             },
           },
-          {
-            id: 'puissance',
-            label: 'Puissance fiscale (chevaux)',
-            type: 'number',
-            placeholder: 'Ex: 6',
-            validate: (value) => {
-              if (!value) return 'La puissance fiscale est nécessaire';
-              const cv = parseInt(value, 10);
-              if (isNaN(cv) || cv < 1 || cv > 100) {
-                return 'Puissance invalide (entre 1 et 100 CV)';
-              }
-              return true;
-            },
-          },
+          ratingField,
         ],
         required: true,
       },
@@ -229,6 +269,7 @@ class OnboardingForm {
 
   getStepLabels() {
     const labels = {
+      vehicle_type: 'Type',
       vehicle: 'Véhicule',
       coverage: 'Couverture',
       account: 'Compte',
@@ -238,6 +279,9 @@ class OnboardingForm {
   }
 
   render() {
+    // Recalcule les étapes : le champ de tarification s'adapte au type choisi
+    // (puissance CV pour voiture, cylindrée cm³ pour moto).
+    this.fields = this.getFields();
     const field = this.fields[this.currentStep];
     const tunnelWrapper = document.querySelector('.tunnel-wrapper');
     if (!tunnelWrapper) return;
@@ -465,6 +509,7 @@ class OnboardingForm {
             puissance: this.store.getState('onboarding.data.puissance'),
             marque: this.store.getState('onboarding.data.marque'),
             modele: this.store.getState('onboarding.data.modele'),
+            vehicle_type: this.store.getState('onboarding.data.vehicle_type') || 'voiture',
           });
           this.store.setState('onboarding.quote', quote);
           this.api.track('quote_shown', 'coverage', quote);
@@ -559,7 +604,7 @@ class OnboardingForm {
       errorEl.classList.remove('show');
     }
 
-    if (field.id === 'coverage') {
+    if (field.id === 'coverage' || field.id === 'vehicle_type') {
       setTimeout(() => this.nextStep(), 300);
     }
   }
@@ -628,6 +673,7 @@ class OnboardingForm {
       // 2. Créer le contrat (rattaché au compte par l'email)
       const application = await this.api.createApplication({
         product_slug: 'automobile',
+        vehicle_type: data.vehicle_type || 'voiture',
         immatriculation: data.immatriculation,
         marque: data.marque,
         modele: data.modele,

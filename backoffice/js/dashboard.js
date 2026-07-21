@@ -573,16 +573,23 @@ class AdminDashboard {
         this.api.adminGetFactors(),
       ]);
 
-      const rowsHtml = (pricing || []).map(p => `
+      const rowsHtml = (pricing || []).map(p => {
+        const isMoto = p.vehicle_type === 'moto';
+        const unit = isMoto ? 'cm³' : 'CV';
+        const maxOpen = p.cv_max >= 99 && (isMoto ? p.cv_max >= 9999 : p.cv_max === 99);
+        const tranche = `${p.cv_min}–${maxOpen ? '∞' : p.cv_max} ${unit}`;
+        return `
         <tr>
+          <td><span style="display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;${isMoto ? 'background:#FFF4E0;color:#B26A00;' : 'background:#E7F0FF;color:#1B5FCC;'}">${isMoto ? 'Moto' : 'Voiture'}</span></td>
           <td>${this.coverageName(p.coverage_type)}</td>
-          <td>${p.cv_min}–${p.cv_max === 99 ? '∞' : p.cv_max} CV</td>
+          <td>${tranche}</td>
           <td>
             <input type="number" id="price-${p.id}" value="${Number(p.annual_premium)}" min="0" step="50"
               style="width:110px;padding:6px 8px;border:1px solid var(--color-neutral-200);border-radius:6px;"> DH/an
           </td>
           <td><button class="btn btn-primary btn-sm" onclick="dashboard.savePricing('${p.id}')">Enregistrer</button></td>
-        </tr>`).join('');
+        </tr>`;
+      }).join('');
 
       const factorsHtml = (factors || []).map(f => `
         <tr>
@@ -597,7 +604,7 @@ class AdminDashboard {
       el.innerHTML = `
         <div class="table-responsive">
           <table class="admin-table">
-            <thead><tr><th>Couverture</th><th>Puissance</th><th>Prime annuelle</th><th></th></tr></thead>
+            <thead><tr><th>Type</th><th>Couverture</th><th>Tranche</th><th>Prime annuelle</th><th></th></tr></thead>
             <tbody>${rowsHtml}</tbody>
           </table>
         </div>

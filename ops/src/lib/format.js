@@ -29,9 +29,20 @@ export function coverageLabel(t) {
   return t === 'complete' ? 'Complète' : t === 'minimal' ? 'Minimale' : (t || '—');
 }
 
+export function vehicleTypeLabel(t) {
+  return t === 'moto' ? 'Moto' : 'Voiture';
+}
+
+// Unité de tarification selon le type : CV (voiture) ou cm³ (moto)
+export function ratingLabel(a) {
+  if (a.puissance == null || a.puissance === '') return '—';
+  return (a.vehicle_type === 'moto') ? `${a.puissance} cm³` : `${a.puissance} CV`;
+}
+
 export function vehicleLabel(a) {
   const parts = [a.marque, a.modele].filter(Boolean).join(' ');
-  return parts ? `${parts}${a.annee ? ` (${a.annee})` : ''}` : 'Contrat auto';
+  const base = parts ? `${parts}${a.annee ? ` (${a.annee})` : ''}` : (a.vehicle_type === 'moto' ? 'Contrat moto' : 'Contrat auto');
+  return base;
 }
 
 // Statut souscription/contrat → { label, tone }

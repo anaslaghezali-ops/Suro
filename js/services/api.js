@@ -84,7 +84,8 @@ class API {
 
   // --- Tarification ---
   // Prix calculés côté serveur depuis la table insurance_pricing (modifiable par l'équipe)
-  static async getQuote({ annee, puissance, marque, modele }) {
+  // vehicle_type: 'voiture' (puissance = CV) ou 'moto' (puissance = cylindrée cm³)
+  static async getQuote({ annee, puissance, marque, modele, vehicle_type }) {
     const rows = await this.sb('/rest/v1/rpc/suro_get_quote', {
       method: 'POST',
       body: JSON.stringify({
@@ -92,6 +93,7 @@ class API {
         p_puissance: parseInt(puissance, 10) || null,
         p_marque: marque || null,
         p_modele: modele || null,
+        p_vehicle_type: vehicle_type || 'voiture',
       }),
     });
     // -> { minimal: 2100, complete: 4600 }
@@ -124,6 +126,7 @@ class API {
         customer_email: data.email,
         customer_phone: data.phone || null,
         coverage_type: data.coverage || null,
+        vehicle_type: data.vehicle_type || 'voiture',
         immatriculation: data.immatriculation || null,
         marque: data.marque || null,
         modele: data.modele || null,
@@ -543,7 +546,7 @@ class API {
   // --- Grille tarifaire (édition admin) ---
   static adminGetPricing() {
     return this.sb(
-      '/rest/v1/insurance_pricing?select=*&order=coverage_type.desc,cv_min.asc',
+      '/rest/v1/insurance_pricing?select=*&order=vehicle_type.asc,coverage_type.desc,cv_min.asc',
       { asUser: true }
     );
   }

@@ -7,7 +7,7 @@ import { DataTable } from '../components/DataTable.js';
 import { SavedViews } from '../components/SavedViews.js';
 import { SlideOver, Badge, Spinner, Empty, toast } from '../components/ui.js';
 import { can } from '../lib/permissions.js';
-import { fmtDate, fmtMoney, coverageLabel, vehicleLabel, subStatus, docStatus } from '../lib/format.js';
+import { fmtDate, fmtMoney, coverageLabel, vehicleLabel, vehicleTypeLabel, subStatus, docStatus } from '../lib/format.js';
 
 const STATUSES = ['nouvelle', 'active', 'expired', 'cancelled'];
 
@@ -113,12 +113,13 @@ function Detail({ app, caps, onClose, onSaved }) {
       ${tab === 'infos' ? html`
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
           <${Badge} tone=${st.tone}>${st.label}<//>
+          <${Badge} tone=${app.vehicle_type === 'moto' ? 'amber' : 'blue'}>${vehicleTypeLabel(app.vehicle_type)}<//>
           <span class="muted" style="font-size:12.5px">${app.policy_number || 'Sans n° de police'}</span>
         </div>
 
         <div class="form-grid">
           ${EDITABLE.map(([k, label, type]) => html`
-            <label>${label}
+            <label>${k === 'puissance' && app.vehicle_type === 'moto' ? 'Cylindrée (cm³)' : label}
               <input class="ops-input" type=${type} disabled=${!editable}
                 value=${form[k] == null ? '' : form[k]}
                 onInput=${(e) => set(k, e.target.value)} />
@@ -224,6 +225,7 @@ export function Subscriptions({ caps }) {
   const columns = [
     { key: 'policy_number', label: 'N° / Réf.', render: (a) => a.policy_number || html`<span class="muted">${a.id.slice(0, 8)}…</span>` },
     { key: 'customer_email', label: 'Client', sortable: true },
+    { key: 'vehicle_type', label: 'Type', sortable: true, render: (a) => html`<${Badge} tone=${a.vehicle_type === 'moto' ? 'amber' : 'blue'}>${vehicleTypeLabel(a.vehicle_type)}<//>` },
     { key: 'vehicle', label: 'Véhicule', render: (a) => vehicleLabel(a) },
     { key: 'coverage_type', label: 'Couverture', render: (a) => coverageLabel(a.coverage_type) },
     { key: 'annual_premium', label: 'Prime', sortable: true, render: (a) => fmtMoney(a.annual_premium) },

@@ -382,8 +382,12 @@ class CustomerDashboard {
   // Souscrire un nouveau contrat : tunnel vierge (client déjà connecté)
   newSubscription() {
     localStorage.removeItem('suroTunnelPrefill');
-    localStorage.removeItem('suro-state'); // repart d'un tunnel propre
-    window.location.href = '../index.html#souscrire';
+    localStorage.removeItem('suro-state');
+    if (window.dashboard && window.dashboard.navigateTo) {
+      window.dashboard.navigateTo('subscribe');
+    } else {
+      window.location.href = 'app/#subscribe';
+    }
   }
 
   // Renouveler : PROLONGE le contrat existant d'un an (même contrat)

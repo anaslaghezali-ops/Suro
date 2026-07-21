@@ -303,11 +303,17 @@ class OnboardingForm {
     return this.fields.map((f) => labels[f.id] || f.id);
   }
 
+  getAssetBase() {
+    const path = window.location.pathname || '';
+    return path.includes('/app') ? '../' : '';
+  }
+
   renderLegalConsentBlock(inputId, variant = 'subscription') {
+    const base = this.getAssetBase();
     const copyByVariant = {
-      account: `J'ai lu et j'accepte les <a href="conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a> de la plateforme SURO.`,
-      subscription: `J'ai lu et j'accepte les <a href="conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>. Je reconnais que SURO agit en qualité d'intermédiaire technologique, que le contrat d'assurance est conclu avec <strong>Wafa Assurance</strong> et que SURO n'est pas partie à ce contrat.`,
-      payment: `En validant mon paiement, j'accepte les <a href="conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>, ainsi que les conditions contractuelles de l'assureur. Je reconnais que SURO agit en qualité d'intermédiaire technologique et que le contrat d'assurance est conclu avec <strong>Wafa Assurance</strong>.`,
+      account: `J'ai lu et j'accepte les <a href="${base}conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="${base}confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a> de la plateforme SURO.`,
+      subscription: `J'ai lu et j'accepte les <a href="${base}conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="${base}confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>. Je reconnais que SURO agit en qualité d'intermédiaire technologique, que le contrat d'assurance est conclu avec <strong>Wafa Assurance</strong> et que SURO n'est pas partie à ce contrat.`,
+      payment: `En validant mon paiement, j'accepte les <a href="${base}conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="${base}confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>, ainsi que les conditions contractuelles de l'assureur. Je reconnais que SURO agit en qualité d'intermédiaire technologique et que le contrat d'assurance est conclu avec <strong>Wafa Assurance</strong>.`,
     };
     const copy = copyByVariant[variant] || copyByVariant.subscription;
     return `
@@ -983,7 +989,7 @@ class OnboardingForm {
       <div class="payment-section">
         <h3>Ton contrat est prêt</h3>
         ${amountHTML}
-        <p class="payment-legal">Paie maintenant pour l'activer, ou garde ton devis et paie plus tard depuis ton espace client. Le paiement implique l'acceptation des <a href="conditions.html" target="_blank" rel="noopener">CGU/CGV</a>.</p>
+        <p class="payment-legal">Paie maintenant pour l'activer, ou garde ton devis et paie plus tard depuis ton espace client. Le paiement implique l'acceptation des <a href="${this.getAssetBase()}conditions.html" target="_blank" rel="noopener">CGU/CGV</a>.</p>
 
         <div class="payment-methods">
           <button type="button" class="payment-method-btn" onclick="window.SURO_FORM.payNow('${applicationId}')">
@@ -1229,16 +1235,25 @@ class OnboardingForm {
   }
 
   handleGoToSpace() {
+    const base = this.getAssetBase();
     if (this.accountStatus === 'logged_in') {
-      window.location.href = 'app/';
+      if (window.location.pathname.includes('/app')) {
+        if (window.dashboard) {
+          window.dashboard.fetchPolicies(true);
+          window.dashboard.navigateTo('dashboard');
+        } else {
+          window.location.href = `${base}app/`;
+        }
+      } else {
+        window.location.href = `${base}app/`;
+      }
     } else {
-      // Compte créé mais email non confirmé : passage par la connexion
-      window.location.href = 'customer-login.html';
+      window.location.href = `${base}customer-login.html`;
     }
   }
 
   handleDashboard() {
-    window.location.href = 'customer-login.html';
+    window.location.href = `${this.getAssetBase()}customer-login.html`;
   }
 
   attachListeners() {
@@ -1268,7 +1283,12 @@ class OnboardingForm {
   }
 }
 
-// Export
+// Export — pas d'auto-init dans l'espace client (tunnel chargé à la demande)
 if (typeof window !== 'undefined') {
-  window.SURO_FORM = new OnboardingForm();
+  window.SURO_OnboardingForm = OnboardingForm;
+  const path = window.location.pathname || '';
+  const inApp = path.includes('/app');
+  if (!inApp) {
+    window.SURO_FORM = new OnboardingForm();
+  }
 }

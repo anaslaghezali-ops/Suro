@@ -254,6 +254,7 @@ class CustomerDashboard {
       case 'policies': this.loadPolicies(); break;
       case 'claims': this.loadClaims(); break;
       case 'payments': this.loadPayments(); break;
+      case 'subscribe': this.initSubscribeTunnel(); break;
       case 'profile': this.loadProfilePage(); break;
     }
   }
@@ -268,14 +269,19 @@ class CustomerDashboard {
   async loadProfileHeader() {
     try {
       const user = await this.api.getUser();
-      const name = (user.user_metadata && user.user_metadata.name) || user.email;
-      const firstName = name.includes('@') ? name.split('@')[0] : name.split(' ')[0];
+      const meta = user.user_metadata || {};
+      const prenom = meta.prenom
+        || (meta.name && meta.name.trim().split(/\s+/)[0])
+        || (user.email ? user.email.split('@')[0] : 'Client');
+      const displayName = (meta.prenom && meta.nom)
+        ? `${meta.prenom} ${meta.nom}`
+        : (meta.name || user.email);
       const welcome = document.getElementById('welcome-name');
       const userName = document.getElementById('user-name');
       const avatar = document.getElementById('user-avatar');
-      if (welcome) welcome.textContent = firstName;
-      if (userName) userName.textContent = name;
-      if (avatar) avatar.textContent = (firstName[0] || 'C').toUpperCase();
+      if (welcome) welcome.textContent = prenom;
+      if (userName) userName.textContent = displayName;
+      if (avatar) avatar.textContent = (prenom[0] || 'C').toUpperCase();
     } catch (error) {
       if (this.handleAuthError(error)) return;
     }
@@ -950,11 +956,27 @@ class CustomerDashboard {
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  // Souscrire un nouveau contrat : tunnel vierge (client déjà connecté)
+  // Souscrire un nouveau contrat : tunnel dans l'espace client (client déjà connecté)
   newSubscription() {
     localStorage.removeItem('suroTunnelPrefill');
-    localStorage.removeItem('suro-state'); // repart d'un tunnel propre
-    window.location.href = '../index.html#souscrire';
+    localStorage.removeItem('suro-state');
+    this.navigateTo('subscribe');
+  }
+
+  initSubscribeTunnel() {
+    if (!window.SURO_OnboardingForm) return;
+
+    if (!window.SURO_FORM) {
+      window.SURO_FORM = new window.SURO_OnboardingForm();
+      return;
+    }
+
+    window.SURO_FORM.store.reset();
+    window.SURO_FORM.quoteError = false;
+    window.SURO_FORM.currentStep = 0;
+    window.SURO_FORM.secrets = {};
+    window.SURO_FORM.fields = window.SURO_FORM.getFields();
+    window.SURO_FORM.render();
   }
 
   // Renouveler : PROLONGE le contrat existant d'un an (même contrat)

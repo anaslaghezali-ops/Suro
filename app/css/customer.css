@@ -2057,6 +2057,38 @@ textarea {
   background: var(--color-surface);
 }
 
+/* Tunnel souscription in-app */
+.subscribe-tunnel {
+  padding: clamp(20px, 3vw, 28px);
+}
+
+.subscribe-tunnel-head {
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.subscribe-tunnel-head h2 {
+  margin: 0 0 4px;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+
+.subscribe-tunnel-head p {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-neutral-600);
+}
+
+#subscribe-page .tunnel-wrapper {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+#subscribe-page .form-stepper {
+  margin-bottom: var(--space-md);
+}
+
 :root[data-theme="dark"] .admin-table thead {
   background: var(--color-neutral-100);
 }

@@ -128,4 +128,37 @@
       window.SURO_FORM.nextStep();
     }
   });
+
+  // Header connecté : afficher le prénom au lieu de « Mon espace »
+  function updateHeaderForSession() {
+    const api = window.SURO_API;
+    if (!api || !api.getSession || !api.getSession()?.access_token) return;
+
+    api.getUser().then((user) => {
+      const meta = user.user_metadata || {};
+      const prenom = meta.prenom
+        || (meta.name && meta.name.trim().split(/\s+/)[0])
+        || (user.email ? user.email.split('@')[0] : null);
+      if (!prenom) return;
+
+      const desktop = document.getElementById('header-account-btn');
+      const mobile = document.getElementById('nav-mobile-account');
+      if (desktop) {
+        desktop.href = 'app/';
+        desktop.textContent = prenom;
+        desktop.setAttribute('aria-label', `Mon espace — ${prenom}`);
+        desktop.classList.add('header-account-connected');
+      }
+      if (mobile) {
+        mobile.href = 'app/';
+        mobile.textContent = `Mon espace — ${prenom}`;
+      }
+    }).catch(() => {});
+  }
+
+  if (window.SURO_API) {
+    updateHeaderForSession();
+  } else {
+    window.addEventListener('load', updateHeaderForSession);
+  }
 })();

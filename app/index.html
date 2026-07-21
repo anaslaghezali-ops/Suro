@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="../css/components.css?v=37">
   <link rel="stylesheet" href="../css/notifications.css?v=37">
   <link rel="stylesheet" href="../css/toast.css?v=38">
+  <link rel="stylesheet" href="../css/tunnel.css?v=44">
   <link rel="stylesheet" href="css/dashboard.css?v=37">
   <link rel="stylesheet" href="css/customer.css?v=42">
 </head>
@@ -42,6 +43,10 @@
         <a href="#payments" class="nav-item" data-page="payments">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></span>
           <span>Paiements</span>
+        </a>
+        <a href="#subscribe" class="nav-item" data-page="subscribe">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+          <span>Nouvelle assurance</span>
         </a>
         <a href="#profile" class="nav-item" data-page="profile">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 22a8 8 0 0 1 16 0"/></svg></span>
@@ -457,6 +462,28 @@
           </div>
         </div>
 
+        <!-- Subscribe Page (tunnel in-app) -->
+        <div class="page" id="subscribe-page" style="display: none;">
+          <div class="page-header">
+            <div>
+              <p class="page-eyebrow">Souscription</p>
+              <h1>Nouvelle assurance</h1>
+              <p>Ajoute un véhicule à ton espace — sans repasser par l'accueil.</p>
+            </div>
+            <button type="button" class="btn btn-ghost page-primary-action" onclick="dashboard.navigateTo('dashboard')">Retour</button>
+          </div>
+
+          <div class="subscribe-tunnel section-card">
+            <div class="subscribe-tunnel-head">
+              <h2>Obtenir un devis</h2>
+              <p>Gratuit · Prix affiché avant paiement</p>
+            </div>
+            <div class="tunnel-wrapper" id="app-tunnel-wrapper">
+              <!-- Formulaire multi-étapes (tunnel.js) -->
+            </div>
+          </div>
+        </div>
+
         <!-- Profile Page -->
         <div class="page" id="profile-page" style="display: none;">
           <div class="page-header">
@@ -668,9 +695,11 @@
     </div>
   </div>
 
-  <script src="../js/services/api.js?v=38"></script>
+  <script src="../js/store.js?v=37"></script>
+  <script src="../js/services/api.js?v=39"></script>
   <script src="../js/notifications.js?v=37"></script>
   <script src="../js/toast.js?v=38"></script>
-  <script src="js/customer.js?v=43"></script>
+  <script src="../js/features/onboarding/tunnel.js?v=45"></script>
+  <script src="js/customer.js?v=44"></script>
 </body>
 </html>

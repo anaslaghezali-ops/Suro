@@ -164,7 +164,7 @@ class OnboardingForm {
       {
         id: 'coverage',
         label: 'Quel niveau de protection?',
-        sublabel: 'Choisir le plan qui te convient',
+        sublabel: 'Chaque formule affiche son prix annuel TTC — aucun frais caché',
         type: 'choice',
         choices: [
           {
@@ -321,7 +321,10 @@ class OnboardingForm {
       const selectedValue = this.store.getState(`onboarding.data.${field.id}`) || '';
       const hasPrices = field.choices.some((c) => quote[c.value]);
       if (field.id === 'coverage' && !hasPrices) {
-        formHTML += `<div class="tunnel-info-banner" role="status">Tarif indicatif — le montant exact sera confirmé au paiement.</div>`;
+        formHTML += `<div class="tunnel-info-banner" role="status">Complète les infos de ton véhicule pour afficher ton tarif exact — sans engagement.</div>`;
+      }
+      if (field.id === 'coverage' && hasPrices) {
+        formHTML += `<div class="tunnel-info-banner" role="status">Prix définitif TTC. Les garanties ci-dessous sont celles de ton contrat — consulte les <a href="conditions.html" target="_blank" rel="noopener">conditions générales</a> avant de valider.</div>`;
       }
       formHTML += `
         <p class="form-sublabel">${field.sublabel || ''}</p>
@@ -617,7 +620,7 @@ class OnboardingForm {
       errorEl.classList.remove('show');
     }
 
-    if (field.id === 'coverage' || field.id === 'vehicle_type') {
+    if (field.id === 'coverage') {
       setTimeout(() => this.nextStep(), 300);
     }
   }
@@ -860,8 +863,9 @@ class OnboardingForm {
       <div class="payment-section">
         <h3>Choisir une méthode de paiement</h3>
         ${amountHTML}
+        <p class="payment-transparency">Le montant affiché est définitif, toutes taxes comprises. Aucun frais caché, aucune condition surprise.</p>
         <p class="payment-legal">
-          En payant, tu acceptes les <a href="conditions.html" target="_blank">Conditions générales</a>.
+          En payant, tu acceptes les <a href="conditions.html" target="_blank" rel="noopener">conditions générales</a> — consultables à tout moment avant validation.
         </p>
 
         <div class="payment-methods">

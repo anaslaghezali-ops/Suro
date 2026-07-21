@@ -224,7 +224,7 @@ class OnboardingForm {
       {
         id: 'contact',
         label: 'Tes coordonnées',
-        hint: 'Pour te joindre en cas de sinistre et t\'envoyer tes documents',
+        hint: 'Pour l\'envoi de ta carte verte à domicile et te joindre en cas de sinistre',
         type: 'group',
         fields: [
           {
@@ -267,7 +267,7 @@ class OnboardingForm {
           },
           {
             id: 'address',
-            label: 'Adresse de livraison',
+            label: 'Adresse de livraison (carte verte)',
             inputType: 'textarea',
             autocomplete: 'street-address',
             placeholder: 'Ex: 12 Rue Atlas, Quartier Maârif, Casablanca',
@@ -1135,7 +1135,7 @@ class OnboardingForm {
           </div>
 
           <div class="success-info">
-            <strong>Tes documents officiels</strong> (carte verte, attestation) seront préparés par nos équipes et mis à disposition dans ton espace client.
+            <strong>Tes documents officiels</strong> — télécharge ton attestation dans ton espace client. Ta <strong>carte verte physique</strong> est préparée et expédiée à l'adresse indiquée.
             ${address ? `<br><br>Envoi postal à : <strong>${address}</strong>` : ''}
           </div>
 
@@ -1192,6 +1192,7 @@ class OnboardingForm {
 
   reset() {
     this.store.reset();
+    this.quoteError = false;
     this.currentStep = 0;
     this.render();
   }

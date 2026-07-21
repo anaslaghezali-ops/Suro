@@ -8,6 +8,7 @@ import { Documents } from './routes/documents.js';
 import { Users } from './routes/users.js';
 import { Settings } from './routes/settings.js';
 import { Privileges } from './routes/privileges.js';
+import { Analytics } from './routes/analytics.js';
 
 export const ROUTES = {
   dashboard: Dashboard,
@@ -17,6 +18,7 @@ export const ROUTES = {
   documents: Documents,
   payments: Payments,
   claims: Claims,
+  analytics: Analytics,
   users: Users,
   settings: Settings,
   audit: Audit,

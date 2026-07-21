@@ -38,6 +38,10 @@ export const api = {
     rpc('suro_log_action', { p_action: action, p_entity: entity || null, p_entity_id: entityId || null, p_changes: changes || null }),
   auditRecent: (limit = 50) => rpc('suro_audit_recent', { p_limit: limit }),
 
+  // --- funnel / analytics (sessions uniques par événement sur N jours) ---
+  funnelStats: (days = 7) => SB().adminGetFunnelStats(days),
+  recentEvents: (limit = 50) => SB().adminRecentEvents(limit),
+
   // --- données métier (réutilise l'API existante) ---
   applications: () => SB().adminGetApplications(),
   claims: () => SB().adminGetClaims(),

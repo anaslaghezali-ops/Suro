@@ -26,15 +26,15 @@ propres, XSS legacy à auditer.
 
 ## PHASE A — Base de données & RLS
 
-### Jour 1 — 🔴 Verrouiller le paiement (le trou n°1)
+### Jour 1 — 🔴 Verrouiller le paiement (le trou n°1) — ✅ FAIT (2026-07-22)
 Aujourd'hui `suro_mark_application_paid(app_id)` passe **n'importe quel** devis `nouvelle`
 à `active`, **sans vérifier le propriétaire ni un vrai paiement**. N'importe qui connaissant
 un `id` peut activer un contrat sans payer.
-- [ ] 🔴 Décider le modèle cible (paiement simulé encore, ou vrai prestataire plus tard).
-- [ ] 🔴 A minima : ajouter une **vérif propriétaire** (l'app doit appartenir à l'appelant) OU
-  restreindre l'exécution de la fonction (retirer l'accès anon, exiger le JWT).
-- [ ] 🟠 Retirer `execute` à `anon`/`public` sur cette fonction si elle n'a pas besoin d'être publique.
-- **Vérif** : un utilisateur A ne peut pas marquer payé le devis d'un utilisateur B (test SQL en rôle authenticated).
+- [x] 🔴 Modèle retenu : paiement **simulé + vérif propriétaire** ; vrai prestataire (webhook) plus tard.
+- [x] 🔴 **Vérif propriétaire** ajoutée (l'app doit appartenir à l'appelant, email JWT casse-insensible) + idempotence + `submitPayment` envoie le JWT (`asUser:true`).
+- [x] 🟠 `execute` retiré à `anon`/`public` ; réservé à `authenticated`.
+- **Vérif** : ✅ testé en base — attaquant bloqué, propriétaire OK, idempotent, anon bloqué.
+  Migration : `docs/migrations/20260722_sec_day1_lock_payment_ownership.sql`.
 
 ### Jour 2 — 🟠 Réduire la surface des fonctions SECURITY DEFINER
 73 fonctions sont exécutables par anon/authenticated. Elles ont des gardes internes

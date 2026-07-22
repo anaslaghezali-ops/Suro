@@ -142,9 +142,11 @@ class API {
 
   static async submitPayment(applicationId, paymentData) {
     // Paiement simulé : marque l'application comme payée/active.
-    // (Une vraie intégration CMI/carte viendra plus tard.)
+    // asUser:true → envoie le JWT ; la fonction vérifie que le devis
+    // appartient bien à l'appelant (sinon rejet). (Vraie intégration CMI plus tard.)
     await this.sb('/rest/v1/rpc/suro_mark_application_paid', {
       method: 'POST',
+      asUser: true,
       body: JSON.stringify({ app_id: applicationId }),
     });
 

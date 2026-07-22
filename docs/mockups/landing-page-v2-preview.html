@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SURO — Aperçu landing v2 (proposition)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0F766E;
+      --primary-soft: #ecfdf5;
+      --primary-ghost: rgba(15,118,110,.08);
+      --bg: #FAFBFC;
+      --surface: #fff;
+      --border: #E5E7EB;
+      --muted: #6B7280;
+      --text: #111827;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; background: #e8ecef; color: var(--text); padding: 28px 16px 48px; }
+    h1.page-title { text-align: center; font-size: 1.35rem; margin-bottom: 6px; }
+    p.sub { text-align: center; color: var(--muted); margin-bottom: 24px; font-size: .92rem; line-height: 1.55; max-width: 720px; margin-inline: auto; }
+    .frame { max-width: 1140px; margin: 0 auto; background: var(--bg); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 8px 28px rgba(0,0,0,.08); }
+    .frame-label { padding: 11px 16px; background: #fff; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+
+    /* Header v2 */
+    .header { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 64px; background: rgba(250,251,252,.9); border-bottom: 1px solid var(--border); }
+    .logo { font-weight: 800; font-size: 20px; color: var(--primary); }
+    .nav { display: flex; gap: 28px; font-size: 14px; font-weight: 500; color: var(--muted); }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+    .btn { font: inherit; font-size: 13px; font-weight: 600; padding: 9px 16px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; text-decoration: none; }
+    .btn-ghost { background: #fff; color: var(--muted); }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* Hero snippet */
+    .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding: 40px 32px 24px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--primary); background: var(--primary-ghost); padding: 6px 14px; border-radius: 999px; margin-bottom: 16px; }
+    .eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: #14B8A6; }
+    .hero h2 { font-size: 2.4rem; font-weight: 800; line-height: 1.1; letter-spacing: -.03em; margin-bottom: 12px; }
+    .hero p.lead { color: var(--muted); font-size: 17px; line-height: 1.55; max-width: 38ch; margin-bottom: 16px; }
+    .tunnel-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 12px 32px rgba(0,0,0,.1); padding: 20px 22px; }
+    .tunnel-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+    .tunnel-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+    .tunnel-field { height: 42px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; }
+    .tunnel-btn { width: 100%; padding: 12px; background: var(--primary); color: #fff; border: 0; border-radius: 10px; font-weight: 600; font-size: 14px; margin-top: 8px; }
+
+    /* Proof strip + payment logos */
+    .proof-strip { display: flex; justify-content: center; flex-wrap: wrap; gap: 20px 32px; padding: 18px 32px 22px; border-top: 1px solid #f3f4f6; }
+    .proof-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+    .proof-item strong { color: var(--text); }
+    .payment-logos { display: flex; align-items: center; gap: 12px; padding: 6px 14px; background: #fff; border: 1px solid var(--border); border-radius: 10px; }
+    .pay-logo { font-size: 11px; font-weight: 800; letter-spacing: .04em; padding: 4px 8px; border-radius: 4px; }
+    .pay-logo--visa { background: #1a1f71; color: #fff; }
+    .pay-logo--cmi { background: #003d7a; color: #fff; }
+    .pay-logo-label { font-size: 11px; color: var(--muted); font-weight: 600; }
+
+    /* Merged section */
+    .section { padding: 48px 32px; }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); margin-bottom: 8px; }
+    .section-title { font-size: 1.85rem; font-weight: 800; letter-spacing: -.02em; margin-bottom: 8px; }
+    .section-desc { color: var(--muted); font-size: 15px; max-width: 58ch; margin-bottom: 28px; line-height: 1.55; }
+    .benefits-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+    .benefit-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 22px; }
+    .benefit-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--primary-ghost); color: var(--primary); display: grid; place-items: center; font-size: 18px; margin-bottom: 14px; }
+    .benefit-card h3 { font-size: 16px; margin-bottom: 6px; }
+    .benefit-card p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .sub-label { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin: 8px 0 14px; }
+    .trust-band { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 22px; border-radius: 16px; background: linear-gradient(135deg, var(--primary-soft) 0%, #fff 70%); border: 1px solid rgba(15,118,110,.15); }
+    .trust-card { padding: 4px 8px; }
+    .trust-card h3 { font-size: 15px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .trust-card p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .trust-payment-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+
+    .note-box { max-width: 1140px; margin: 20px auto 0; padding: 14px 16px; border: 1px dashed var(--border); border-radius: 14px; background: #fff; font-size: .88rem; color: var(--muted); line-height: 1.55; }
+    .changes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; margin-top: 10px; font-size: 13px; }
+    .changes li { margin-left: 18px; }
+  </style>
+</head>
+<body>
+  <h1 class="page-title">Proposition — Landing SURO v2</h1>
+  <p class="sub">Header CTA · sections fusionnées · logos Visa/CMI · aucune mention Wafa · image OG dédiée</p>
+
+  <div class="frame">
+    <div class="frame-label">Desktop — aperçu global</div>
+
+    <header class="header">
+      <div class="logo">SURO</div>
+      <nav class="nav">
+        <span>Comment ça marche</span>
+        <span>Pourquoi SURO</span>
+        <span>Avis clients</span>
+        <span>FAQ</span>
+      </nav>
+      <div class="header-actions">
+        <a class="btn btn-ghost" href="#">Mon espace</a>
+        <a class="btn btn-primary" href="#">Obtenir mon devis</a>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow"><span class="eyebrow-dot"></span> Assurance auto 100% en ligne</div>
+        <h2>Ton assurance auto,<br>prête en 5 minutes.</h2>
+        <p class="lead">Devis personnalisé et paiement sécurisé — sans paperasse, sans attente au guichet.</p>
+      </div>
+      <div class="tunnel-card">
+        <div class="tunnel-title">Obtenir mon devis</div>
+        <div class="tunnel-sub">Gratuit · Prix affiché avant paiement</div>
+        <div class="tunnel-field"></div>
+        <div class="tunnel-field"></div>
+        <button class="tunnel-btn">Continuer</button>
+      </div>
+    </section>
+
+    <div class="proof-strip">
+      <div class="proof-item">✓ <strong>Devis gratuit</strong> — Sans engagement</div>
+      <div class="proof-item">🔒 <strong>Paiement sécurisé</strong></div>
+      <div class="payment-logos">
+        <span class="pay-logo-label">Paiement via</span>
+        <span class="pay-logo pay-logo--cmi">CMI</span>
+        <span class="pay-logo pay-logo--visa">VISA</span>
+      </div>
+      <div class="proof-item">📄 <strong>Conditions claires</strong></div>
+    </div>
+
+    <section class="section">
+      <div class="section-label">Pourquoi SURO</div>
+      <h2 class="section-title">Simple, transparent, sécurisé</h2>
+      <p class="section-desc">Une seule section — fini le doublon « Pourquoi » / « Confiance ». Produit en haut, réassurance en bas.</p>
+
+      <p class="sub-label">Ce que tu gagnes</p>
+      <div class="benefits-grid">
+        <article class="benefit-card">
+          <div class="benefit-icon">⚡</div>
+          <h3>Rapide</h3>
+          <p>Devis en quelques clics, souscription en moins de 5 minutes. Carte verte envoyée à domicile.</p>
+        </article>
+        <article class="benefit-card">
+          <div class="benefit-icon">✓</div>
+          <h3>Transparent</h3>
+          <p>Tarif et garanties visibles avant paiement. Tu sais exactement ce que tu paies.</p>
+        </article>
+        <article class="benefit-card">
+          <div class="benefit-icon">▦</div>
+          <h3>Tout au même endroit</h3>
+          <p>Contrats, documents, sinistres et paiements dans ton espace client.</p>
+        </article>
+      </div>
+
+      <p class="sub-label">Ta tranquillité</p>
+      <div class="trust-band">
+        <article class="trust-card">
+          <h3>💳 Paiement sécurisé</h3>
+          <p>Transactions chiffrées via notre partenaire de paiement.</p>
+          <div class="trust-payment-row">
+            <span class="pay-logo pay-logo--cmi">CMI</span>
+            <span class="pay-logo pay-logo--visa">VISA</span>
+          </div>
+        </article>
+        <article class="trust-card">
+          <h3>🔒 Données protégées</h3>
+          <p>Connexion chiffrée et accès sécurisé à ton espace personnel.</p>
+        </article>
+        <article class="trust-card">
+          <h3>💬 Équipe joignable</h3>
+          <p>Support par email et assistance sinistre quand tu en as besoin.</p>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <div class="note-box">
+    <strong>Changements prévus (v2) :</strong>
+    <ul class="changes">
+      <li><strong>Header</strong> — CTA « Obtenir mon devis » + « Mon espace » en ghost</li>
+      <li><strong>Sections</strong> — Fusion Pourquoi + Confiance (6→3+3 cartes, styles différents)</li>
+      <li><strong>Paiement</strong> — Logos CMI + Visa dans proof-strip et bandeau confiance</li>
+      <li><strong>Wafa</strong> — Suppression de toute mention sur la landing (FAQ, footer)</li>
+      <li><strong>OG image</strong> — Visuel 1200×630 dédié pour partage réseaux sociaux</li>
+      <li><strong>Texte</strong> — Moins de répétitions « sans frais caché »</li>
+    </ul>
+  </div>
+</body>
+</html>

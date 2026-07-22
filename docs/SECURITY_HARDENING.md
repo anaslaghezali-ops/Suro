@@ -16,6 +16,18 @@ propres, XSS legacy à auditer.
 
 ---
 
+## Décisions à trancher (bientôt)
+- [ ] 🟡 **Sort du dossier `backend/` (Express)** — à décider demain avec le reste.
+  Constat (audit SQLi du 2026-07-22) : il pointe par défaut vers un **autre** projet Supabase
+  (`yfrqiqlyvlllhttfrzhs`, pas `eprtmdugiusidtbwzozj`) et le site actuel est **statique + Supabase**
+  (il ne l'utilise pas). Trois options :
+  1. **Le supprimer** (code mort → moins de surface, moins de confusion) — recommandé si confirmé inutilisé ;
+  2. **Le garder** tel quel (au cas où) — mais alors le durcir (Jour 12 : CORS, helmet, validation, `npm audit`) ;
+  3. **Le migrer/rebrancher** sur le bon projet s'il doit servir sur le VPS.
+  → Décision requise **avant le Jour 12** ; l'action concrète (suppression ou durcissement) s'y fait.
+
+---
+
 ## Jour 0 — Base de référence & filet de sécurité — ✅ FAIT (2026-07-22)
 - [ ] ⚪ **Backups** : vérifier que les sauvegardes auto Supabase sont actives (Database → Backups),
   sinon export SQL manuel avant chaque phase risquée. *(action côté dashboard — voir baseline § 5)*

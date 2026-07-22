@@ -16,11 +16,13 @@ propres, XSS legacy à auditer.
 
 ---
 
-## Jour 0 — Base de référence & filet de sécurité
-- [ ] ⚪ Faire un **snapshot** de la base (Supabase → Database → Backups, ou export SQL).
-- [ ] ⚪ Relancer l'audit et archiver le résultat : advisors sécurité + `docs/migrations/` à jour.
-- [ ] ⚪ Confirmer que la branche de travail est propre et que chaque correctif = 1 commit + 1 migration.
-- **Vérif** : on a un point de restauration et une liste de findings figée.
+## Jour 0 — Base de référence & filet de sécurité — ✅ FAIT (2026-07-22)
+- [ ] ⚪ **Backups** : vérifier que les sauvegardes auto Supabase sont actives (Database → Backups),
+  sinon export SQL manuel avant chaque phase risquée. *(action côté dashboard — voir baseline § 5)*
+- [x] ⚪ **Baseline figée** : RLS par table + toutes les policies + droits d'exécution des fonctions
+  `SECURITY DEFINER` + résumé des advisors → `docs/security-baseline-2026-07-22.md`.
+- [x] ⚪ Branche `Cursor` propre, migrations versionnées dans `docs/migrations/`, 1 correctif = 1 commit + 1 migration.
+- **Vérif** : ✅ on a une référence figée pour diff/rollback ; il reste à confirmer les backups côté dashboard.
 
 ---
 

@@ -371,6 +371,7 @@ class CustomerDashboard {
     const phone = document.getElementById('sos-phone');
     const wa = document.getElementById('sos-whatsapp');
     const profileSupport = document.getElementById('profile-support-link');
+    const profileWhatsapp = document.getElementById('profile-support-whatsapp');
     const paymentsSupport = document.getElementById('payments-support-link');
     if (phone) phone.href = 'tel:' + phoneNumber;
     if (wa) wa.href = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent('Bonjour SURO, j\'ai une urgence sinistre.');
@@ -379,6 +380,9 @@ class CustomerDashboard {
       profileSupport.href = supportHref;
       profileSupport.target = '_blank';
       profileSupport.rel = 'noopener';
+    }
+    if (profileWhatsapp) {
+      profileWhatsapp.href = supportHref;
     }
     if (paymentsSupport) {
       paymentsSupport.href = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent('Bonjour SURO, j\'ai une question sur un paiement.');
@@ -975,10 +979,37 @@ class CustomerDashboard {
     if (saveBtn) saveBtn.disabled = !dirty;
   }
 
+  resetProfileForm() {
+    if (!this._profileSnapshot) return;
+    document.getElementById('profile-name').value = this._profileSnapshot.name;
+    document.getElementById('profile-phone').value = this._profileSnapshot.phone;
+    this.validateProfileField('profile-name');
+    this.validateProfileField('profile-phone');
+    this.updateProfileDirtyState();
+  }
+
+  async loadProfileStats() {
+    try {
+      const [policies, payments] = await Promise.all([
+        this.fetchPolicies(),
+        this.api.getMyPayments().catch(() => []),
+      ]);
+      const activeCount = (policies || []).filter((p) => p.status === 'active').length;
+      const paymentCount = (payments || []).length;
+      const policiesEl = document.getElementById('profile-stat-policies');
+      const paymentsEl = document.getElementById('profile-stat-payments');
+      if (policiesEl) policiesEl.textContent = activeCount;
+      if (paymentsEl) paymentsEl.textContent = paymentCount;
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+    }
+  }
+
   bindProfileForm() {
     if (this._profileFormBound) return;
     const form = document.getElementById('profile-form');
     const resetBtn = document.getElementById('profile-reset-btn');
+    const discardBtn = document.getElementById('profile-discard-link');
     if (!form) return;
 
     form.addEventListener('input', () => this.updateProfileDirtyState());
@@ -990,14 +1021,11 @@ class CustomerDashboard {
     });
 
     if (resetBtn) {
-      resetBtn.addEventListener('click', () => {
-        if (!this._profileSnapshot) return;
-        document.getElementById('profile-name').value = this._profileSnapshot.name;
-        document.getElementById('profile-phone').value = this._profileSnapshot.phone;
-        this.validateProfileField('profile-name');
-        this.validateProfileField('profile-phone');
-        this.updateProfileDirtyState();
-      });
+      resetBtn.addEventListener('click', () => this.resetProfileForm());
+    }
+
+    if (discardBtn) {
+      discardBtn.addEventListener('click', () => this.resetProfileForm());
     }
 
     this._profileFormBound = true;
@@ -1021,6 +1049,7 @@ class CustomerDashboard {
       this.validateProfileField('profile-name');
       this.validateProfileField('profile-phone');
       this.updateProfileDirtyState();
+      await this.loadProfileStats();
     } catch (error) {
       if (this.handleAuthError(error)) return;
       console.error('Error loading profile:', error);

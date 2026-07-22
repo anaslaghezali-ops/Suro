@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="../css/toast.css?v=38">
   <link rel="stylesheet" href="../css/tunnel.css?v=44">
   <link rel="stylesheet" href="css/dashboard.css?v=37">
-  <link rel="stylesheet" href="css/customer.css?v=46">
+  <link rel="stylesheet" href="css/customer.css?v=48">
 </head>
 <body>
   <div class="admin-container">
@@ -474,11 +474,17 @@
               </div>
             </div>
             <div class="profile-hero-content" id="profile-hero-content" hidden>
-              <div class="profile-avatar-lg" id="profile-avatar-lg" aria-hidden="true">C</div>
-              <div class="profile-hero-meta">
-                <h2 class="profile-display-name" id="profile-display-name">—</h2>
-                <p class="profile-display-email" id="profile-display-email">—</p>
-                <span class="profile-member-badge" id="profile-member-badge">Membre depuis —</span>
+              <div class="profile-hero-identity">
+                <div class="profile-avatar-lg" id="profile-avatar-lg" aria-hidden="true">C</div>
+                <div class="profile-hero-meta">
+                  <h2 class="profile-display-name" id="profile-display-name">—</h2>
+                  <p class="profile-display-email" id="profile-display-email">—</p>
+                  <span class="profile-member-badge" id="profile-member-badge">Membre depuis —</span>
+                </div>
+              </div>
+              <div class="profile-hero-stats" id="profile-hero-stats">
+                <span class="profile-stat-pill"><strong id="profile-stat-policies">—</strong> contrats actifs</span>
+                <span class="profile-stat-pill"><strong id="profile-stat-payments">—</strong> paiements</span>
               </div>
             </div>
           </div>
@@ -517,9 +523,12 @@
 
                   <div class="profile-form-footer" id="profile-form-footer" hidden>
                     <p class="profile-unsaved-hint" id="profile-unsaved-hint">Modifications non enregistrées</p>
-                    <div class="profile-form-actions">
-                      <button type="button" class="btn btn-ghost btn-sm" id="profile-reset-btn">Annuler</button>
-                      <button type="submit" class="btn btn-primary btn-sm" id="profile-save-btn">Enregistrer</button>
+                    <div class="profile-form-save-stack">
+                      <div class="profile-form-actions">
+                        <button type="button" class="btn btn-ghost btn-sm profile-cancel-btn" id="profile-reset-btn">Annuler</button>
+                        <button type="submit" class="btn btn-primary btn-sm" id="profile-save-btn">Enregistrer</button>
+                      </div>
+                      <button type="button" class="profile-discard-link" id="profile-discard-link">Ignorer les modifications</button>
                     </div>
                   </div>
                 </form>
@@ -561,14 +570,22 @@
                   </div>
                 </div>
                 <div class="profile-security-list">
-                  <div class="profile-security-item">
+                  <div class="profile-security-item profile-security-item--desktop">
                     <div class="profile-security-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
                     <div class="profile-security-copy">
                       <strong>Mot de passe</strong>
                       <p>Mets à jour ton mot de passe régulièrement pour sécuriser ton espace.</p>
                     </div>
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="openChangePasswordModal()">Modifier</button>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="openChangePasswordModal()">Modifier</button>
                   </div>
+                  <button type="button" class="profile-action-row profile-security-item--mobile" onclick="openChangePasswordModal()">
+                    <div class="profile-security-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+                    <div class="profile-security-copy">
+                      <strong>Mot de passe</strong>
+                      <p>Mets à jour ton mot de passe régulièrement pour sécuriser ton espace.</p>
+                    </div>
+                    <span class="profile-action-chevron" aria-hidden="true">›</span>
+                  </button>
                 </div>
               </div>
 
@@ -577,7 +594,11 @@
                   <strong>Besoin d'aide ?</strong>
                   <p>Notre équipe peut t'assister pour toute question sur ton compte.</p>
                 </div>
-                <a id="profile-support-link" href="#" class="btn btn-ghost btn-sm">Contacter le support</a>
+                <a id="profile-support-link" href="#" class="btn btn-ghost btn-sm profile-support-btn">Contacter le support</a>
+                <div class="profile-support-links">
+                  <a id="profile-support-whatsapp" href="#" target="_blank" rel="noopener">WhatsApp</a>
+                  <a id="profile-support-email" href="mailto:support@suro.ma">support@suro.ma</a>
+                </div>
               </div>
             </aside>
           </div>
@@ -670,6 +691,6 @@
   <script src="../js/notifications.js?v=37"></script>
   <script src="../js/toast.js?v=38"></script>
   <script src="../js/features/onboarding/tunnel.js?v=45"></script>
-  <script src="js/customer.js?v=47"></script>
+  <script src="js/customer.js?v=48"></script>
 </body>
 </html>

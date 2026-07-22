@@ -38,15 +38,17 @@ un `id` peut activer un contrat sans payer.
 - **Vérif** : ✅ testé en base — attaquant bloqué, propriétaire OK, idempotent, anon bloqué.
   Migration : `docs/migrations/20260722_sec_day1_lock_payment_ownership.sql`.
 
-### Jour 2 — 🟠 Réduire la surface des fonctions SECURITY DEFINER
-73 fonctions sont exécutables par anon/authenticated. Elles ont des gardes internes
-(`is_suro_admin()`, `suro_current_role()`), mais le principe = **retirer l'exécution à qui n'en a pas besoin**.
-- [ ] 🟠 Lister les fonctions et classer : **publiques nécessaires** (ex: `suro_get_quote`,
-  `suro_mark_application_paid` selon Jour 1) vs **staff-only** (tout le reste : `suro_set_staff`,
-  `suro_set_privilege`, `suro_review_document`, `suro_audit_recent`, `suro_funnel_stats`…).
-- [ ] 🟠 `revoke execute ... from anon, public;` sur les fonctions staff-only ; `grant execute ... to authenticated;` là où il faut.
-- [ ] ⚪ Garder les gardes internes (défense en profondeur) — on ne les retire pas.
-- **Vérif** : ré-exécuter les advisors → le compte `anon_security_definer_function_executable` chute ; l'ops marche toujours (smoke test).
+### Jour 2 — 🟠 Réduire la surface des fonctions SECURITY DEFINER — ✅ FAIT (2026-07-22)
+73 fonctions étaient exécutables par anon/authenticated (via le grant PUBLIC par défaut).
+Gardes internes présentes, mais on **retire l'exécution à qui n'en a pas besoin**.
+- [x] 🟠 Classées : `suro_get_quote` (public tunnel) · triggers + internes (`compute_premium`,
+  `notify`, `set_premium`, `trg_*`) en definer-only · tout le reste réservé à `authenticated`.
+- [x] 🟠 `revoke execute from public, anon` partout sauf `suro_get_quote` ; `grant to authenticated`
+  sur les RPC staff/clients + helpers RLS (via boucle dynamique, gère les surcharges).
+- [x] ⚪ Gardes internes conservées (défense en profondeur).
+- **Vérif** : ✅ **seul `suro_get_quote` reste exécutable par anon** (36 → 1). Testé en base :
+  anon perd les fonctions staff (42501), authenticated les garde (garde interne), devis anon OK.
+  Migration : `docs/migrations/20260722_sec_day2_revoke_anon_execute_definer_fns.sql`.
 
 ### Jour 3 — 🟠 Policies « always true » & insert anon
 - [ ] 🟠 `suro_events` INSERT anon (analytics) : ajouter une **limite** (ex: contrainte de forme,

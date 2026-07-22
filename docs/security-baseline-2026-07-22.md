@@ -93,6 +93,11 @@ Accès **anon** (public, non connecté) — à surveiller : `insurance_applicati
 ⚠️ **Cible du Jour 2** : la plupart sont exécutables par **anon** alors qu'elles sont
 staff-only (gardes internes présentes, mais surface à réduire → `revoke ... from anon`).
 Déjà verrouillées : `suro_lookup_user_id`, `suro_mark_application_paid` (Jour 1).
+
+> ✅ **Jour 2 fait (2026-07-22)** : le tableau ci-dessous est l'état **AVANT**. Après le
+> Jour 2, **seul `suro_get_quote` reste exécutable par anon** ; tout le reste est réservé à
+> `authenticated` (ou definer-only pour les triggers/internes). Voir migration
+> `20260722_sec_day2_revoke_anon_execute_definer_fns.sql`.
 Les `suro_trg_*` et `suro_set_premium` sont des **fonctions trigger** (non appelables en RPC) — le grant y est sans effet.
 
 | Fonction | anon | authenticated |

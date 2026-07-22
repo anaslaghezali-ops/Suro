@@ -50,16 +50,16 @@ Gardes internes présentes, mais on **retire l'exécution à qui n'en a pas beso
   anon perd les fonctions staff (42501), authenticated les garde (garde interne), devis anon OK.
   Migration : `docs/migrations/20260722_sec_day2_revoke_anon_execute_definer_fns.sql`.
 
-### Jour 3 — 🟠 Policies « always true » & insert anon
-- [ ] 🟠 `suro_events` INSERT anon (analytics) : ajouter une **limite** (ex: contrainte de forme,
-  rate-limit applicatif) — sinon un bot peut polluer le funnel. Au minimum : valider `event` contre une liste blanche.
-- [ ] 🟠 `insurance_application_answers` INSERT anon : vérifier que le `with_check` est bien borné
-  (rattaché à une application existante) et pas juste `true`.
-- [ ] 🟡 `suro_settings` SELECT public : lister les clés → confirmer qu'**aucune donnée sensible**
-  n'y traîne (seulement contacts support publics). Sinon séparer public/privé.
-- [ ] ⚪ `insurance_pricing_factors` / `insurance_pricing` SELECT public : OK (tarifs publics) — confirmer.
-- [ ] ⚪ `suro_admins` / `suro_role_privileges` RLS sans policy : confirmer le **deny-all volontaire** (accès seulement via fonctions).
-- **Vérif** : advisors « always true » traités ou justifiés par écrit.
+### Jour 3 — 🟠 Policies « always true » & insert anon — ✅ FAIT (2026-07-22)
+- [x] 🟠 `suro_events` INSERT anon : `with_check` borné (event `^[a-z][a-z0-9_]{0,63}$`, tailles
+  step/session/meta limitées) → plus de payload énorme ni de contenu piégé. Testé (event légitime OK, piégé/énorme rejetés).
+- [x] 🟠 `insurance_application_answers` INSERT anon : `with_check` borné (application_id requis + tailles).
+  Constat : n'est inséré que par le backend en `service_role` (contourne RLS) — front non impacté.
+- [x] 🟡 `suro_settings` SELECT public : ne contient que `support_phone` / `support_whatsapp` (contacts publics) — **rien de sensible** ✓.
+- [x] ⚪ `insurance_pricing_factors` / `insurance_pricing` / `insurance_products` SELECT public : tarifs publics — OK.
+- [x] ⚪ `suro_admins` / `suro_role_privileges` RLS sans policy : **deny-all volontaire** confirmé (accès via fonctions).
+- **Vérif** : ✅ ne restent en « always true » que 2 SELECT publics **non sensibles** (justifiés).
+  Migration : `docs/migrations/20260722_sec_day3_bound_anon_inserts.sql`. **→ Phase A terminée.**
 
 ---
 

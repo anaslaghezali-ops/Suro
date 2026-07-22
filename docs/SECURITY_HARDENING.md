@@ -61,6 +61,16 @@ Gardes internes présentes, mais on **retire l'exécution à qui n'en a pas beso
 - **Vérif** : ✅ ne restent en « always true » que 2 SELECT publics **non sensibles** (justifiés).
   Migration : `docs/migrations/20260722_sec_day3_bound_anon_inserts.sql`. **→ Phase A terminée.**
 
+### Audit Injection SQL (SQLi) — ✅ FAIT (2026-07-22), rien à corriger
+Vérification ciblée du seul vecteur SQLi possible dans cette archi (SQL dynamique).
+- [x] ⚪ **Fonctions Postgres** : aucune (0/37) n'utilise `EXECUTE`/`format()` dynamique → pas de SQL construit depuis une saisie.
+- [x] ⚪ **PostgREST (REST + RPC)** : requêtes **paramétrées** par design.
+- [x] ⚪ **Backend Express** (`backend/`) : uniquement le query-builder Supabase (`.from().select()`), aucun client `pg` brut ni template SQL.
+- **Conclusion** : l'injection SQL **n'est pas un vecteur exploitable** sur SURO (vérifié en base + dans le code).
+- **Note annexe** : `backend/config/supabase.js` pointe par défaut vers un **autre** projet Supabase
+  (`yfrqiqlyvlllhttfrzhs`, ancien) — le `backend/` semble legacy/inutilisé par le déploiement statique actuel.
+  À clarifier au Jour 12 (migration VPS) : ce backend sert-il encore ?
+
 ---
 
 ## PHASE B — Authentification & accès

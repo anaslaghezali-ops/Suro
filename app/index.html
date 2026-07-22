@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="../css/toast.css?v=38">
   <link rel="stylesheet" href="../css/tunnel.css?v=44">
   <link rel="stylesheet" href="css/dashboard.css?v=37">
-  <link rel="stylesheet" href="css/customer.css?v=43">
+  <link rel="stylesheet" href="css/customer.css?v=44">
 </head>
 <body>
   <div class="admin-container">
@@ -153,22 +153,8 @@
               </div>
               <button type="button" class="link-view-all" onclick="dashboard.navigateTo('policies')">Voir tous les contrats</button>
             </div>
-            <div class="table-responsive">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Véhicule</th>
-                    <th>Prime</th>
-                    <th>Statut</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="active-policies-tbody">
-                  <tr>
-                    <td colspan="4" class="text-center">Chargement...</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="policy-list policy-list--compact" id="active-policies-list" aria-live="polite">
+              <p class="policy-list-loading">Chargement…</p>
             </div>
           </div>
         </div>
@@ -205,24 +191,8 @@
                     <h3>Tous mes contrats</h3>
                   </div>
                 </div>
-                <div class="table-responsive">
-                  <table class="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Immatriculation</th>
-                        <th>Véhicule</th>
-                        <th>Couverture</th>
-                        <th>Prime</th>
-                        <th>Statut</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody id="policies-tbody">
-                      <tr>
-                        <td colspan="6" class="text-center">Chargement...</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <div class="policy-list" id="policies-list" aria-live="polite">
+                  <p class="policy-list-loading">Chargement…</p>
                 </div>
               </div>
             </div>
@@ -700,6 +670,6 @@
   <script src="../js/notifications.js?v=37"></script>
   <script src="../js/toast.js?v=38"></script>
   <script src="../js/features/onboarding/tunnel.js?v=45"></script>
-  <script src="js/customer.js?v=44"></script>
+  <script src="js/customer.js?v=45"></script>
 </body>
 </html>

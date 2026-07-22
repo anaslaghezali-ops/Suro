@@ -145,6 +145,103 @@ class CustomerDashboard {
     return Array.from({ length: rows }, () => `<tr class="skeleton-row">${cells}</tr>`).join('');
   }
 
+  setPolicyListSkeleton(listId, rows = 3) {
+    const el = document.getElementById(listId);
+    if (el) {
+      el.innerHTML = Array.from({ length: rows }, () => '<div class="policy-card-skeleton" aria-hidden="true"></div>').join('');
+    }
+  }
+
+  policyListEmptyHTML({ title, desc, ctaLabel, ctaOnclick }) {
+    return `<div class="policy-list-empty">
+      <p class="table-empty-title">${title}</p>
+      ${desc ? `<p class="table-empty-desc">${desc}</p>` : ''}
+      ${ctaLabel ? `<button type="button" class="btn btn-primary btn-sm" onclick="${ctaOnclick}">${ctaLabel}</button>` : ''}
+    </div>`;
+  }
+
+  policyListErrorHTML(retryFn) {
+    return `<div class="policy-list-empty policy-list-empty--error">
+      <p class="table-empty-title">Impossible de charger</p>
+      <p class="table-empty-desc">Vérifie ta connexion et réessaie.</p>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="${retryFn}">Réessayer</button>
+    </div>`;
+  }
+
+  vehicleTitle(p) {
+    const parts = [p.marque, p.modele].filter(Boolean).join(' ');
+    return parts || (p.coverage_type ? this.coverageShortLabel(p.coverage_type) : 'Contrat auto');
+  }
+
+  coverageShortLabel(type) {
+    if (type === 'complete') return 'Complète';
+    if (type === 'minimal') return 'Minimale';
+    return type || '—';
+  }
+
+  vehicleIcon(p) {
+    return p.vehicle_type === 'moto' ? '🏍️' : '🚗';
+  }
+
+  vehicleTypeLabel(p) {
+    return p.vehicle_type === 'moto' ? 'Moto' : 'Voiture';
+  }
+
+  expiryLabel(p) {
+    if (!p.expires_at) return '—';
+    return new Date(p.expires_at).toLocaleDateString('fr-FR');
+  }
+
+  policyActionButtons(p) {
+    const detailBtn = `<button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button>`;
+    const actionBtn = p.status === 'nouvelle'
+      ? `<button type="button" class="btn btn-primary btn-sm" onclick="dashboard.payPolicy('${p.id}')">Payer</button>`
+      : `<button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.renewPolicy('${p.id}')">Renouveler</button>`;
+    return `${detailBtn}${actionBtn}`;
+  }
+
+  renderPolicyCard(p, { compact = false } = {}) {
+    const status = p.status;
+    const statusLabel = this.formatStatus(status);
+    const badge = `<span class="status-badge status-${status}">${statusLabel}</span>`;
+    const plate = this.escape(p.immatriculation || '—');
+    const year = p.annee ? `<span class="policy-chip">${p.annee}</span>` : '';
+    const title = this.escape(this.vehicleTitle(p));
+    const coverage = this.escape(this.coverageShortLabel(p.coverage_type));
+    const premium = this.escape(this.premiumLabel(p));
+    const expiry = this.escape(this.expiryLabel(p));
+    const typeLabel = this.escape(this.vehicleTypeLabel(p));
+    const icon = this.vehicleIcon(p);
+
+    const stat = (area, label, value, extraClass = '') => `
+      <div class="policy-card__stat policy-card__stat--${area}">
+        <span class="policy-card__stat-label">${label}</span>
+        <span class="policy-card__stat-value${extraClass ? ` ${extraClass}` : ''}">${value}</span>
+      </div>`;
+
+    return `
+      <article class="policy-card${compact ? ' policy-card--compact' : ''}" data-policy-id="${p.id}">
+        <div class="policy-card__status-mobile">${badge}</div>
+        <div class="policy-card__vehicle">
+          <div class="policy-card__icon" aria-hidden="true">${icon}</div>
+          <div>
+            <div class="policy-card__name" title="${this.escape(this.vehicleLabel(p))}">${title}</div>
+            <div class="policy-card__meta">
+              <span class="policy-chip policy-chip--plate">${plate}</span>
+              ${year}
+            </div>
+          </div>
+        </div>
+        ${compact ? '' : stat('coverage', 'Couverture', coverage, 'policy-card__stat-value--muted')}
+        ${stat('price', 'Prime', premium, 'policy-card__stat-value--price')}
+        ${compact ? '' : stat('expiry', 'Échéance', expiry)}
+        ${compact ? '' : stat('mobile-only', 'Type', typeLabel)}
+        <span class="policy-card__status">${badge}</span>
+        <div class="policy-card__actions">${this.policyActionButtons(p)}</div>
+      </article>
+    `;
+  }
+
   setTableSkeleton(tbodyId, colspan, rows = 3) {
     const tbody = document.getElementById(tbodyId);
     if (tbody) tbody.innerHTML = this.skeletonRowsHTML(colspan, rows);
@@ -289,7 +386,7 @@ class CustomerDashboard {
 
   async loadDashboard() {
     this.setDashboardStatsLoading(true);
-    this.setTableSkeleton('active-policies-tbody', 4, 3);
+    this.setPolicyListSkeleton('active-policies-list', 3);
     try {
       const policies = await this.fetchPolicies(true);
       this.renderPendingPaymentBanner(policies, 'pending-payment-banner-dashboard');
@@ -310,16 +407,9 @@ class CustomerDashboard {
       document.getElementById('stat-next-renewal').textContent =
         expiries.length ? expiries[0].toLocaleDateString('fr-FR') : '—';
 
-      const tbody = document.getElementById('active-policies-tbody');
+      const list = document.getElementById('active-policies-list');
       const rows = policies.slice(0, 5);
-      tbody.innerHTML = rows.length ? rows.map(p => `
-        <tr>
-          <td data-label="Véhicule">${this.vehicleLabel(p)}</td>
-          <td data-label="Prime">${this.premiumLabel(p)}</td>
-          <td data-label="Statut"><span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></td>
-          <td data-label=""><button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button></td>
-        </tr>
-      `).join('') : this.emptyStateHTML(4, {
+      list.innerHTML = rows.length ? rows.map(p => this.renderPolicyCard(p, { compact: true })).join('') : this.policyListEmptyHTML({
         title: 'Aucun contrat actif',
         desc: 'Souscris une assurance en quelques minutes.',
         ctaLabel: 'Nouvelle assurance',
@@ -329,36 +419,22 @@ class CustomerDashboard {
     } catch (error) {
       this.setDashboardStatsLoading(false);
       if (this.handleAuthError(error)) return;
-      const tbody = document.getElementById('active-policies-tbody');
-      if (tbody) tbody.innerHTML = this.errorStateHTML(4, 'dashboard.loadDashboard()');
+      const list = document.getElementById('active-policies-list');
+      if (list) list.innerHTML = this.policyListErrorHTML('dashboard.loadDashboard()');
     }
   }
 
   async loadPolicies() {
-    this.setTableSkeleton('policies-tbody', 6, 4);
+    this.setPolicyListSkeleton('policies-list', 4);
     try {
       const policies = await this.fetchPolicies(true);
       this.renderPendingPaymentBanner(policies);
       await this.renderRenewalAside(policies, 'policies');
       const statusFilter = document.getElementById('filter-policy-status')?.value || '';
       const filtered = statusFilter ? policies.filter(p => p.status === statusFilter) : policies;
-      const tbody = document.getElementById('policies-tbody');
+      const list = document.getElementById('policies-list');
 
-      tbody.innerHTML = filtered.length ? filtered.map(p => `
-        <tr>
-          <td data-label="Immatriculation">${p.immatriculation || '—'}</td>
-          <td data-label="Véhicule">${this.vehicleLabel(p)}</td>
-          <td data-label="Couverture">${this.coverageLabel(p.coverage_type)}</td>
-          <td data-label="Prime">${this.premiumLabel(p)}</td>
-          <td data-label="Statut"><span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></td>
-          <td data-label="" style="white-space:nowrap;">
-            <button class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button>
-            ${p.status === 'nouvelle'
-              ? `<button class="btn btn-primary btn-sm" onclick="dashboard.payPolicy('${p.id}')">Payer</button>`
-              : `<button class="btn btn-ghost btn-sm" onclick="dashboard.renewPolicy('${p.id}')">Renouveler</button>`}
-          </td>
-        </tr>
-      `).join('') : this.emptyStateHTML(6, {
+      list.innerHTML = filtered.length ? filtered.map(p => this.renderPolicyCard(p)).join('') : this.policyListEmptyHTML({
         title: statusFilter ? 'Aucun contrat pour ce filtre' : 'Aucun contrat',
         desc: statusFilter ? 'Essaie un autre statut ou souscris une nouvelle assurance.' : 'Commence par souscrire ton assurance auto.',
         ctaLabel: 'Nouvelle assurance',
@@ -366,8 +442,8 @@ class CustomerDashboard {
       });
     } catch (error) {
       if (this.handleAuthError(error)) return;
-      const tbody = document.getElementById('policies-tbody');
-      if (tbody) tbody.innerHTML = this.errorStateHTML(6, 'dashboard.loadPolicies()');
+      const list = document.getElementById('policies-list');
+      if (list) list.innerHTML = this.policyListErrorHTML('dashboard.loadPolicies()');
     }
   }
 

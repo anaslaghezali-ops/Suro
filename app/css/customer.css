@@ -1258,6 +1258,190 @@ textarea {
   color: var(--color-neutral-600);
 }
 
+/* ===== POLICY CARDS (Mes contrats) ===== */
+.policy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px 16px;
+}
+
+.policy-list-loading {
+  margin: 0;
+  padding: 24px 8px;
+  text-align: center;
+  color: var(--color-neutral-600);
+  font-size: 14px;
+}
+
+.policy-list-empty {
+  margin: 8px 4px 12px;
+  padding: 28px 20px;
+  text-align: center;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-neutral-50);
+}
+
+.policy-list-empty .table-empty-title {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-neutral-900);
+}
+
+.policy-list-empty .table-empty-desc {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--color-neutral-600);
+  line-height: 1.45;
+}
+
+.policy-list-empty--error {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.policy-card-skeleton {
+  height: 68px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: policy-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes policy-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.policy-card {
+  display: grid;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  grid-template-columns: minmax(180px, 1.35fr) 108px 108px 100px auto 1fr;
+  grid-template-areas: "vehicle coverage premium expiry status actions";
+}
+
+.policy-card--compact {
+  grid-template-columns: minmax(180px, 1.5fr) 110px auto 1fr;
+  grid-template-areas: "vehicle premium status actions";
+}
+
+.policy-card:hover {
+  border-color: rgba(15, 118, 110, 0.22);
+  box-shadow: var(--shadow-xs);
+}
+
+.policy-card__status-mobile {
+  display: none;
+}
+
+.policy-card__vehicle {
+  grid-area: vehicle;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.policy-card__stat--coverage { grid-area: coverage; }
+.policy-card__stat--price { grid-area: premium; }
+.policy-card__stat--expiry { grid-area: expiry; }
+.policy-card__stat--mobile-only { display: none; }
+
+.policy-card__status {
+  grid-area: status;
+  justify-self: start;
+}
+
+.policy-card__actions {
+  grid-area: actions;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.policy-card--compact .policy-card__stat--coverage,
+.policy-card--compact .policy-card__stat--expiry,
+.policy-card--compact .policy-card__stat--mobile-only {
+  display: none;
+}
+
+.policy-card__stat-label {
+  display: none;
+}
+
+.policy-card__stat-value {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-neutral-900);
+}
+
+.policy-card__stat-value--muted {
+  font-weight: 500;
+  color: var(--color-neutral-700);
+}
+
+.policy-card__stat-value--price {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.policy-card__icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  background: var(--color-primary-ghost);
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.policy-card__name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-neutral-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.policy-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 3px;
+}
+
+.policy-chip {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-700);
+}
+
+.policy-chip--plate {
+  font-family: var(--font-mono, monospace);
+  letter-spacing: 0.04em;
+}
+
+.status-expired {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .pending-banner {
   display: flex;
   align-items: center;
@@ -1578,6 +1762,104 @@ textarea {
 
   .security-group .btn {
     width: 100%;
+  }
+
+  /* Policy cards → layout mobile validé */
+  .policy-list {
+    padding: 10px 12px 14px;
+    gap: 12px;
+  }
+
+  .policy-card,
+  .policy-card--compact {
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+    align-items: stretch;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "status-mobile status-mobile"
+      "vehicle vehicle"
+      "coverage premium"
+      "expiry type"
+      "actions actions";
+  }
+
+  .policy-card--compact {
+    grid-template-areas:
+      "status-mobile status-mobile"
+      "vehicle vehicle"
+      "premium premium"
+      "actions actions";
+  }
+
+  .policy-card__status-mobile {
+    display: block;
+    grid-area: status-mobile;
+    padding: 12px 14px 0;
+  }
+
+  .policy-card__status {
+    display: none;
+  }
+
+  .policy-card__vehicle {
+    padding: 6px 14px 12px;
+  }
+
+  .policy-card__name {
+    white-space: normal;
+  }
+
+  .policy-card__stat {
+    padding: 10px 14px;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .policy-card__stat--coverage {
+    border-right: 1px solid var(--color-border-subtle);
+  }
+
+  .policy-card__stat--expiry {
+    border-right: 1px solid var(--color-border-subtle);
+  }
+
+  .policy-card__stat--mobile-only {
+    display: block;
+  }
+
+  .policy-card--compact .policy-card__stat--price {
+    border-right: none;
+  }
+
+  .policy-card__stat-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-neutral-600);
+    margin-bottom: 4px;
+  }
+
+  .policy-card__stat-value {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-neutral-900);
+  }
+
+  .policy-card__actions {
+    padding: 10px 14px 14px;
+    background: var(--color-neutral-50);
+    border-top: 1px solid var(--color-border-subtle);
+    flex-direction: column;
+  }
+
+  .policy-card__actions .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 11px 14px;
   }
 }
 
@@ -2108,6 +2390,20 @@ textarea {
 
 :root[data-theme="dark"] .sos-card {
   background: #172033;
+}
+
+:root[data-theme="dark"] .policy-card {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+:root[data-theme="dark"] .policy-card__actions {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--color-border);
+}
+
+:root[data-theme="dark"] .policy-card__stat {
+  border-color: var(--color-border);
 }
 
 @media (max-width: 1024px) {

@@ -866,6 +866,13 @@ class CustomerDashboard {
     });
   }
 
+  formatProfileMemberDate(dateStr) {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    const month = d.toLocaleDateString('fr-FR', { month: 'short' }).replace(/\.$/, '');
+    return `${month} ${d.getFullYear()}`;
+  }
+
   getProfileInitials(name, email) {
     const source = (name || email || 'C').trim();
     if (!source) return 'C';
@@ -895,7 +902,7 @@ class CustomerDashboard {
     const displayName = meta.name || user.email || 'Client';
     const email = user.email || '—';
     const createdLabel = user.created_at
-      ? `Membre depuis ${this.formatProfileDate(user.created_at)}`
+      ? `Membre depuis ${this.formatProfileMemberDate(user.created_at)}`
       : 'Membre SURO';
 
     const nameEl = document.getElementById('profile-display-name');

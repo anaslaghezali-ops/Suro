@@ -180,7 +180,11 @@ class CustomerDashboard {
   }
 
   vehicleIcon(p) {
-    return p.vehicle_type === 'moto' ? '🏍️' : '🚗';
+    const icons = {
+      voiture: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16h14M6 16l-1-4.5 1.2-3.2A2 2 0 0 1 8.1 7h7.8a2 2 0 0 1 1.9 1.3L19 11.5 18 16"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/><path d="M8 11h8"/></svg>',
+      moto: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/><path d="M9 17.5h5.5M6.5 15 9 11h4l2-2h3l1 3h-3"/><path d="M11 11 13.5 7H16"/></svg>',
+    };
+    return icons[p.vehicle_type === 'moto' ? 'moto' : 'voiture'];
   }
 
   vehicleTypeLabel(p) {
@@ -196,7 +200,7 @@ class CustomerDashboard {
     const detailBtn = `<button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button>`;
     const actionBtn = p.status === 'nouvelle'
       ? `<button type="button" class="btn btn-primary btn-sm" onclick="dashboard.payPolicy('${p.id}')">Payer</button>`
-      : `<button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.renewPolicy('${p.id}')">Renouveler</button>`;
+      : `<button type="button" class="btn btn-primary btn-sm" onclick="dashboard.renewPolicy('${p.id}')">Renouveler</button>`;
     return `${detailBtn}${actionBtn}`;
   }
 

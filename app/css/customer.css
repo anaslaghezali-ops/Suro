@@ -292,6 +292,8 @@ textarea {
 
 .btn-primary {
   background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
 }
 
 .btn-primary:hover {
@@ -1399,11 +1401,21 @@ textarea {
   height: 40px;
   flex-shrink: 0;
   border-radius: 11px;
-  background: var(--color-primary-ghost);
+  background: linear-gradient(160deg, rgba(20, 184, 166, 0.14) 0%, var(--color-primary-ghost) 100%);
+  border: 1px solid var(--color-primary-muted);
+  color: var(--color-primary);
   display: grid;
   place-items: center;
-  font-size: 17px;
-  line-height: 1;
+}
+
+.policy-card__icon svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.65;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .policy-card__name {

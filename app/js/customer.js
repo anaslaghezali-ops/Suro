@@ -196,6 +196,108 @@ class CustomerDashboard {
     return new Date(p.expires_at).toLocaleDateString('fr-FR');
   }
 
+  policyNumber(p) {
+    return `SR-${String(p.id).replace(/-/g, '').slice(0, 8).toUpperCase()}`;
+  }
+
+  renderPolicyDetailDocs(docs) {
+    if (!docs || !docs.length) {
+      return `<p class="policy-detail-docs-empty">
+        Tes documents apparaîtront ici. L'attestation est téléchargeable en PDF ;
+        ta carte verte physique est expédiée à l'adresse indiquée lors de la souscription.
+      </p>`;
+    }
+    return `<ul class="policy-detail-docs-list">
+      ${docs.map((d) => `
+        <li class="policy-detail-doc">
+          <div class="policy-detail-doc-info">
+            <span class="policy-detail-doc-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>
+            </span>
+            <span class="policy-detail-doc-name">${this.escape(d.name)}</span>
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm"
+            onclick="dashboard.downloadDoc('${this.escape(d.storage_path)}', '${this.escape(d.name).replace(/'/g, "\\'")}')">
+            Télécharger
+          </button>
+        </li>`).join('')}
+    </ul>`;
+  }
+
+  renderPolicyDetailHTML(p, docs) {
+    const powerLabel = p.vehicle_type === 'moto' ? 'Cylindrée' : 'Puissance';
+    const powerUnit = p.vehicle_type === 'moto' ? 'cm³' : 'CV';
+    const expired = this.isExpired(p);
+    const expiryHtml = p.expires_at
+      ? `${new Date(p.expires_at).toLocaleDateString('fr-FR')}${expired ? ' <span class="policy-detail-expired">(expiré)</span>' : ''}`
+      : '—';
+
+    const actionBtn = p.status === 'nouvelle'
+      ? `<button type="button" class="btn btn-primary" onclick="dashboard.payPolicy('${p.id}')">Payer et activer mon contrat</button>`
+      : `<button type="button" class="btn btn-primary" onclick="dashboard.renewPolicy('${p.id}')">Renouveler ce contrat</button>`;
+
+    return `
+      <div class="policy-detail">
+        <div class="policy-detail-hero">
+          <div class="policy-detail-hero-main">
+            <div class="policy-card__icon policy-detail-icon" aria-hidden="true">${this.vehicleIcon(p)}</div>
+            <div class="policy-detail-hero-text">
+              <p class="page-eyebrow">Contrat d'assurance</p>
+              <h2 class="policy-detail-title">${this.escape(this.vehicleTitle(p))}</h2>
+              <p class="policy-detail-ref">${this.policyNumber(p)}</p>
+            </div>
+          </div>
+          <span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span>
+        </div>
+
+        <div class="policy-detail-chips">
+          <span class="policy-chip policy-chip--plate">${this.escape(p.immatriculation || '—')}</span>
+          ${p.annee ? `<span class="policy-chip">${p.annee}</span>` : ''}
+          <span class="policy-chip">${this.escape(this.vehicleTypeLabel(p))}</span>
+        </div>
+
+        <p class="policy-detail-premium">${this.escape(this.premiumLabel(p))}</p>
+        <p class="policy-detail-premium-hint">${this.escape(this.coverageLabel(p.coverage_type))}</p>
+
+        <dl class="policy-detail-grid">
+          <div class="policy-detail-row">
+            <dt>Immatriculation</dt>
+            <dd>${this.escape(p.immatriculation || '—')}</dd>
+          </div>
+          <div class="policy-detail-row">
+            <dt>${powerLabel}</dt>
+            <dd>${p.puissance ? `${p.puissance} ${powerUnit}` : '—'}</dd>
+          </div>
+          <div class="policy-detail-row">
+            <dt>Couverture</dt>
+            <dd>${this.escape(this.coverageShortLabel(p.coverage_type))}</dd>
+          </div>
+          <div class="policy-detail-row">
+            <dt>Échéance</dt>
+            <dd>${expiryHtml}</dd>
+          </div>
+          <div class="policy-detail-row">
+            <dt>Souscrit le</dt>
+            <dd>${new Date(p.created_at).toLocaleDateString('fr-FR')}</dd>
+          </div>
+          <div class="policy-detail-row policy-detail-row--full">
+            <dt>Adresse de livraison</dt>
+            <dd>${this.escape(p.address || '—')}</dd>
+          </div>
+        </dl>
+
+        <section class="policy-detail-docs" aria-labelledby="policy-detail-docs-title">
+          <h3 class="policy-detail-docs-title" id="policy-detail-docs-title">Documents</h3>
+          ${this.renderPolicyDetailDocs(docs)}
+        </section>
+
+        <div class="policy-detail-actions">
+          ${actionBtn}
+        </div>
+      </div>
+    `;
+  }
+
   policyActionButtons(p) {
     const detailBtn = `<button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button>`;
     const actionBtn = p.status === 'nouvelle'
@@ -988,41 +1090,7 @@ class CustomerDashboard {
         docs = [];
       }
 
-      const docsHtml = docs.length
-        ? docs.map(d => `
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid #F3F4F6;">
-              <span>📄 ${this.escape(d.name)}</span>
-              <button class="btn btn-primary btn-sm" onclick="dashboard.downloadDoc('${this.escape(d.storage_path)}', '${this.escape(d.name).replace(/'/g, "\\'")}')">Télécharger</button>
-            </div>`).join('')
-        : `<p style="font-size:13px;color:#9CA3AF;margin:0;">
-             Tes documents apparaîtront ici. L'attestation est téléchargeable en PDF ; ta carte verte physique est expédiée à l'adresse indiquée lors de la souscription.
-           </p>`;
-
-      body.innerHTML = `
-        <h2>${this.vehicleLabel(p)}</h2>
-        <div style="margin-top: 20px;">
-          <p><strong>N° de contrat:</strong> SR-${String(p.id).replace(/-/g, '').slice(0, 8).toUpperCase()}</p>
-          <p><strong>Immatriculation:</strong> ${this.escape(p.immatriculation || '—')}</p>
-          <p><strong>Année:</strong> ${p.annee || '—'} — <strong>${p.vehicle_type === 'moto' ? 'Cylindrée' : 'Puissance'}:</strong> ${p.puissance || '—'} ${p.vehicle_type === 'moto' ? 'cm³' : 'CV'}</p>
-          <p><strong>Couverture:</strong> ${this.coverageLabel(p.coverage_type)}</p>
-          <p><strong>Prime annuelle:</strong> ${this.premiumLabel(p)}</p>
-          <p><strong>Adresse de livraison:</strong> ${this.escape(p.address || '—')}</p>
-          <p><strong>Statut:</strong> <span class="status-badge status-${p.status}">${this.formatStatus(p.status)}</span></p>
-          <p><strong>Souscrit le:</strong> ${new Date(p.created_at).toLocaleDateString('fr-FR')}</p>
-          ${p.expires_at ? `<p><strong>Échéance:</strong> ${new Date(p.expires_at).toLocaleDateString('fr-FR')}${this.isExpired(p) ? ' <span style="color:#EF4444;font-weight:600;">(expiré)</span>' : ''}</p>` : ''}
-        </div>
-
-        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #E5E7EB;">
-          <h3 style="font-size:15px;margin-bottom:12px;">📄 Documents de ce contrat</h3>
-          ${docsHtml}
-        </div>
-
-        <div style="margin-top: 24px;">
-          ${p.status === 'nouvelle'
-            ? `<button class="btn btn-primary" onclick="dashboard.payPolicy('${p.id}')">Payer et activer mon contrat</button>`
-            : `<button class="btn btn-primary" onclick="dashboard.renewPolicy('${p.id}')">🔄 Renouveler ce contrat</button>`}
-        </div>
-      `;
+      body.innerHTML = this.renderPolicyDetailHTML(p, docs);
 
       openModal('detail-modal');
     } catch (error) {

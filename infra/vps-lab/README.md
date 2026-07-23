@@ -1,0 +1,47 @@
+# Labo VPS EU — Supabase self-hosted + SURO
+
+Guide pour installer Supabase (Docker) et servir le site SURO sur un VPS de test.
+**Ne pas utiliser de vraies données clients marocaines sur ce labo EU.**
+
+## Prérequis
+
+- VPS Ubuntu 22.04 ou 24.04 (8 Go RAM recommandé)
+- Accès SSH root ou sudo
+- Nom de domaine optionnel (IP suffit pour les premiers tests)
+
+## 1. Préparation serveur
+
+Sur le VPS :
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/anaslaghezali-ops/Suro/cursor/repo-improvements-adca/infra/vps-lab/01-server-bootstrap.sh | bash
+```
+
+Ou copier `01-server-bootstrap.sh` et l'exécuter localement.
+
+## 2. Supabase self-hosted
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/anaslaghezali-ops/Suro/cursor/repo-improvements-adca/infra/vps-lab/02-install-supabase.sh | bash
+```
+
+Puis éditer `/opt/supabase/docker/.env` (mots de passe, JWT, domaine).
+
+## 3. Site SURO (nginx)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/anaslaghezali-ops/Suro/cursor/repo-improvements-adca/infra/vps-lab/03-deploy-suro.sh | bash
+```
+
+## 4. Migrations SURO
+
+Importer les fichiers SQL dans l'ordre (voir `docs/migrations/MIGRATION_ORDER.md`).
+
+## Ports ouverts
+
+| Port | Service |
+|------|---------|
+| 22 | SSH |
+| 80 | nginx (site) |
+| 443 | HTTPS |
+| 8000 | Kong API Supabase (interne / tests) |

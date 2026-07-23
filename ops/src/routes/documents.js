@@ -193,7 +193,7 @@ function Detail({ doc, caps, onClose, onReviewed }) {
     setBusy(true);
     try {
       await api.reviewDocument(doc.id, status, status === 'rejected' ? reason.trim() : null);
-      toast(status === 'approved' ? 'Document validé' : status === 'rejected' ? 'Document refusé', 'ok');
+      toast(status === 'approved' ? 'Document validé' : 'Document refusé', 'ok');
       onReviewed();
     } catch (e) { toast('Échec : ' + (e.message || ''), 'err'); }
     finally { setBusy(false); }

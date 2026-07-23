@@ -7,18 +7,22 @@
     async _fetch(path, options = {}, _retried) {
       const { SUPABASE_URL, SUPABASE_KEY } = root.SURO_CONFIG;
 
+      let session = root.SURO_SESSION.getSession();
       if (options.asUser) {
-        const session = await root.SURO_SESSION.ensureValidSession();
-        if (!session) throw new Error('Session expirée');
+        // Session garantie valide (rafraîchie si besoin) AVANT d'envoyer la requête.
+        session = await root.SURO_SESSION.ensureValidSession();
+        if (!session || !session.access_token) throw new Error('Session expirée — reconnecte-toi.');
       }
 
-      const session = root.SURO_SESSION.getSession();
+      // Requête authentifiée → TOUJOURS le token utilisateur validé.
+      // Jamais de repli silencieux sur la clé anon (qui provoque des « non autorisé » trompeurs).
+      const token = options.asUser ? session.access_token : SUPABASE_KEY;
       const response = await fetch(`${SUPABASE_URL}${path}`, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
           'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${(options.asUser && session && session.access_token) || SUPABASE_KEY}`,
+          'Authorization': `Bearer ${token}`,
           ...options.headers,
         },
       });

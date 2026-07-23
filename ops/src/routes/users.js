@@ -3,7 +3,7 @@ import { useState } from 'preact/hooks';
 import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
 import { DataTable } from '../components/DataTable.js';
-import { Badge, Spinner, Empty, toast } from '../components/ui.js';
+import { Badge, Spinner, Empty, SlideOver, toast } from '../components/ui.js';
 import { roleLabel } from '../lib/permissions.js';
 import { fmtDate } from '../lib/format.js';
 
@@ -17,6 +17,10 @@ export function Users({ caps }) {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('operations');
   const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [editEmail, setEditEmail] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   if (loading) return html`<div style="padding:40px"><${Spinner}/></div>`;
   if (error) return html`
@@ -51,6 +55,28 @@ export function Users({ caps }) {
     catch (e) { toast('Échec : ' + (e.message || ''), 'err'); }
   };
 
+  const openEdit = (s) => { setEditing(s); setEditEmail(s.email || ''); setEditPassword(''); };
+
+  const saveEdit = async () => {
+    const newEmail = editEmail.trim().toLowerCase();
+    const changedEmail = newEmail && newEmail !== (editing.email || '').toLowerCase();
+    const newPassword = editPassword.trim();
+    if (!changedEmail && !newPassword) { toast('Rien à modifier', 'err'); return; }
+    if (newPassword && newPassword.length < 6) { toast('Mot de passe : 6 caractères minimum', 'err'); return; }
+    setSavingEdit(true);
+    try {
+      await api.updateStaff({
+        targetEmail: editing.email,
+        newEmail: changedEmail ? newEmail : null,
+        newPassword: newPassword || null,
+      });
+      toast('Collaborateur mis à jour', 'ok');
+      setEditing(null);
+      reload();
+    } catch (e) { toast('Échec : ' + (e.message || ''), 'err'); }
+    finally { setSavingEdit(false); }
+  };
+
   const columns = [
     { key: 'name', label: 'Nom', sortable: true, render: (s) => s.name || html`<span class="muted">—</span>` },
     { key: 'email', label: 'Email', sortable: true },
@@ -63,6 +89,7 @@ export function Users({ caps }) {
             onChange=${(e) => changeRole(s.email, e.target.value)}>
             ${ROLES.map((r) => html`<option value=${r}>${roleLabel(r)}</option>`)}
           </select>
+          <button class="btn-o sm" onClick=${() => openEdit(s)}>Éditer</button>
           <button class="btn-o danger sm" onClick=${() => remove(s.email)}>Retirer</button>
         </div>`,
     },
@@ -106,5 +133,25 @@ export function Users({ caps }) {
     <div class="card">
       <${DataTable} columns=${columns} rows=${data || []} searchKeys=${['name', 'email', 'role']} />
     </div>
+
+    ${editing ? html`<${SlideOver} open=${true}
+      title=${'Modifier — ' + (editing.name || editing.email)}
+      subtitle=${roleLabel(editing.role)} onClose=${() => setEditing(null)}>
+      <div class="form-grid" style="grid-template-columns:1fr">
+        <label>Email
+          <input class="ops-input" type="email" value=${editEmail}
+            onInput=${(e) => setEditEmail(e.target.value)} autocomplete="off" />
+        </label>
+        <label>Nouveau mot de passe <span class="muted" style="font-weight:400">(laisser vide pour ne pas changer)</span>
+          <input class="ops-input" type="password" placeholder="6 caractères min." value=${editPassword}
+            onInput=${(e) => setEditPassword(e.target.value)} autocomplete="new-password" />
+        </label>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px">
+        <button class="btn-o primary" disabled=${savingEdit} onClick=${saveEdit}>${savingEdit ? 'Enregistrement…' : 'Enregistrer'}</button>
+        <button class="btn-o" onClick=${() => setEditing(null)}>Annuler</button>
+      </div>
+      <p class="muted" style="margin-top:14px;font-size:12px">Changement immédiat (pas d'email de confirmation). Le collaborateur utilisera le nouvel email / mot de passe à sa prochaine connexion.</p>
+    <//>` : null}
   `;
 }

@@ -338,5 +338,15 @@
         body: JSON.stringify({ email, password, role, name }),
       });
     },
+
+    // Modifier l'email et/ou le mot de passe d'un collaborateur existant (super_admin).
+    // targetEmail = email actuel ; newEmail / newPassword optionnels (au moins un).
+    adminUpdateStaff({ targetEmail, newEmail, newPassword }) {
+      return this.sb('/functions/v1/suro-update-staff', {
+        method: 'POST',
+        asUser: true,
+        body: JSON.stringify({ targetEmail, newEmail: newEmail || null, newPassword: newPassword || null }),
+      });
+    },
   };
 })(window);

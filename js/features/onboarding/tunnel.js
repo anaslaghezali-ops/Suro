@@ -1197,8 +1197,8 @@ class OnboardingForm {
           <div class="success-icon-wrap">
             <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
           </div>
-          <h2 class="success-heading">Souscription confirmée</h2>
-          <p class="success-description">Ta souscription est confirmée${premium ? ` — ${Number(premium).toLocaleString('fr-FR')} DH/an` : ''}.</p>
+          <h2 class="success-heading">Paiement confirmé</h2>
+          <p class="success-description">Ton contrat est en cours d'activation${premium ? ` — ${Number(premium).toLocaleString('fr-FR')} DH/an` : ''}. Envoie tes 3 pièces pour finaliser le dossier.</p>
 
           <div class="contract-card">
             <div class="contract-card-header">Référence souscription</div>
@@ -1208,6 +1208,10 @@ class OnboardingForm {
 
           <div class="success-info success-info--warn">
             Contrat d'assurance souscrit auprès de <strong>Wafa Assurance</strong>. SURO facilite la souscription en qualité d'intermédiaire technologique.
+          </div>
+
+          <div class="success-info success-info--warn">
+            <strong>3 documents requis</strong> — CIN, permis de conduire et carte grise. Envoie-les pour finaliser ton dossier (validation sous 48 h ouvrées).
           </div>
 
           <div class="success-info">
@@ -1221,8 +1225,11 @@ class OnboardingForm {
           </div>` : ''}
 
           <div class="success-actions">
-            <button class="btn btn-primary btn-block" onclick="window.SURO_FORM.handleGoToSpace()">
-              Accéder à mon espace client
+            <button class="btn btn-primary btn-block" onclick="window.SURO_FORM.handleGoToDocuments('${applicationId}')">
+              Compléter mon dossier
+            </button>
+            <button type="button" class="btn btn-ghost btn-block" onclick="window.SURO_FORM.handleGoToSpace()">
+              Aller à mon espace
             </button>
           </div>
 
@@ -1234,18 +1241,25 @@ class OnboardingForm {
     `;
   }
 
-  handleGoToSpace() {
+  handleGoToDocuments(applicationId) {
+    try {
+      sessionStorage.setItem('suroPendingDocsAppId', applicationId);
+    } catch (_) { /* ignore */ }
+    this.handleGoToSpace('documents');
+  }
+
+  handleGoToSpace(targetPage) {
     const base = this.getAssetBase();
     if (this.accountStatus === 'logged_in') {
       if (window.location.pathname.includes('/app')) {
         if (window.dashboard) {
           window.dashboard.fetchPolicies(true);
-          window.dashboard.navigateTo('dashboard');
+          window.dashboard.navigateTo(targetPage || 'dashboard');
         } else {
-          window.location.href = `${base}app/`;
+          window.location.href = `${base}app/${targetPage ? `#${targetPage}` : ''}`;
         }
       } else {
-        window.location.href = `${base}app/`;
+        window.location.href = `${base}app/${targetPage ? `#${targetPage}` : ''}`;
       }
     } else {
       window.location.href = `${base}customer-login.html`;

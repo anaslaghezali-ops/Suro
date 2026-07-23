@@ -284,6 +284,60 @@ class API {
     );
   }
 
+  // Pièces KYC client (CIN, permis, carte grise) — après paiement
+  static async uploadPolicyDocument(applicationId, customerEmail, documentType, file) {
+    const session = this.getSession();
+    if (!session) throw new Error('Session expirée');
+
+    const allowed = ['cin', 'permis', 'carte_grise'];
+    if (!allowed.includes(documentType)) throw new Error('Type de document invalide');
+
+    const maxBytes = 5 * 1024 * 1024;
+    if (file.size > maxBytes) throw new Error('Fichier trop volumineux (max. 5 Mo)');
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    if (file.type && !allowedTypes.includes(file.type)) {
+      throw new Error('Format non accepté (JPG, PNG ou PDF uniquement)');
+    }
+
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storagePath = `${applicationId}/kyc/${documentType}/${Date.now()}-${safeName}`;
+
+    const uploadRes = await fetch(
+      `${SUPABASE_URL}/storage/v1/object/suro-documents/${storagePath}`,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': file.type || 'application/octet-stream',
+          'x-upsert': 'false',
+        },
+        body: file,
+      }
+    );
+    if (!uploadRes.ok) {
+      const err = await uploadRes.json().catch(() => ({}));
+      throw new Error(err.message || err.error || 'Échec de l\'envoi du fichier');
+    }
+
+    await this.sb('/rest/v1/insurance_documents', {
+      method: 'POST',
+      asUser: true,
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        application_id: applicationId,
+        customer_email: (customerEmail || session.email || '').toLowerCase(),
+        name: file.name,
+        storage_path: storagePath,
+        document_type: documentType,
+        status: 'pending',
+      }),
+    });
+
+    return { storage_path: storagePath };
+  }
+
   // Renouvellement : prolonge le contrat existant d'un an (retourne la nouvelle échéance)
   static renewPolicy(policyId) {
     return this.sb('/rest/v1/rpc/suro_renew_application', {

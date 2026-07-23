@@ -9,6 +9,13 @@ const LOGIN_PAGE = '../customer-login.html';
 const SUPPORT_PHONE = '+212600000000';
 const SUPPORT_WHATSAPP = '212600000000'; // format international sans +
 
+const KYC_DOC_TYPES = [
+  { id: 'cin', short: 'CIN', label: 'Carte d\'identité nationale (CIN)', hint: 'Recto et verso, lisible, en cours de validité.' },
+  { id: 'permis', short: 'Permis', label: 'Permis de conduire', hint: 'Recto et verso du permis au nom du souscripteur.' },
+  { id: 'carte_grise', short: 'CG', label: 'Carte grise', hint: 'Document du véhicule assuré.' },
+];
+const KYC_DOC_TYPE_IDS = KYC_DOC_TYPES.map((d) => d.id);
+
 function toast(msg, type = 'ok') {
   if (window.SuroToast) window.SuroToast.show(msg, type);
   else alert(msg);
@@ -75,6 +82,8 @@ class CustomerDashboard {
     this.currentPage = 'dashboard';
     this.policies = null; // cache
     this.payments = null;
+    this.documents = null;
+    this._documentsPolicyId = null;
     this._nextRenewalPolicyId = null;
     this._profileSnapshot = null;
     this._profileFormBound = false;
@@ -95,12 +104,21 @@ class CustomerDashboard {
     this.setupFilters();
     this.setupSupportLinks();
     this.loadProfileHeader();
-    const hashPage = (location.hash || '').replace(/^#/, '');
-    if (hashPage && document.getElementById(`${hashPage}-page`)) {
-      this.navigateTo(hashPage);
+    const pendingAppId = sessionStorage.getItem('suroPendingDocsAppId');
+    if (pendingAppId) {
+      sessionStorage.removeItem('suroPendingDocsAppId');
+      this._documentsPolicyId = pendingAppId;
+      this.navigateTo('documents');
     } else {
-      this.loadDashboard();
+      const hashPage = (location.hash || '').replace(/^#/, '').split('?')[0];
+      if (hashPage && document.getElementById(`${hashPage}-page`)) {
+        this.navigateTo(hashPage);
+      } else {
+        this.loadDashboard();
+      }
     }
+    const kycInput = document.getElementById('kyc-file-input');
+    if (kycInput) kycInput.addEventListener('change', (e) => this.onKycFileSelected(e));
   }
 
   setupFilters() {
@@ -201,14 +219,15 @@ class CustomerDashboard {
   }
 
   renderPolicyDetailDocs(docs) {
-    if (!docs || !docs.length) {
+    const official = (docs || []).filter((d) => !d.document_type);
+    if (!official.length) {
       return `<p class="policy-detail-docs-empty">
-        Tes documents apparaîtront ici. L'attestation est téléchargeable en PDF ;
+        Tes documents officiels apparaîtront ici. L'attestation est téléchargeable en PDF ;
         ta carte verte physique est expédiée à l'adresse indiquée lors de la souscription.
       </p>`;
     }
     return `<ul class="policy-detail-docs-list">
-      ${docs.map((d) => `
+      ${official.map((d) => `
         <li class="policy-detail-doc">
           <div class="policy-detail-doc-info">
             <span class="policy-detail-doc-icon" aria-hidden="true">
@@ -306,10 +325,11 @@ class CustomerDashboard {
     return `${detailBtn}${actionBtn}`;
   }
 
-  renderPolicyCard(p, { compact = false } = {}) {
+  renderPolicyCard(p, { compact = false, kyc = null } = {}) {
     const status = p.status;
-    const statusLabel = this.formatStatus(status);
-    const badge = `<span class="status-badge status-${status}">${statusLabel}</span>`;
+    const statusClass = this.getPolicyStatusClass(p, kyc);
+    const statusLabel = this.getPolicyStatusLabel(p, kyc);
+    const badge = `<span class="status-badge status-${statusClass}">${statusLabel}</span>`;
     const plate = this.escape(p.immatriculation || '—');
     const year = p.annee ? `<span class="policy-chip">${p.annee}</span>` : '';
     const title = this.escape(this.vehicleTitle(p));
@@ -461,6 +481,7 @@ class CustomerDashboard {
       case 'policies': this.loadPolicies(); break;
       case 'claims': this.loadClaims(); break;
       case 'payments': this.loadPayments(); break;
+      case 'documents': this.loadDocumentsPage(); break;
       case 'subscribe': this.initSubscribeTunnel(); break;
       case 'profile': this.loadProfilePage(); break;
     }
@@ -498,8 +519,13 @@ class CustomerDashboard {
     this.setDashboardStatsLoading(true);
     this.setPolicyListSkeleton('active-policies-list', 3);
     try {
-      const policies = await this.fetchPolicies(true);
+      const [policies, allDocs] = await Promise.all([
+        this.fetchPolicies(true),
+        this.fetchDocuments(true),
+      ]);
       this.renderPendingPaymentBanner(policies, 'pending-payment-banner-dashboard');
+      this.renderPendingDocsBanner(policies, allDocs, 'pending-docs-banner-dashboard');
+      this.updateDocumentsNavBadge(policies, allDocs);
       const claims = await this.api.getMyClaims() || [];
       // Nombre réel de paiements (initial + renouvellements), pas de contrats
       const payments = await this.api.getMyPayments().catch(() => []);
@@ -519,7 +545,10 @@ class CustomerDashboard {
 
       const list = document.getElementById('active-policies-list');
       const rows = policies.slice(0, 5);
-      list.innerHTML = rows.length ? rows.map(p => this.renderPolicyCard(p, { compact: true })).join('') : this.policyListEmptyHTML({
+      list.innerHTML = rows.length ? rows.map((p) => this.renderPolicyCard(p, {
+        compact: true,
+        kyc: this.summarizeKycForPolicy(p.id, allDocs),
+      })).join('') : this.policyListEmptyHTML({
         title: 'Aucun contrat actif',
         desc: 'Souscris une assurance en quelques minutes.',
         ctaLabel: 'Nouvelle assurance',
@@ -537,14 +566,21 @@ class CustomerDashboard {
   async loadPolicies() {
     this.setPolicyListSkeleton('policies-list', 4);
     try {
-      const policies = await this.fetchPolicies(true);
+      const [policies, allDocs] = await Promise.all([
+        this.fetchPolicies(true),
+        this.fetchDocuments(true),
+      ]);
       this.renderPendingPaymentBanner(policies);
+      this.renderPendingDocsBanner(policies, allDocs, 'pending-docs-banner');
+      this.updateDocumentsNavBadge(policies, allDocs);
       await this.renderRenewalAside(policies, 'policies');
       const statusFilter = document.getElementById('filter-policy-status')?.value || '';
       const filtered = statusFilter ? policies.filter(p => p.status === statusFilter) : policies;
       const list = document.getElementById('policies-list');
 
-      list.innerHTML = filtered.length ? filtered.map(p => this.renderPolicyCard(p)).join('') : this.policyListEmptyHTML({
+      list.innerHTML = filtered.length ? filtered.map((p) => this.renderPolicyCard(p, {
+        kyc: this.summarizeKycForPolicy(p.id, allDocs),
+      })).join('') : this.policyListEmptyHTML({
         title: statusFilter ? 'Aucun contrat pour ce filtre' : 'Aucun contrat',
         desc: statusFilter ? 'Essaie un autre statut ou souscris une nouvelle assurance.' : 'Commence par souscrire ton assurance auto.',
         ctaLabel: 'Nouvelle assurance',
@@ -1163,6 +1199,288 @@ class CustomerDashboard {
     window.SURO_FORM.render();
   }
 
+  async fetchDocuments(force = false) {
+    if (!this.documents || force) {
+      this.documents = await this.api.getMyDocuments() || [];
+    }
+    return this.documents;
+  }
+
+  summarizeKycForPolicy(applicationId, allDocs) {
+    const docs = (allDocs || []).filter(
+      (d) => d.application_id === applicationId && KYC_DOC_TYPE_IDS.includes(d.document_type)
+    );
+    const byType = {};
+    for (const type of KYC_DOC_TYPE_IDS) {
+      const rows = docs
+        .filter((d) => d.document_type === type)
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      byType[type] = rows[0] || null;
+    }
+    const received = KYC_DOC_TYPE_IDS.filter((t) => byType[t]).length;
+    const approved = KYC_DOC_TYPE_IDS.filter((t) => byType[t]?.status === 'approved').length;
+    return { byType, received, approved, complete: approved === 3 };
+  }
+
+  policyRequiresKyc(p) {
+    return p && p.status === 'active' && !!p.paid_at;
+  }
+
+  getPoliciesAwaitingDocs(policies, allDocs) {
+    return (policies || []).filter((p) => {
+      if (!this.policyRequiresKyc(p)) return false;
+      return !this.summarizeKycForPolicy(p.id, allDocs).complete;
+    });
+  }
+
+  getPolicyStatusLabel(p, kycSummary) {
+    if (p.status === 'active' && kycSummary && !kycSummary.complete) {
+      return 'En attente de pièces';
+    }
+    return this.formatStatus(p.status);
+  }
+
+  getPolicyStatusClass(p, kycSummary) {
+    if (p.status === 'active' && kycSummary && !kycSummary.complete) {
+      return 'pending-docs';
+    }
+    return p.status;
+  }
+
+  formatKycDocMeta(doc) {
+    if (!doc) return '';
+    const date = doc.created_at ? new Date(doc.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    if (doc.status === 'approved' && doc.reviewed_at) {
+      return `${this.escape(doc.name)} · Validé le ${new Date(doc.reviewed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+    }
+    if (doc.status === 'rejected') return `${this.escape(doc.name)} · Refusé${date ? ` le ${date}` : ''}`;
+    if (doc.status === 'pending') return `${this.escape(doc.name)} · Envoyé${date ? ` le ${date}` : ''}`;
+    return this.escape(doc.name);
+  }
+
+  kycDocStatusLabel(doc) {
+    if (!doc) return { label: 'À envoyer', tone: 'todo' };
+    if (doc.status === 'approved') return { label: 'Validé', tone: 'ok' };
+    if (doc.status === 'pending') return { label: 'En vérification', tone: 'review' };
+    if (doc.status === 'rejected') return { label: 'À renvoyer', tone: 'ko' };
+    return { label: 'À envoyer', tone: 'todo' };
+  }
+
+  renderKycProgressRing(received, total = 3) {
+    const pct = Math.round((received / total) * 100);
+    return `<div class="docs-progress-ring" style="background:conic-gradient(var(--color-primary) ${pct}%, #fde68a 0)"><span>${received}/${total}</span></div>`;
+  }
+
+  renderPendingDocsBanner(policies, allDocs, elId = 'pending-docs-banner-dashboard') {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const awaiting = this.getPoliciesAwaitingDocs(policies, allDocs);
+    if (!awaiting.length) { el.innerHTML = ''; return; }
+
+    if (awaiting.length === 1) {
+      const p = awaiting[0];
+      const kyc = this.summarizeKycForPolicy(p.id, allDocs);
+      el.innerHTML = `
+        <div class="pending-banner pending-banner--docs" role="status">
+          <div class="pending-banner-copy">
+            <div class="pending-banner-title">Complète ton dossier — 3 pièces requises</div>
+            <p class="pending-banner-desc">CIN, permis de conduire et carte grise pour ${this.escape(this.vehicleLabel(p))}. ${kyc.received}/3 pièces reçues.</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="dashboard.openDocumentsForPolicy('${p.id}')">Compléter mon dossier</button>
+        </div>`;
+    } else {
+      el.innerHTML = `
+        <div class="pending-banner pending-banner--docs" role="status">
+          <div class="pending-banner-copy">
+            <div class="pending-banner-title">${awaiting.length} dossiers à compléter</div>
+            <p class="pending-banner-desc">Envoie ta CIN, ton permis et ta carte grise pour chaque contrat payé.</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="dashboard.navigateTo('documents')">Voir mes documents</button>
+        </div>`;
+    }
+  }
+
+  updateDocumentsNavBadge(policies, allDocs) {
+    const badge = document.getElementById('nav-documents-badge');
+    if (!badge) return;
+    const count = this.getPoliciesAwaitingDocs(policies, allDocs).length;
+    if (count > 0) {
+      badge.textContent = String(count);
+      badge.hidden = false;
+    } else {
+      badge.hidden = true;
+    }
+  }
+
+  openDocumentsForPolicy(policyId) {
+    this._documentsPolicyId = policyId;
+    this.navigateTo('documents');
+  }
+
+  async loadDocumentsPage() {
+    const container = document.getElementById('documents-content');
+    if (!container) return;
+    container.innerHTML = '<p class="policy-list-loading">Chargement…</p>';
+
+    try {
+      const [policies, allDocs] = await Promise.all([
+        this.fetchPolicies(true),
+        this.fetchDocuments(true),
+      ]);
+      this.updateDocumentsNavBadge(policies, allDocs);
+
+      const eligible = policies.filter((p) => this.policyRequiresKyc(p));
+      if (!eligible.length) {
+        container.innerHTML = `<div class="docs-empty section-card">
+          <p class="table-empty-title">Aucun dossier à compléter</p>
+          <p class="table-empty-desc">Les pièces (CIN, permis, carte grise) sont demandées après le paiement d'un contrat.</p>
+        </div>`;
+        return;
+      }
+
+      let policyId = this._documentsPolicyId;
+      if (!policyId || !eligible.some((p) => p.id === policyId)) {
+        policyId = eligible.find((p) => !this.summarizeKycForPolicy(p.id, allDocs).complete)?.id || eligible[0].id;
+      }
+      this._documentsPolicyId = policyId;
+      const policy = eligible.find((p) => p.id === policyId);
+      const kyc = this.summarizeKycForPolicy(policyId, allDocs);
+
+      const selector = eligible.length > 1 ? `
+        <div class="filter-bar docs-policy-select">
+          <label for="docs-policy-select" class="visually-hidden">Contrat</label>
+          <select id="docs-policy-select" class="filter-select" onchange="dashboard.onDocumentsPolicyChange(this.value)">
+            ${eligible.map((p) => `<option value="${p.id}" ${p.id === policyId ? 'selected' : ''}>${this.escape(this.vehicleLabel(p))}</option>`).join('')}
+          </select>
+        </div>` : '';
+
+      const missingTypes = KYC_DOC_TYPE_IDS.filter((t) => !kyc.byType[t] || kyc.byType[t].status === 'rejected');
+      const bannerTitle = kyc.complete
+        ? 'Dossier complet'
+        : missingTypes.length === 1
+          ? `${KYC_DOC_TYPES.find((d) => d.id === missingTypes[0])?.label || 'Pièce'} manquante`
+          : 'Dernière étape avant activation';
+
+      const bannerDesc = kyc.complete
+        ? 'Tes 3 pièces sont validées. Ton contrat est activé.'
+        : 'Paiement reçu ✓ — Envoie tes pièces pour activer définitivement ton contrat. Validation sous 48 h ouvrées.';
+
+      const chips = KYC_DOC_TYPES.map((def) => {
+        const doc = kyc.byType[def.id];
+        let cls = 'doc-chip doc-chip--todo';
+        let text = def.short;
+        if (doc?.status === 'approved') { cls = 'doc-chip doc-chip--done'; text = `${def.short} ✓`; }
+        else if (doc?.status === 'pending') text = `${def.short} · en vérification`;
+        else if (!doc || doc.status === 'rejected') text = `${def.short} · à envoyer`;
+        return `<span class="${cls}">${text}</span>`;
+      }).join('');
+
+      container.innerHTML = `
+        ${selector}
+        <div class="docs-banner">
+          <div class="docs-banner-copy">
+            <strong>${bannerTitle}</strong>
+            <p>${bannerDesc}</p>
+            ${!kyc.complete ? `<div class="doc-checklist">${chips}</div>` : ''}
+          </div>
+          <div class="docs-progress">
+            ${this.renderKycProgressRing(kyc.received)}
+            <small>pièces reçues</small>
+          </div>
+        </div>
+        <div class="doc-list">
+          ${KYC_DOC_TYPES.map((def) => this.renderKycDocCard(policy, def, kyc.byType[def.id])).join('')}
+        </div>
+        <div class="docs-note">
+          <strong>Conseil :</strong> prends les photos en lumière naturelle, sans reflet. Les 3 pièces doivent correspondre au nom du titulaire du contrat.
+        </div>`;
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      container.innerHTML = `<div class="table-empty table-empty--error">
+        <p class="table-empty-title">Impossible de charger</p>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="dashboard.loadDocumentsPage()">Réessayer</button>
+      </div>`;
+    }
+  }
+
+  renderKycDocCard(policy, def, doc) {
+    const st = this.kycDocStatusLabel(doc);
+    const cardClass = !doc ? 'doc-card--missing'
+      : doc.status === 'approved' ? 'doc-card--done'
+        : doc.status === 'pending' ? 'doc-card--pending-review'
+          : doc.status === 'rejected' ? 'doc-card--rejected' : 'doc-card--missing';
+
+    const hint = def.id === 'carte_grise' && policy.immatriculation
+      ? `${def.hint} (${this.escape(policy.immatriculation)}).`
+      : def.hint;
+
+    const rejectHtml = doc?.status === 'rejected' && doc.reject_reason
+      ? `<div class="doc-reject"><strong>Refusé :</strong> ${this.escape(doc.reject_reason)}</div>`
+      : '';
+
+    const uploadZone = (!doc || doc.status === 'rejected') ? `
+      <div class="upload-zone">
+        <strong>Glisser-déposer ou parcourir</strong>
+        JPG, PNG ou PDF · max. 5 Mo
+      </div>` : '';
+
+    const actions = doc?.status === 'approved'
+      ? `<button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.downloadDoc('${this.escape(doc.storage_path)}', '${this.escape(doc.name).replace(/'/g, "\\'")}')">Voir</button>`
+      : doc?.status === 'pending'
+        ? `<button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.triggerKycUpload('${policy.id}', '${def.id}')">Remplacer</button>`
+        : `<button type="button" class="btn btn-primary btn-sm" onclick="dashboard.triggerKycUpload('${policy.id}', '${def.id}')">${doc?.status === 'rejected' ? 'Renvoyer' : 'Choisir un fichier'}</button>`;
+
+    return `
+      <article class="doc-card ${cardClass}">
+        <div class="doc-icon${st.tone === 'ko' ? ' doc-icon--error' : ''}">${def.short}</div>
+        <div class="doc-copy">
+          <h3>${def.label}</h3>
+          <p>${hint}</p>
+          ${doc ? `<div class="doc-meta">${this.formatKycDocMeta(doc)}</div>` : ''}
+          ${rejectHtml}
+          ${uploadZone}
+        </div>
+        <div class="doc-actions">
+          <span class="doc-status doc-status--${st.tone}">${st.label}</span>
+          ${actions}
+        </div>
+      </article>`;
+  }
+
+  triggerKycUpload(applicationId, documentType) {
+    const input = document.getElementById('kyc-file-input');
+    if (!input) return;
+    input.dataset.applicationId = applicationId;
+    input.dataset.documentType = documentType;
+    input.value = '';
+    input.click();
+  }
+
+  async onKycFileSelected(event) {
+    const input = event.target;
+    const file = input.files && input.files[0];
+    const applicationId = input.dataset.applicationId;
+    const documentType = input.dataset.documentType;
+    if (!file || !applicationId || !documentType) return;
+
+    try {
+      await this.api.uploadPolicyDocument(applicationId, this.session.email, documentType, file);
+      toast('Document envoyé — en cours de vérification');
+      await this.fetchDocuments(true);
+      if (this.currentPage === 'documents') this.loadDocumentsPage();
+      if (this.currentPage === 'dashboard') this.loadDashboard();
+      if (this.currentPage === 'policies') this.loadPolicies();
+    } catch (error) {
+      if (this.handleAuthError(error)) return;
+      toast(error.message || 'Échec de l\'envoi', 'err');
+    }
+  }
+
+  onDocumentsPolicyChange(policyId) {
+    this._documentsPolicyId = policyId;
+    this.loadDocumentsPage();
+  }
+
   // Renouveler : PROLONGE le contrat existant d'un an (même contrat)
   // Bandeau « devis en attente de paiement » (accueil + « Mes contrats »)
   renderPendingPaymentBanner(policies, elId = 'pending-payment-banner') {
@@ -1213,12 +1531,12 @@ class CustomerDashboard {
       }
 
       await this.api.submitPayment(policyId, { method: 'card', amount: p.annual_premium || null, currency: 'MAD' });
-      toast('Paiement confirmé — ton contrat est actif');
+      toast('Paiement confirmé — envoie tes pièces pour finaliser le dossier');
 
       closeModal();
       await this.fetchPolicies(true);
-      this.loadDashboard();
-      if (this.currentPage === 'policies') this.loadPolicies();
+      sessionStorage.setItem('suroPendingDocsAppId', policyId);
+      this.navigateTo('documents');
     } catch (error) {
       if (this.handleAuthError(error)) return;
       toast('Erreur lors du paiement : ' + (error.message || ''), 'err');

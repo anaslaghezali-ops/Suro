@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="../css/toast.css?v=38">
   <link rel="stylesheet" href="../css/tunnel.css?v=44">
   <link rel="stylesheet" href="css/dashboard.css?v=37">
-  <link rel="stylesheet" href="css/customer.css?v=49">
+  <link rel="stylesheet" href="css/customer.css?v=50">
 </head>
 <body>
   <div class="admin-container">
@@ -43,6 +43,11 @@
         <a href="#payments" class="nav-item" data-page="payments">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></span>
           <span>Paiements</span>
+        </a>
+        <a href="#documents" class="nav-item" data-page="documents">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg></span>
+          <span>Mes documents</span>
+          <span class="nav-badge" id="nav-documents-badge" hidden>0</span>
         </a>
         <a href="#subscribe" class="nav-item" data-page="subscribe">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
@@ -97,6 +102,7 @@
           </div>
 
           <div id="pending-payment-banner-dashboard"></div>
+          <div id="pending-docs-banner-dashboard"></div>
 
           <div class="stats-grid" id="dashboard-stats" aria-busy="true">
             <div class="stat-card">
@@ -171,6 +177,7 @@
           </div>
 
           <div id="pending-payment-banner"></div>
+          <div id="pending-docs-banner"></div>
 
           <div class="policies-grid">
             <div class="policies-main">
@@ -432,6 +439,20 @@
           </div>
         </div>
 
+        <!-- Documents / KYC Page -->
+        <div class="page" id="documents-page" style="display: none;">
+          <div class="page-header">
+            <div>
+              <p class="page-eyebrow">Dossier d'assurance</p>
+              <h1>Compléter mon dossier</h1>
+              <p>Envoie ta CIN, ton permis de conduire et ta carte grise après paiement.</p>
+            </div>
+          </div>
+          <div id="documents-content" aria-live="polite">
+            <p class="policy-list-loading">Chargement…</p>
+          </div>
+        </div>
+
         <!-- Subscribe Page (tunnel in-app) -->
         <div class="page" id="subscribe-page" style="display: none;">
           <div class="page-header">
@@ -686,11 +707,13 @@
     </div>
   </div>
 
+  <input type="file" id="kyc-file-input" accept="image/jpeg,image/png,application/pdf" hidden>
+
   <script src="../js/store.js?v=37"></script>
-  <script src="../js/services/api.js?v=39"></script>
+  <script src="../js/services/api.js?v=40"></script>
   <script src="../js/notifications.js?v=37"></script>
   <script src="../js/toast.js?v=38"></script>
-  <script src="../js/features/onboarding/tunnel.js?v=45"></script>
-  <script src="js/customer.js?v=49"></script>
+  <script src="../js/features/onboarding/tunnel.js?v=46"></script>
+  <script src="js/customer.js?v=50"></script>
 </body>
 </html>

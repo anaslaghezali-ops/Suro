@@ -18,8 +18,8 @@ export function Privileges({ caps }) {
     <${Empty}>Accès réservé au Super Admin (${error.message}).<//>`;
 
   const toggle = async (role, capId) => {
-    const current = matrix && matrix.find((row) => row.role === role && row.capability === capId);
-    const newAllowed = !current?.allowed;
+    const current = matrix?.find((row) => row.role === role && row.capability === capId);
+    const newAllowed = !current;
     setToggling({ role, capId });
     try {
       await api.setPrivilege(role, capId, newAllowed);
@@ -37,8 +37,8 @@ export function Privileges({ caps }) {
   ROLE_ORDER.forEach((role) => {
     grid[role] = {};
     CAPABILITIES.forEach((cap) => {
-      const row = matrix && matrix.find((m) => m.role === role && m.capability === cap.id);
-      grid[role][cap.id] = row?.allowed || false;
+      const row = matrix?.find((m) => m.role === role && m.capability === cap.id);
+      grid[role][cap.id] = Boolean(row);
     });
   });
 

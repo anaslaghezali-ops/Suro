@@ -119,5 +119,39 @@ assert('claimCounts requêtes bornées (limit=1)', paths.every((p) => p.includes
 assert('claimCounts filtre par statut', paths.some((p) => p.includes('status=eq.pending')));
 assert('claimCounts renvoie un objet { all, pending, ... }', counts && typeof counts === 'object' && 'all' in counts && 'pending' in counts);
 
+// -- Souscriptions : clauses de vue (expiring / docs) + count --
+assert('adminListApplications clauses présent', typeof API.adminListApplications === 'function');
+await API.adminListApplications({ clauses: ['status=eq.active', 'expires_at=gte.2026-07-23', 'expires_at=lte.2026-08-22'], search: 'x', sortKey: 'created_at', sortDir: -1 });
+for (const piece of [
+  '/rest/v1/insurance_applications?', 'status=eq.active',
+  'expires_at=gte.2026-07-23', 'expires_at=lte.2026-08-22',
+  'or=(customer_email.ilike.',
+]) {
+  assert(`souscriptions (expiring) contient « ${piece} »`, capturedPath.includes(piece));
+}
+await API.adminListApplications({ clauses: ['id=in.(a,b,c)'] });
+assert('souscriptions docs → id=in.(...)', capturedPath.includes('id=in.(a,b,c)'));
+
+assert('adminCountApplications présent', typeof API.adminCountApplications === 'function');
+await API.adminCountApplications(['status=eq.nouvelle']);
+assert('count souscriptions borné + filtre',
+  capturedPath.includes('select=id') && capturedPath.includes('limit=1') && capturedPath.includes('status=eq.nouvelle'));
+
+// pendingDocAppIds + applicationById passent par sb (pas sbList) : on stubbe sb.
+let sbPath = '';
+API.sb = (path) => {
+  sbPath = path;
+  if (path.includes('insurance_documents')) {
+    return Promise.resolve([{ application_id: 'a1' }, { application_id: 'a1' }, { application_id: 'a2' }, { application_id: null }]);
+  }
+  return Promise.resolve([{ id: 'app-42' }]);
+};
+const pendingIds = await API.adminPendingDocAppIds();
+assert('pendingDocAppIds requête docs en attente', sbPath.includes('insurance_documents') && sbPath.includes('status.eq.pending'));
+assert('pendingDocAppIds dédupe + ignore null', Array.isArray(pendingIds) && pendingIds.length === 2 && pendingIds.includes('a1') && pendingIds.includes('a2'));
+const oneApp = await API.adminApplicationById('app-42');
+assert('applicationById → id=eq.<id>', sbPath.includes('id=eq.app-42'));
+assert('applicationById renvoie la ligne', oneApp && oneApp.id === 'app-42');
+
 if (failed) process.exit(1);
 console.log(`\n${total - failed}/${total} passed`);

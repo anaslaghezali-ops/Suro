@@ -221,10 +221,14 @@ Fondation posée + 1ʳᵉ tranche prouvée. Aucune migration DB (PostgREST natif
 - [x] ⚪ Requêtes PostgREST **couvertes par tests unitaires** (`api.assembly.test.mjs`).
 - [ ] 🟡 **Journal d'audit** : passe par une RPC (`suro_audit_recent`) sans offset ; laissé tel quel (déjà borné à 200)
   — une vraie pagination nécessiterait une migration DB.
-- [ ] 🟠 Écrans **complexes** (Souscriptions, Pièces KYC, Clients) : vues **calculées** (« expire <30j », jointure docs « à vérifier »)
-  → nécessitent comptes agrégés/jointures côté serveur — à faire avec soin.
-- **Vérif navigateur** : sur **Paiements / Contrats / Sinistres**, pagination/recherche/tri interrogent le serveur
-  (onglet Réseau : `limit/offset`, réponse bornée) ; totaux via `Content-Range`. ✅ syntaxe + 35 tests au vert.
+- [x] 🟠 **Souscriptions** converties (écran principal) : chaque vue = un filtre serveur — statuts, « expire <30j »
+  (`status=active` + `expires_at` entre aujourd'hui et +30j), « docs à vérifier » (pré-requête **bornée** des
+  `application_id` en attente puis `id=in.(…)`). Compteurs par vue via `count` bornés ; deep-link `#/subscriptions/<id>`
+  via fetch par id. **Aucune migration DB.**
+- [ ] 🟡 Restent **Clients** (RPC `suro_list_customers`) et **Pièces KYC** (agrégation recto/verso par dossier) :
+  une vraie pagination y **exige une migration DB** (RPC paginée ou vue) — à faire quand l'accès base sera dispo.
+- **Vérif navigateur** : sur **Paiements / Contrats / Sinistres / Souscriptions**, pagination/recherche/tri/vues
+  interrogent le serveur (onglet Réseau : `limit/offset`, réponse bornée) ; totaux via `Content-Range`. ✅ syntaxe + 48 tests au vert.
 
 #### Jour 15 — 🟠 Index DB sur les colonnes filtrées
 - [ ] 🟠 Index sur `customer_email`, `status`, `created_at` pour `insurance_applications`, `suro_payments`, `insurance_claims`

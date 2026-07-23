@@ -46,8 +46,9 @@
     },
 
     // Souscriptions/contrats paginés côté serveur → { rows, total }.
-    // statusIn = liste (ex. ['active','expired']) ; sinon status = égalité simple.
-    adminListApplications({ limit = 12, offset = 0, statusIn, status, search, sortKey, sortDir } = {}) {
+    // statusIn = liste (ex. ['active','expired']) ; status = égalité simple ;
+    // clauses = filtres PostgREST bruts additionnels (ex. `expires_at=lte.2026-08-01`).
+    adminListApplications({ limit = 12, offset = 0, statusIn, status, clauses, search, sortKey, sortDir } = {}) {
       const parts = [
         'select=*',
         `order=${orderClause(sortKey, sortDir, 'created_at.desc')}`,
@@ -55,8 +56,35 @@
       ];
       if (statusIn && statusIn.length) parts.push(`status=in.(${statusIn.join(',')})`);
       else if (status) parts.push(`status=eq.${encodeURIComponent(status)}`);
+      if (clauses && clauses.length) parts.push(...clauses);
       if (search) parts.push(searchOr(['customer_email', 'immatriculation', 'marque', 'modele', 'policy_number'], search));
       return this.sbList(`/rest/v1/insurance_applications?${parts.join('&')}`, { asUser: true });
+    },
+
+    // Compteur d'une vue Souscriptions (requête bornée limit=1, total via Content-Range).
+    async adminCountApplications(clauses = []) {
+      const parts = ['select=id', 'limit=1', ...clauses];
+      const { total } = await this.sbList(`/rest/v1/insurance_applications?${parts.join('&')}`, { asUser: true });
+      return total;
+    },
+
+    // application_id ayant au moins un document en attente (file KYC à vérifier).
+    // Borné par la taille de la file (docs non traités), pas par le nombre de contrats.
+    async adminPendingDocAppIds() {
+      const rows = await this.sb(
+        '/rest/v1/insurance_documents?select=application_id&or=(status.is.null,status.eq.pending)',
+        { asUser: true }
+      );
+      return [...new Set((rows || []).map((r) => r.application_id).filter(Boolean))];
+    },
+
+    // Récupère une souscription par id (deep-link #/subscriptions/<id>).
+    async adminApplicationById(id) {
+      const rows = await this.sb(
+        `/rest/v1/insurance_applications?select=*&id=eq.${encodeURIComponent(id)}&limit=1`,
+        { asUser: true }
+      );
+      return rows && rows[0] ? rows[0] : null;
     },
 
     adminGetApplicationAnswers(applicationId) {

@@ -152,7 +152,7 @@ export function Claims({ caps }) {
     </div>
     <div class="card">
       <${SavedViews} views=${views} active=${activeView} onChange=${setActiveView} />
-      <${DataTable} columns=${columns} server=${fetchPage} serverKey=${activeView}
+      <${DataTable} columns=${columns} server=${fetchPage} serverKey=${`${activeView}|${reloadKey}`}
         searchPlaceholder="Rechercher (type, description)…"
         onRowClick=${(c) => setSelected(c)} />
     </div>

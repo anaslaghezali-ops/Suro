@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [Cursor, main, master]
+  pull_request:
+    branches: [Cursor, main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax-check API modules
+        run: |
+          for f in js/services/*.js; do
+            node --check "$f"
+          done
+
+      - name: Unit tests
+        run: |
+          node ops/src/routes/privileges.matrix.test.mjs
+          node js/services/api.assembly.test.mjs

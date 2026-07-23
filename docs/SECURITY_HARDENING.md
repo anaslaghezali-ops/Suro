@@ -203,11 +203,12 @@ donnée saisie par un client → exécutée dans le navigateur d'un **staff**.
 
 ### Priorité 1 — Avant ~1 000 clients actifs
 
-#### Jour 13 — 🔴 CI minimale (le meilleur rapport effort/protection)
-- [ ] 🔴 Ajouter un check **syntaxe/lint ES module** sur chaque PR (GitHub Actions ; aucun `.github/workflows/` aujourd'hui).
-- [ ] 🟡 Faire tourner le test existant `ops/src/routes/privileges.matrix.test.mjs` dans la CI.
-- **Pourquoi** : l'écran blanc du 2026-07-23 (ternaire malformé `documents.js`) serait **bloqué avant merge**.
-- **Vérif** : une PR contenant une erreur de syntaxe ES → CI rouge, merge impossible.
+#### Jour 13 — 🔴 CI minimale (le meilleur rapport effort/protection) — ✅ FAIT (2026-07-23)
+- [x] 🔴 Check **syntaxe** sur chaque PR/push (`.github/workflows/ci.yml` → `npm run check:js`).
+  Le script `scripts/check-syntax.mjs` analyse `ops/src` **en tant que modules ES** (un simple
+  `node --check *.js` parse en CommonJS et **rate** l'erreur qui a causé l'écran blanc).
+- [x] 🟡 Tests lancés en CI (`npm test`) : `privileges.matrix.test.mjs` + `api.assembly.test.mjs`.
+- **Vérif** : ✅ prouvé — bug ESM réinjecté dans `documents.js` → `check:js` **exit 1** (pointe la ligne) ; code propre → 41/41 OK, 15/15 tests.
 
 #### Jour 14 — 🔴 Pagination serveur du portail ops (le vrai goulot)
 - [ ] 🔴 Remplacer les `select=*` sans limite (`api.js` `adminGetApplications/Documents/Payments/Claims`) par
@@ -220,16 +221,17 @@ donnée saisie par un client → exécutée dans le navigateur d'un **staff**.
   (les migrations indexent surtout `insurance_documents`/KYC). Attention aux policies RLS sur `lower(customer_email)` → index fonctionnel.
 - **Vérif** : `EXPLAIN ANALYZE` montre un *index scan* (pas de *seq scan*) sur les requêtes ops principales.
 
-#### Jour 16 — 🟡 Nettoyage de la dette legacy
-- [ ] 🟡 Supprimer/archiver `backend/` (recoupe la décision du Jour 12), `backoffice/` (remplacé par `ops/`), `js/customer.js` (doublon mort).
-- [ ] 🟡 Trancher le sort de `index2.html` (landing alternative).
-- **Vérif** : aucun lien mort ; le site déployé sert toujours toutes les surfaces ; un nouveau dev sait quel fichier toucher.
+#### Jour 16 — 🟡 Nettoyage de la dette legacy — 🟠 EN PARTIE (2026-07-23)
+- [x] 🟡 `backend/` **archivé** dans `_archive/backend/` ; `js/customer.js` (doublon mort) **supprimé**.
+- [ ] 🟡 Reste à traiter : `backoffice/` (remplacé par `ops/`) et `index2.html` (landing alternative).
+- **Vérif** : ✅ aucun lien mort après archivage/suppression (contrôlé) ; les surfaces sont toujours servies.
 
 ### Priorité 2 — Avant ~5 000 clients
 
-#### Jour 17 — 🟠 Rafraîchissement de session automatique
-- [ ] 🟠 Utiliser le `refresh_token` déjà stocké (`grant_type=refresh_token`) **ou** passer à `supabase-js` qui le gère seul.
-- **Constat** : JWT en `localStorage` **sans refresh** → déconnexions silencieuses toutes les ~1 h (pénible en support toute la journée).
+#### Jour 17 — 🟠 Rafraîchissement de session automatique — ⚡ AMORCÉ (2026-07-23)
+- [x] 🟠 Briques ajoutées par le refactor : `refreshSession` / `ensureValidSession` (`js/services/session.js`).
+- [ ] 🟠 Reste à **câbler** : appeler `ensureValidSession` avant les requêtes authentifiées (ou avant expiration) sur toutes les surfaces.
+- **Constat** : JWT en `localStorage` — le refresh existe maintenant mais n'est pas encore branché partout.
 - **Vérif** : une session reste active au-delà de l'expiration du JWT sans re-login manuel.
 
 #### Jour 18 — 🟡 Rétention / purge de `suro_events`
@@ -240,9 +242,10 @@ donnée saisie par un client → exécutée dans le navigateur d'un **staff**.
 - [ ] 🟡 Remplacer le `setInterval(refreshBadge, 30000)` (`notifications.js:76`) par **Supabase Realtime** ou un intervalle adaptatif.
 - **Vérif** : plus de requête inutile quand rien ne change ; charge stable avec beaucoup d'utilisateurs connectés.
 
-#### Jour 20 — 🟠 Découper `api.js` (809 lignes, une seule classe)
-- [ ] 🟠 Séparer par domaine : `auth`, `customer`, `admin`, `storage`.
-- **Vérif** : mêmes appels côté front ; fichiers plus courts et lisibles.
+#### Jour 20 — 🟠 Découper `api.js` (809 lignes, une seule classe) — ✅ FAIT (2026-07-23)
+- [x] 🟠 Éclaté en 9 services (`config, session, http, analytics, onboarding, auth, customer-portal, admin, api-notifications`)
+  assemblés dans `window.SURO_API` ; test d'assemblage `api.assembly.test.mjs` en CI.
+- **Vérif** : ✅ 15/15 tests ; les 9 pages HTML chargent la chaîne complète dans le bon ordre (contrôlé).
 
 #### Jour 21 — 🔴 Vrai flux de paiement (bloquant produit, indépendant du scale)
 - [ ] 🔴 Brancher un **prestataire réel** (CMI/banque) via **webhook + Edge Function** ; l'activation du contrat vient du prestataire, pas du client.

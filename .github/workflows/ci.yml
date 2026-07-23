@@ -1,5 +1,12 @@
 name: CI
 
+# Filet de sécurité minimal pour un projet no-build :
+# vérifie la syntaxe (scripts classiques ET modules ES) puis lance les tests.
+# Objectif : bloquer avant merge les régressions du type « écran blanc »
+# (erreur de syntaxe dans un module ES qui casse tout le portail ops).
+# NB : le check syntaxe passe par scripts/check-syntax.mjs qui analyse
+# ops/src EN TANT QUE modules — un simple `node --check *.js` ne le détecte pas.
+
 on:
   push:
     branches: [Cursor, main, master]
@@ -7,7 +14,8 @@ on:
     branches: [Cursor, main, master]
 
 jobs:
-  test:
+  check:
+    name: Syntaxe & tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,13 +24,9 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Syntax-check API modules
-        run: |
-          for f in js/services/*.js; do
-            node --check "$f"
-          done
+      # Aucune dépendance à installer : les scripts n'utilisent que Node natif.
+      - name: Vérification syntaxe (scripts classiques + modules ES)
+        run: npm run check:js
 
-      - name: Unit tests
-        run: |
-          node ops/src/routes/privileges.matrix.test.mjs
-          node js/services/api.assembly.test.mjs
+      - name: Tests (privilèges + assemblage API)
+        run: npm test

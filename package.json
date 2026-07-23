@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node ops/src/routes/privileges.matrix.test.mjs && node js/services/api.assembly.test.mjs",
     "test:api": "node js/services/api.assembly.test.mjs",
-    "check:js": "find js/services ops/src -name '*.js' -print0 | xargs -0 -n1 node --check"
+    "check:js": "node scripts/check-syntax.mjs"
   },
   "repository": {
     "type": "git",

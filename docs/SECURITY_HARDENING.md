@@ -244,10 +244,12 @@ Fondation posée + 1ʳᵉ tranche prouvée. Aucune migration DB (PostgREST natif
 
 ### Priorité 2 — Avant ~5 000 clients
 
-#### Jour 17 — 🟠 Rafraîchissement de session automatique — ⚡ AMORCÉ (2026-07-23)
-- [x] 🟠 Briques ajoutées par le refactor : `refreshSession` / `ensureValidSession` (`js/services/session.js`).
-- [ ] 🟠 Reste à **câbler** : appeler `ensureValidSession` avant les requêtes authentifiées (ou avant expiration) sur toutes les surfaces.
-- **Constat** : JWT en `localStorage` — le refresh existe maintenant mais n'est pas encore branché partout.
+#### Jour 17 — 🟠 Rafraîchissement de session automatique — ✅ FAIT (2026-07-23)
+- [x] 🟠 `ensureValidSession()` rafraîchit **proactivement** le JWT s'il expire dans < 60 s ; `refreshSession()`
+  déduplique les refresh concurrents et nettoie la session si le refresh échoue (`js/services/session.js`).
+- [x] 🟠 Appelé **avant chaque requête authentifiée** dans `_fetch` (asUser) + **retry auto sur 401**.
+- [x] 🟠 Durcissement : une requête `asUser` utilise **toujours** le token validé, **jamais** de repli anon
+  (source de 400 « non-staff » trompeurs) ; message d'erreur clair si session expirée.
 - **Vérif** : une session reste active au-delà de l'expiration du JWT sans re-login manuel.
 
 #### Jour 18 — 🟡 Rétention / purge de `suro_events`

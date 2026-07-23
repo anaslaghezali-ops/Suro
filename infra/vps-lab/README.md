@@ -45,6 +45,26 @@ curl -fsSL https://raw.githubusercontent.com/anaslaghezali-ops/Suro/cursor/repo-
 
 Importer les fichiers SQL dans l'ordre (voir `docs/migrations/MIGRATION_ORDER.md`).
 
+## 5. Backups locaux (même serveur)
+
+Sauvegarde quotidienne Postgres + Storage + `.env` dans `/var/backups/suro/` (rétention 7 jours).
+
+```bash
+# Manuel
+bash infra/vps-lab/07-backup-local.sh
+
+# Restaurer avant une modif ratée
+bash infra/vps-lab/08-restore-local.sh /var/backups/suro/YYYYMMDD-HHMMSS
+```
+
+Cron installé : tous les jours à 3h (`/var/log/suro-backup.log`).
+
+## 6. Durcissement
+
+```bash
+bash infra/vps-lab/06-harden-vps.sh
+```
+
 ## Ports ouverts
 
 | Port | Service |

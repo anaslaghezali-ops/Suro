@@ -269,6 +269,13 @@
       const session = await root.SURO_SESSION.ensureValidSession();
       if (!session) throw new Error('Session admin expirée');
 
+      const maxBytes = 10 * 1024 * 1024; // attestations/cartes vertes multi-pages
+      if (file.size > maxBytes) throw new Error('Fichier trop volumineux (max. 10 Mo)');
+      const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+      if (file.type && !allowedTypes.includes(file.type)) {
+        throw new Error('Format non accepté (JPG, PNG ou PDF uniquement)');
+      }
+
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
       const storagePath = `${application.id}/${Date.now()}-${safeName}`;
 

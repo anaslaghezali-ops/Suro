@@ -131,7 +131,9 @@ donnée saisie par un client → exécutée dans le navigateur d'un **staff**.
 ### Jour 7 — 🟠 Sécuriser les buckets (documents & sinistres)
 - [ ] 🟠 Confirmer que `suro-documents` et `suro-claims` ne sont **pas publics** (accès via RLS / URLs signées uniquement).
 - [ ] 🟠 Revoir les policies storage (lecture = propriétaire par email — déjà rendu casse-insensible ; écriture = staff/propriétaire selon le cas).
-- [ ] 🟠 **Validation upload** : limiter type MIME + taille des fichiers (attestation, pièces sinistre) côté client ET, si possible, côté serveur.
+- [x] 🟠 **Validation upload (côté client)** : type MIME + taille limités. KYC client = 5 Mo, JPG/PNG/PDF
+  (`customer-portal.js`) ; upload admin (attestation/carte verte) = 10 Mo, JPG/PNG/PDF (`admin.js`). Testé (refus > taille / mauvais type).
+- [ ] 🟠 Renforcement **côté serveur** (limite de taille au niveau bucket Supabase) : à faire quand l'accès base sera dispo.
 - [ ] 🟡 Vérifier qu'un client ne peut pas lire les documents d'un autre (test avec 2 comptes).
 - **Vérif** : URL directe d'un fichier sans droit → refus ; upload d'un fichier trop gros / mauvais type → refus.
 

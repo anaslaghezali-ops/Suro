@@ -34,10 +34,10 @@ function loadApiInSandbox() {
     vm.runInNewContext(code, sandbox, { filename: f });
   }
 
-  return sandbox.window.SURO_API;
+  return { API: sandbox.window.SURO_API, sandbox };
 }
 
-const API = loadApiInSandbox();
+const { API, sandbox } = loadApiInSandbox();
 
 const checks = [
   ['SURO_API défini', typeof API === 'function'],
@@ -152,6 +152,19 @@ assert('pendingDocAppIds dédupe + ignore null', Array.isArray(pendingIds) && pe
 const oneApp = await API.adminApplicationById('app-42');
 assert('applicationById → id=eq.<id>', sbPath.includes('id=eq.app-42'));
 assert('applicationById renvoie la ligne', oneApp && oneApp.id === 'app-42');
+
+// -- Validation upload admin (taille / type) : rejet AVANT tout réseau --
+sandbox.window.SURO_SESSION.ensureValidSession = async () => ({ access_token: 'x', email: 'a@b.ma' });
+let uploadErr = '';
+try {
+  await API.adminUploadDocument({ id: 'app1', customer_email: 'a@b.ma' }, { name: 'big.pdf', type: 'application/pdf', size: 11 * 1024 * 1024 });
+} catch (e) { uploadErr = e.message; }
+assert('upload admin refuse un fichier > 10 Mo', /volumineux/i.test(uploadErr));
+uploadErr = '';
+try {
+  await API.adminUploadDocument({ id: 'app1', customer_email: 'a@b.ma' }, { name: 'x.exe', type: 'application/x-msdownload', size: 100 });
+} catch (e) { uploadErr = e.message; }
+assert('upload admin refuse un mauvais type', /format non accept/i.test(uploadErr));
 
 if (failed) process.exit(1);
 console.log(`\n${total - failed}/${total} passed`);

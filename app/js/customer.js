@@ -628,7 +628,7 @@ class CustomerDashboard {
 
       const options = policies
         .filter(p => p.status === 'active')
-        .map(p => `<option value="${p.id}">${this.vehicleLabel(p)} — ${p.immatriculation || ''}</option>`)
+        .map(p => `<option value="${this.escape(p.id)}">${this.escape(this.vehicleLabel(p))} — ${this.escape(p.immatriculation || '')}</option>`)
         .join('');
 
       select.innerHTML = '<option value="">-- Choisir un contrat --</option>' + options;

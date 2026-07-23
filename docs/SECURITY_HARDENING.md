@@ -101,15 +101,20 @@ Vérification ciblée du seul vecteur SQLi possible dans cette archi (SQL dynami
 
 ## PHASE C — Frontend (le code servi au navigateur)
 
-### Jour 5 — 🔴 Audit XSS (données utilisateur → HTML)
-Le legacy (`app/js/customer.js` ~17, `backoffice/js/dashboard.js` ~20,
-`js/features/onboarding/tunnel.js` ~12 `innerHTML`) construit du HTML avec des données
-saisies (nom, email, marque véhicule, adresse…). Une valeur comme `<img onerror=...>`
-dans un champ pourrait s'exécuter chez le **staff** qui regarde le dossier (XSS stockée).
-- [ ] 🔴 Repérer chaque `innerHTML` avec une variable utilisateur non passée par `escape()`.
-- [ ] 🔴 Corriger : passer **toutes** les données dynamiques par `escape()` (ou équivalent) avant injection.
-- [ ] ⚪ L'ops (`ops/src/**`, Preact + htm) échappe par défaut : confirmer qu'aucun `dangerouslySetInnerHTML` n'y traîne.
-- **Vérif** : injecter `"><img src=x onerror=alert(1)>` dans un nom/marque puis l'afficher côté ops/backoffice → pas d'exécution.
+### Jour 5 — 🔴 Audit XSS (données utilisateur → HTML) — ✅ FAIT (2026-07-22)
+Audit des 3 fichiers legacy + de l'ops. **Modèle de menace clé** = XSS *stockée* :
+donnée saisie par un client → exécutée dans le navigateur d'un **staff**.
+- [x] 🔴 **Chemin à haut risque (client → staff) : déjà sûr.**
+  - `backoffice/js/dashboard.js` : toutes les données client passent par `this.escape()`
+    (y compris `vehicleLabel`, le helper `field()` échappe l'attribut `value`, messages, descriptions, field_value…).
+  - `ops/src/**` : Preact/htm auto-échappe ; **aucun** `innerHTML`/`dangerouslySetInnerHTML`.
+- [x] 🔴 **customer.js : 1 seul spot non échappé corrigé** (self-XSS dans le `<option>` du choix de contrat,
+  ligne 600 : `vehicleLabel` + `immatriculation` désormais `escape()`). Le reste du refactor échappe déjà au point d'injection.
+- [x] ⚪ **tunnel.js** : les valeurs interpolées (`choice.value`, `choice.description`) sont **définies par le code**, pas des saisies → pas de vecteur.
+- [x] ⚪ **notifications.js** (cloche) : `title`/`body` échappés (`esc()`).
+- **Vérif** : ✅ `escape()` couvre `& < > " '` (contexte texte + attribut). La seule surface exploitable
+  (client → staff) était déjà couverte ; correctif défense-en-profondeur appliqué côté client.
+  Fichier : `app/js/customer.js` (v50).
 
 ### Jour 6 — 🟡 Secrets, en-têtes & config frontend
 - [ ] ⚪ Confirmer (déjà vérifié) : **aucune clé `service_role`** dans le repo ni dans le JS déployé.

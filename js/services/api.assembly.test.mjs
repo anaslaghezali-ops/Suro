@@ -52,20 +52,38 @@ const checks = [
 ];
 
 let failed = 0;
-for (const [label, ok] of checks) {
+let total = 0;
+const assert = (label, ok) => {
+  total++;
   if (!ok) { console.error('FAIL:', label); failed++; }
   else console.log('ok:', label);
-}
+};
+
+for (const [label, ok] of checks) assert(label, ok);
 
 // Session expirée → ensureValidSession retourne null sans refresh_token
 API.setSession({ access_token: 'a.b.c', email: 't@test.ma' });
 const expired = await API.ensureValidSession();
-if (expired !== null) {
-  console.error('FAIL: ensureValidSession sans refresh_token doit retourner null');
-  failed++;
-} else {
-  console.log('ok: ensureValidSession sans refresh_token');
+assert('ensureValidSession sans refresh_token', expired === null);
+
+// Construction de la requête paginée Paiements (sans réseau : on capture le path).
+assert('adminListPayments présent', typeof API.adminListPayments === 'function');
+let capturedPath = '';
+API.sbList = (path) => { capturedPath = path; return Promise.resolve({ rows: [], total: 0 }); };
+await API.adminListPayments({ limit: 12, offset: 24, status: 'succeeded', search: 'jean dupont', sortKey: 'amount', sortDir: -1 });
+for (const piece of [
+  '/rest/v1/suro_payments?',
+  'limit=12', 'offset=24',
+  'order=amount.desc',
+  'or=(status.is.null,status.eq.succeeded)', // 'succeeded' inclut status NULL
+  'customer_email=ilike.',                    // recherche déléguée au serveur
+]) {
+  assert(`requête paiements contient « ${piece} »`, capturedPath.includes(piece));
 }
+// Un statut non 'succeeded' → égalité stricte, pas de or(null)
+capturedPath = '';
+await API.adminListPayments({ status: 'pending' });
+assert('statut pending → status=eq.pending', capturedPath.includes('status=eq.pending') && !capturedPath.includes('is.null'));
 
 if (failed) process.exit(1);
-console.log(`\n${checks.length + 1 - failed}/${checks.length + 1} passed`);
+console.log(`\n${total - failed}/${total} passed`);

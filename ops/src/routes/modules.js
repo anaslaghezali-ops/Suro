@@ -34,13 +34,12 @@ export function Contracts({ caps }) {
   <//>`;
 }
 
-/* ---------------- PAIEMENTS ---------------- */
+/* ---------------- PAIEMENTS (pagination serveur) ---------------- */
 export function Payments({ caps }) {
-  const { data, loading, error } = useAsync(() => api.payments().catch(() => []), []);
   const [filter, setFilter] = useState('');
-  if (loading) return html`<${Loading}/>`;
-  if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;
-  const rows = (data || []).filter((p) => !filter || (p.status || 'succeeded') === filter);
+  // Recherche / tri / pagination délégués à PostgREST — rien n'est chargé en bloc.
+  const fetchPage = ({ search, sortKey, sortDir, offset, limit }) =>
+    api.paymentsPage({ status: filter || undefined, search, sortKey, sortDir, offset, limit });
   const columns = [
     { key: 'customer_email', label: 'Client', sortable: true },
     { key: 'amount', label: 'Montant', sortable: true, render: (p) => fmtMoney(p.amount) },
@@ -49,8 +48,8 @@ export function Payments({ caps }) {
     { key: 'paid_at', label: 'Date', sortable: true, render: (p) => fmtDate(p.paid_at) },
   ];
   return html`<${Page} title="Paiements" subtitle="Historique complet des paiements (souscriptions et renouvellements).">
-    <div class="card"><${DataTable} columns=${columns} rows=${rows}
-      searchKeys=${['customer_email']}
+    <div class="card"><${DataTable} columns=${columns}
+      server=${fetchPage} serverKey=${filter} searchPlaceholder="Rechercher un client…"
       filters=${[{ id: 'status', label: 'Tous les statuts', value: filter, onChange: setFilter,
         options: [{ value: 'succeeded', label: 'Réussi' }, { value: 'pending', label: 'En attente' }, { value: 'failed', label: 'Échoué' }] }]}
     /></div>

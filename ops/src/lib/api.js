@@ -46,6 +46,7 @@ export const api = {
   applications: () => SB().adminGetApplications(),
   claims: () => SB().adminGetClaims(),
   payments: () => SB().adminGetPayments(),
+  paymentsPage: (opts) => SB().adminListPayments(opts),
   customers: () => SB().adminListCustomers(),
   documents: (appId) => SB().adminGetDocuments(appId),
 

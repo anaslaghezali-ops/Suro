@@ -76,6 +76,19 @@
       return this.sb('/rest/v1/suro_payments?select=*&order=paid_at.desc', { asUser: true });
     },
 
+    // Paiements paginés côté serveur → { rows, total }.
+    // status/search/tri appliqués par PostgREST (rien n'est filtré dans le navigateur).
+    adminListPayments({ limit = 12, offset = 0, status, search, sortKey, sortDir } = {}) {
+      const col = sortKey || 'paid_at';
+      const dir = sortDir === 1 ? 'asc' : 'desc';
+      const parts = ['select=*', `order=${col}.${dir}`, `limit=${limit}`, `offset=${offset}`];
+      // 'succeeded' inclut les lignes à status NULL (traitées comme réussies côté UI).
+      if (status === 'succeeded') parts.push('or=(status.is.null,status.eq.succeeded)');
+      else if (status) parts.push(`status=eq.${encodeURIComponent(status)}`);
+      if (search) parts.push(`customer_email=ilike.${encodeURIComponent(`*${search}*`)}`);
+      return this.sbList(`/rest/v1/suro_payments?${parts.join('&')}`, { asUser: true });
+    },
+
     adminGetFunnelStats(days) {
       return this.sb('/rest/v1/rpc/suro_funnel_stats', {
         method: 'POST',

@@ -210,11 +210,18 @@ donnée saisie par un client → exécutée dans le navigateur d'un **staff**.
 - [x] 🟡 Tests lancés en CI (`npm test`) : `privileges.matrix.test.mjs` + `api.assembly.test.mjs`.
 - **Vérif** : ✅ prouvé — bug ESM réinjecté dans `documents.js` → `check:js` **exit 1** (pointe la ligne) ; code propre → 41/41 OK, 15/15 tests.
 
-#### Jour 14 — 🔴 Pagination serveur du portail ops (le vrai goulot)
-- [ ] 🔴 Remplacer les `select=*` sans limite (`api.js` `adminGetApplications/Documents/Payments/Claims`) par
-  des appels **paginés** (RPC `limit/offset/search`, ou en-tête `Range` PostgREST) + filtrage **côté serveur**.
-- **Constat** : aujourd'hui l'ops charge des tables entières et filtre dans le navigateur → onglets lents, JSON lourd bien avant un problème serveur.
-- **Vérif** : un onglet avec ~5 000 lignes reste fluide ; le transfert réseau est borné (page par page).
+#### Jour 14 — 🔴 Pagination serveur du portail ops (le vrai goulot) — 🟠 EN COURS (2026-07-23)
+Fondation posée + 1ʳᵉ tranche prouvée. Aucune migration DB (PostgREST natif, `limit/offset` + `Content-Range`).
+- [x] 🔴 **Fondation** : `SURO_HTTP.sbList(path)` → `{ rows, total }` (total lu via `Prefer: count=exact` / `Content-Range`),
+  et **mode serveur** du `DataTable` (recherche débouncée + tri + pagination délégués au backend, rétro-compatible avec le mode client).
+- [x] 🔴 **Paiements** convertis bout-en-bout : `adminListPayments({limit,offset,status,search,sortKey,sortDir})`
+  → filtre/tri/recherche côté serveur. Test unitaire de la requête PostgREST (`api.assembly.test.mjs`).
+- [ ] 🟠 Répliquer sur les listes **plates** restantes : Sinistres, Contrats, Journal d'audit.
+- [ ] 🟠 Écrans **complexes** (Souscriptions, Pièces KYC, Clients) : nécessitent des **comptes par vue côté serveur**
+  (une vue = un filtre + un `count`) — à faire avec soin (comptes agrégés, jointure docs pour « à vérifier »).
+- **Constat** : les autres écrans chargent encore des tables entières + filtrage navigateur → à convertir progressivement.
+- **Vérif navigateur** : sur **Paiements**, la pagination/recherche/tri interrogent le serveur (onglet Réseau : `limit/offset`,
+  réponse bornée) ; le total affiché vient de `Content-Range`. ✅ syntaxe + 23 tests au vert.
 
 #### Jour 15 — 🟠 Index DB sur les colonnes filtrées
 - [ ] 🟠 Index sur `customer_email`, `status`, `created_at` pour `insurance_applications`, `suro_payments`, `insurance_claims`

@@ -296,3 +296,80 @@ table.priv-matrix input[type="checkbox"] { cursor: pointer; accent-color: var(--
 }
 
 .ops-legal-foot a:hover { text-decoration: underline; }
+
+/* Pièces KYC */
+.ops-tabs { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.ops-tab-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #f59e0b;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.kyc-dossier-progress { margin-bottom: 18px; font-size: 14px; }
+
+.kyc-piece-section {
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.kyc-piece-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.kyc-piece-head h3 { font-size: 14px; margin: 0; }
+
+.kyc-slots-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.kyc-slot-card {
+  padding: 12px;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 10px;
+  background: var(--color-neutral-50);
+}
+
+.kyc-slot-card--empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 120px;
+  text-align: center;
+  border-style: dashed;
+  background: #fff;
+}
+
+.kyc-slot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.kyc-slot-meta { font-size: 11px; margin: 8px 0; }
+
+.kyc-slot-reject {
+  font-size: 12px;
+  color: #dc2626;
+  background: #fef2f2;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 720px) {
+  .kyc-slots-grid { grid-template-columns: 1fr; }
+}

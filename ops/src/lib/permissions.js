@@ -9,7 +9,7 @@ export const NAV = [
   { id: 'subscriptions', label: 'Souscriptions', icon: '▤', roles: ALL },
   { id: 'clients',       label: 'Clients',       icon: '☺', roles: ALL },
   { id: 'contracts',     label: 'Contrats',      icon: '❏', roles: ALL },
-  { id: 'documents',     label: 'Documents',     icon: '⎙', roles: ALL },
+  { id: 'documents',     label: 'Pièces KYC',    icon: '⎙', roles: ALL },
   { id: 'payments',      label: 'Paiements',     icon: '⛁', roles: ALL },
   { id: 'claims',        label: 'Sinistres',     icon: '⚠', roles: ALL },
   { id: 'analytics',     label: 'Funnel',        icon: '▽', roles: ['super_admin'] },

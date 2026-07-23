@@ -9,12 +9,7 @@ const LOGIN_PAGE = '../customer-login.html';
 const SUPPORT_PHONE = '+212600000000';
 const SUPPORT_WHATSAPP = '212600000000'; // format international sans +
 
-const KYC_DOC_TYPES = [
-  { id: 'cin', short: 'CIN', label: 'Carte d\'identité nationale (CIN)', hint: 'Recto et verso, lisible, en cours de validité.' },
-  { id: 'permis', short: 'Permis', label: 'Permis de conduire', hint: 'Recto et verso du permis au nom du souscripteur.' },
-  { id: 'carte_grise', short: 'CG', label: 'Carte grise', hint: 'Document du véhicule assuré.' },
-];
-const KYC_DOC_TYPE_IDS = KYC_DOC_TYPES.map((d) => d.id);
+const Kyc = () => window.SuroKyc;
 
 function toast(msg, type = 'ok') {
   if (window.SuroToast) window.SuroToast.show(msg, type);
@@ -1207,19 +1202,7 @@ class CustomerDashboard {
   }
 
   summarizeKycForPolicy(applicationId, allDocs) {
-    const docs = (allDocs || []).filter(
-      (d) => d.application_id === applicationId && KYC_DOC_TYPE_IDS.includes(d.document_type)
-    );
-    const byType = {};
-    for (const type of KYC_DOC_TYPE_IDS) {
-      const rows = docs
-        .filter((d) => d.document_type === type)
-        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      byType[type] = rows[0] || null;
-    }
-    const received = KYC_DOC_TYPE_IDS.filter((t) => byType[t]).length;
-    const approved = KYC_DOC_TYPE_IDS.filter((t) => byType[t]?.status === 'approved').length;
-    return { byType, received, approved, complete: approved === 3 };
+    return Kyc().summarizeKycForPolicy(applicationId, allDocs);
   }
 
   policyRequiresKyc(p) {
@@ -1266,9 +1249,10 @@ class CustomerDashboard {
     return { label: 'À envoyer', tone: 'todo' };
   }
 
-  renderKycProgressRing(received, total = 3) {
-    const pct = Math.round((received / total) * 100);
-    return `<div class="docs-progress-ring" style="background:conic-gradient(var(--color-primary) ${pct}%, #fde68a 0)"><span>${received}/${total}</span></div>`;
+  renderKycProgressRing(received, total) {
+    const slots = total || Kyc().KYC_SLOT_COUNT;
+    const pct = Math.round((received / slots) * 100);
+    return `<div class="docs-progress-ring" style="background:conic-gradient(var(--color-primary) ${pct}%, #fde68a 0)"><span>${received}/${slots}</span></div>`;
   }
 
   renderPendingDocsBanner(policies, allDocs, elId = 'pending-docs-banner-dashboard') {
@@ -1283,8 +1267,8 @@ class CustomerDashboard {
       el.innerHTML = `
         <div class="pending-banner pending-banner--docs" role="status">
           <div class="pending-banner-copy">
-            <div class="pending-banner-title">Complète ton dossier — 3 pièces requises</div>
-            <p class="pending-banner-desc">CIN, permis de conduire et carte grise pour ${this.escape(this.vehicleLabel(p))}. ${kyc.received}/3 pièces reçues.</p>
+            <div class="pending-banner-title">Complète ton dossier — 3 pièces (recto + verso)</div>
+            <p class="pending-banner-desc">CIN, permis et carte grise pour ${this.escape(this.vehicleLabel(p))}. ${kyc.received}/${kyc.totalSlots} faces reçues.</p>
           </div>
           <button type="button" class="btn btn-primary btn-sm" onclick="dashboard.openDocumentsForPolicy('${p.id}')">Compléter mon dossier</button>
         </div>`;
@@ -1354,24 +1338,30 @@ class CustomerDashboard {
           </select>
         </div>` : '';
 
-      const missingTypes = KYC_DOC_TYPE_IDS.filter((t) => !kyc.byType[t] || kyc.byType[t].status === 'rejected');
+      const missingTypes = Kyc().KYC_DOC_TYPE_IDS.filter(
+        (t) => Kyc().typeAggregateStatus(kyc.byType[t]) === 'missing'
+          || Kyc().typeAggregateStatus(kyc.byType[t]) === 'rejected'
+          || Kyc().typeAggregateStatus(kyc.byType[t]) === 'partial'
+      );
       const bannerTitle = kyc.complete
         ? 'Dossier complet'
         : missingTypes.length === 1
-          ? `${KYC_DOC_TYPES.find((d) => d.id === missingTypes[0])?.label || 'Pièce'} manquante`
+          ? `${Kyc().KYC_DOC_TYPES.find((d) => d.id === missingTypes[0])?.label || 'Pièce'} incomplète`
           : 'Dernière étape avant activation';
 
       const bannerDesc = kyc.complete
-        ? 'Tes 3 pièces sont validées. Ton contrat est activé.'
-        : 'Paiement reçu ✓ — Envoie tes pièces pour activer définitivement ton contrat. Validation sous 48 h ouvrées.';
+        ? 'Tes 3 pièces (recto + verso) sont validées. Ton contrat est activé.'
+        : 'Paiement reçu ✓ — Envoie le recto et le verso de chaque pièce. Validation sous 48 h ouvrées.';
 
-      const chips = KYC_DOC_TYPES.map((def) => {
-        const doc = kyc.byType[def.id];
+      const chips = Kyc().KYC_DOC_TYPES.map((def) => {
+        const agg = Kyc().typeAggregateStatus(kyc.byType[def.id]);
         let cls = 'doc-chip doc-chip--todo';
         let text = def.short;
-        if (doc?.status === 'approved') { cls = 'doc-chip doc-chip--done'; text = `${def.short} ✓`; }
-        else if (doc?.status === 'pending') text = `${def.short} · en vérification`;
-        else if (!doc || doc.status === 'rejected') text = `${def.short} · à envoyer`;
+        if (agg === 'approved') { cls = 'doc-chip doc-chip--done'; text = `${def.short} ✓`; }
+        else if (agg === 'pending') text = `${def.short} · en vérification`;
+        else if (agg === 'partial') text = `${def.short} · recto/verso incomplet`;
+        else if (agg === 'rejected') text = `${def.short} · à corriger`;
+        else text = `${def.short} · à envoyer`;
         return `<span class="${cls}">${text}</span>`;
       }).join('');
 
@@ -1384,15 +1374,15 @@ class CustomerDashboard {
             ${!kyc.complete ? `<div class="doc-checklist">${chips}</div>` : ''}
           </div>
           <div class="docs-progress">
-            ${this.renderKycProgressRing(kyc.received)}
-            <small>pièces reçues</small>
+            ${this.renderKycProgressRing(kyc.received, kyc.totalSlots)}
+            <small>faces reçues · ${kyc.piecesComplete}/${kyc.totalPieces} pièces complètes</small>
           </div>
         </div>
         <div class="doc-list">
-          ${KYC_DOC_TYPES.map((def) => this.renderKycDocCard(policy, def, kyc.byType[def.id])).join('')}
+          ${Kyc().KYC_DOC_TYPES.map((def) => this.renderKycDocCard(policy, def, kyc.byType[def.id])).join('')}
         </div>
         <div class="docs-note">
-          <strong>Conseil :</strong> prends les photos en lumière naturelle, sans reflet. Les 3 pièces doivent correspondre au nom du titulaire du contrat.
+          <strong>Conseil :</strong> une photo par face (recto et verso), en lumière naturelle et sans reflet. Les 3 pièces doivent correspondre au nom du titulaire du contrat.
         </div>`;
     } catch (error) {
       if (this.handleAuthError(error)) return;
@@ -1403,32 +1393,22 @@ class CustomerDashboard {
     }
   }
 
-  renderKycDocCard(policy, def, doc) {
-    const st = this.kycDocStatusLabel(doc);
-    const cardClass = !doc ? 'doc-card--missing'
-      : doc.status === 'approved' ? 'doc-card--done'
-        : doc.status === 'pending' ? 'doc-card--pending-review'
-          : doc.status === 'rejected' ? 'doc-card--rejected' : 'doc-card--missing';
+  renderKycDocCard(policy, def, typeEntry) {
+    const agg = Kyc().typeAggregateStatus(typeEntry);
+    const cardClass = agg === 'approved' ? 'doc-card--done'
+      : agg === 'pending' ? 'doc-card--pending-review'
+        : agg === 'rejected' ? 'doc-card--rejected'
+          : 'doc-card--missing';
 
     const hint = def.id === 'carte_grise' && policy.immatriculation
       ? `${def.hint} (${this.escape(policy.immatriculation)}).`
       : def.hint;
 
-    const rejectHtml = doc?.status === 'rejected' && doc.reject_reason
-      ? `<div class="doc-reject"><strong>Refusé :</strong> ${this.escape(doc.reject_reason)}</div>`
-      : '';
-
-    const uploadZone = (!doc || doc.status === 'rejected') ? `
-      <div class="upload-zone">
-        <strong>Glisser-déposer ou parcourir</strong>
-        JPG, PNG ou PDF · max. 5 Mo
-      </div>` : '';
-
-    const actions = doc?.status === 'approved'
-      ? `<button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.downloadDoc('${this.escape(doc.storage_path)}', '${this.escape(doc.name).replace(/'/g, "\\'")}')">Voir</button>`
-      : doc?.status === 'pending'
-        ? `<button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.triggerKycUpload('${policy.id}', '${def.id}')">Remplacer</button>`
-        : `<button type="button" class="btn btn-primary btn-sm" onclick="dashboard.triggerKycUpload('${policy.id}', '${def.id}')">${doc?.status === 'rejected' ? 'Renvoyer' : 'Choisir un fichier'}</button>`;
+    const st = agg === 'approved' ? { label: 'Validé', tone: 'ok' }
+      : agg === 'pending' ? { label: 'En vérification', tone: 'review' }
+        : agg === 'rejected' ? { label: 'À renvoyer', tone: 'ko' }
+          : agg === 'partial' ? { label: 'Incomplet', tone: 'todo' }
+            : { label: 'À envoyer', tone: 'todo' };
 
     return `
       <article class="doc-card ${cardClass}">
@@ -1436,22 +1416,54 @@ class CustomerDashboard {
         <div class="doc-copy">
           <h3>${def.label}</h3>
           <p>${hint}</p>
-          ${doc ? `<div class="doc-meta">${this.formatKycDocMeta(doc)}</div>` : ''}
-          ${rejectHtml}
-          ${uploadZone}
+          <div class="doc-sides">
+            ${Kyc().KYC_SIDES.map((side) => this.renderKycSideSlot(policy, def, side, typeEntry[side])).join('')}
+          </div>
         </div>
         <div class="doc-actions">
           <span class="doc-status doc-status--${st.tone}">${st.label}</span>
-          ${actions}
         </div>
       </article>`;
   }
 
-  triggerKycUpload(applicationId, documentType) {
+  renderKycSideSlot(policy, def, side, doc) {
+    const sideLabel = Kyc().KYC_SIDE_LABELS[side];
+    const st = this.kycDocStatusLabel(doc);
+    const rejectHtml = doc?.status === 'rejected' && doc.reject_reason
+      ? `<div class="doc-reject"><strong>Refusé :</strong> ${this.escape(doc.reject_reason)}</div>`
+      : '';
+
+    const needsUpload = !doc || doc.status === 'rejected';
+    const uploadZone = needsUpload ? `
+      <div class="upload-zone upload-zone--compact">
+        <strong>${sideLabel}</strong>
+        JPG, PNG ou PDF · max. 5 Mo
+      </div>` : `<div class="doc-meta">${this.formatKycDocMeta(doc)}</div>`;
+
+    const actions = doc?.status === 'approved'
+      ? `<button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.downloadDoc('${this.escape(doc.storage_path)}', '${this.escape(doc.name).replace(/'/g, "\\'")}')">Voir</button>`
+      : doc?.status === 'pending'
+        ? `<button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.triggerKycUpload('${policy.id}', '${def.id}', '${side}')">Remplacer</button>`
+        : `<button type="button" class="btn btn-primary btn-sm" onclick="dashboard.triggerKycUpload('${policy.id}', '${def.id}', '${side}')">${doc?.status === 'rejected' ? 'Renvoyer' : 'Ajouter'}</button>`;
+
+    return `
+      <div class="doc-side-slot doc-side-slot--${st.tone}">
+        <div class="doc-side-head">
+          <span class="doc-side-label">${sideLabel}</span>
+          <span class="doc-status doc-status--${st.tone}">${st.label}</span>
+        </div>
+        ${uploadZone}
+        ${rejectHtml}
+        <div class="doc-side-actions">${actions}</div>
+      </div>`;
+  }
+
+  triggerKycUpload(applicationId, documentType, documentSide) {
     const input = document.getElementById('kyc-file-input');
     if (!input) return;
     input.dataset.applicationId = applicationId;
     input.dataset.documentType = documentType;
+    input.dataset.documentSide = documentSide;
     input.value = '';
     input.click();
   }
@@ -1461,10 +1473,11 @@ class CustomerDashboard {
     const file = input.files && input.files[0];
     const applicationId = input.dataset.applicationId;
     const documentType = input.dataset.documentType;
-    if (!file || !applicationId || !documentType) return;
+    const documentSide = input.dataset.documentSide;
+    if (!file || !applicationId || !documentType || !documentSide) return;
 
     try {
-      await this.api.uploadPolicyDocument(applicationId, this.session.email, documentType, file);
+      await this.api.uploadPolicyDocument(applicationId, this.session.email, documentType, documentSide, file);
       toast('Document envoyé — en cours de vérification');
       await this.fetchDocuments(true);
       if (this.currentPage === 'documents') this.loadDocumentsPage();

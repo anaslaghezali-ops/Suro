@@ -172,7 +172,7 @@ function Detail({ app, caps, onClose, onSaved }) {
                 </div>`;
             })}
           </div>
-          <p class="muted" style="margin-top:14px;font-size:12.5px">La validation/refus des documents se fait dans le module Documents.</p>
+          <p class="muted" style="margin-top:14px;font-size:12.5px">La validation des pièces KYC (recto/verso) se fait dans le module <a href="#/documents" style="color:var(--color-primary)">Pièces KYC</a>.</p>
         `}
       ` : null}
     <//>

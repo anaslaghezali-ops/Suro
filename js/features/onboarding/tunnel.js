@@ -1211,7 +1211,7 @@ class OnboardingForm {
           </div>
 
           <div class="success-info success-info--warn">
-            <strong>3 documents requis</strong> — CIN, permis de conduire et carte grise. Envoie-les pour finaliser ton dossier (validation sous 48 h ouvrées).
+            <strong>3 pièces requises (recto + verso)</strong> — CIN, permis de conduire et carte grise. Envoie les 6 photos pour finaliser ton dossier (validation sous 48 h ouvrées).
           </div>
 
           <div class="success-info">

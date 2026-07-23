@@ -44,8 +44,12 @@ export function Dashboard({ caps }) {
 
   // File « à traiter »
   const queue = [];
-  docs.filter((d) => (d.status || 'pending') === 'pending').forEach((d) =>
-    queue.push({ type: 'Document', label: d.name, meta: d.customer_email, go: 'documents' }));
+  docs.filter((d) => (d.status || 'pending') === 'pending').forEach((d) => {
+    const label = window.SuroKyc?.isKycDocument(d)
+      ? window.SuroKyc.kycDocShortLabel(d.document_type, d.document_side)
+      : d.name;
+    queue.push({ type: window.SuroKyc?.isKycDocument(d) ? 'Pièce KYC' : 'Document', label, meta: d.customer_email, go: 'documents' });
+  });
   claims.filter((c) => c.status === 'pending').forEach((c) =>
     queue.push({ type: 'Sinistre', label: c.claim_type || 'Sinistre', meta: (c.application_id || '').slice(0, 8), go: 'claims' }));
   payments.filter((p) => p.status === 'pending').forEach((p) =>

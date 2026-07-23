@@ -2066,6 +2066,49 @@ textarea {
   margin-bottom: 16px;
 }
 
+.doc-sides {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.doc-side-slot {
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fafafa;
+}
+
+.doc-side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.doc-side-label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.doc-side-actions {
+  margin-top: 8px;
+}
+
+.upload-zone--compact {
+  margin-top: 0;
+  padding: 10px;
+  font-size: 11px;
+}
+
+@media (max-width: 768px) {
+  .doc-sides {
+    grid-template-columns: 1fr;
+  }
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

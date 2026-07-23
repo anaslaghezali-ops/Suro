@@ -284,13 +284,16 @@ class API {
     );
   }
 
-  // Pièces KYC client (CIN, permis, carte grise) — après paiement
-  static async uploadPolicyDocument(applicationId, customerEmail, documentType, file) {
+  // Pièces KYC client (CIN, permis, carte grise) — recto + verso, après paiement
+  static async uploadPolicyDocument(applicationId, customerEmail, documentType, documentSide, file) {
     const session = this.getSession();
     if (!session) throw new Error('Session expirée');
 
     const allowed = ['cin', 'permis', 'carte_grise'];
     if (!allowed.includes(documentType)) throw new Error('Type de document invalide');
+
+    const allowedSides = ['recto', 'verso'];
+    if (!allowedSides.includes(documentSide)) throw new Error('Face du document invalide');
 
     const maxBytes = 5 * 1024 * 1024;
     if (file.size > maxBytes) throw new Error('Fichier trop volumineux (max. 5 Mo)');
@@ -301,7 +304,7 @@ class API {
     }
 
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const storagePath = `${applicationId}/kyc/${documentType}/${Date.now()}-${safeName}`;
+    const storagePath = `${applicationId}/kyc/${documentType}/${documentSide}/${Date.now()}-${safeName}`;
 
     const uploadRes = await fetch(
       `${SUPABASE_URL}/storage/v1/object/suro-documents/${storagePath}`,
@@ -331,6 +334,7 @@ class API {
         name: file.name,
         storage_path: storagePath,
         document_type: documentType,
+        document_side: documentSide,
         status: 'pending',
       }),
     });

@@ -28,8 +28,53 @@ server {
     root /var/www/suro;
     index index.html;
 
-    location / {
-        try_files $uri $uri/ /index.html;
+    # Supabase API (Kong) — la plupart des hébergeurs bloquent le port 8000 en externe
+    location /auth/ {
+        proxy_pass http://127.0.0.1:8000/auth/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /rest/ {
+        proxy_pass http://127.0.0.1:8000/rest/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /storage/ {
+        proxy_pass http://127.0.0.1:8000/storage/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        client_max_body_size 20m;
+    }
+
+    location /realtime/ {
+        proxy_pass http://127.0.0.1:8000/realtime/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /functions/ {
+        proxy_pass http://127.0.0.1:8000/functions/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     location /app/ {
@@ -38,6 +83,10 @@ server {
 
     location /ops/ {
         try_files $uri $uri/ /ops/index.html;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
     }
 }
 NGINX

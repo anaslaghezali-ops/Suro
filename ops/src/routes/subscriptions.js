@@ -1,5 +1,5 @@
 import { html } from 'htm/preact';
-import { useState, useEffect, useMemo } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
 import { useRouteParam, navigate } from '../router.js';
@@ -11,25 +11,23 @@ import { fmtDate, fmtMoney, coverageLabel, vehicleLabel, vehicleTypeLabel, subSt
 
 const STATUSES = ['nouvelle', 'active', 'expired', 'cancelled'];
 
-function daysUntil(dateStr) {
-  if (!dateStr) return null;
-  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
-}
+const dayISO = (offsetDays = 0) => new Date(Date.now() + offsetDays * 86400000).toISOString().slice(0, 10);
+// Vue « docs » : filtre sur les application_id en attente (ctx.pendingDocApps).
+// Ensemble vide → filtre impossible (id nul) pour ne rien renvoyer.
+const NIL_UUID = '00000000-0000-0000-0000-000000000000';
 
-// Définition des vues sauvegardées : chacune est une fonction de correspondance.
-// pendingDocApps = Set des application_id ayant au moins un document 'pending'.
+// Chaque vue produit ses clauses PostgREST (filtre serveur), pas un match client.
+// ctx.pendingDocApps = tableau des application_id ayant un document en attente.
 const VIEW_DEFS = [
-  { id: '',          label: 'Toutes',            match: () => true },
-  { id: 'docs',       label: 'Docs à vérifier',   attn: true, match: (a, ctx) => ctx.pendingDocApps.has(a.id) },
-  { id: 'expiring',   label: 'Expire < 30j',      attn: true, match: (a) => {
-      if (a.status !== 'active') return false;
-      const d = daysUntil(a.expires_at);
-      return d != null && d >= 0 && d <= 30;
-    } },
-  { id: 'nouvelle',   label: 'Nouvelles',         match: (a) => a.status === 'nouvelle' },
-  { id: 'active',     label: 'Actives',           match: (a) => a.status === 'active' },
-  { id: 'expired',    label: 'Expirées',          match: (a) => a.status === 'expired' },
-  { id: 'cancelled',  label: 'Annulées',          match: (a) => a.status === 'cancelled' },
+  { id: '',          label: 'Toutes',          clauses: () => [] },
+  { id: 'docs',       label: 'Docs à vérifier', attn: true,
+    clauses: (ctx) => [`id=in.(${ctx.pendingDocApps.length ? ctx.pendingDocApps.join(',') : NIL_UUID})`] },
+  { id: 'expiring',   label: 'Expire < 30j',    attn: true,
+    clauses: () => ['status=eq.active', `expires_at=gte.${dayISO(0)}`, `expires_at=lte.${dayISO(30)}`] },
+  { id: 'nouvelle',   label: 'Nouvelles',       clauses: () => ['status=eq.nouvelle'] },
+  { id: 'active',     label: 'Actives',         clauses: () => ['status=eq.active'] },
+  { id: 'expired',    label: 'Expirées',        clauses: () => ['status=eq.expired'] },
+  { id: 'cancelled',  label: 'Annulées',        clauses: () => ['status=eq.cancelled'] },
 ];
 const EDITABLE = [
   ['immatriculation', 'Immatriculation', 'text'],
@@ -180,47 +178,46 @@ function Detail({ app, caps, onClose, onSaved }) {
 }
 
 export function Subscriptions({ caps }) {
-  const { data, loading, error, reload } = useAsync(async () => {
-    const [apps, docs] = await Promise.all([
-      api.applications().catch(() => []),
-      api.allDocuments().catch(() => []),
-    ]);
-    return { apps: apps || [], docs: docs || [] };
-  }, []);
   const [activeView, setActiveView] = useState('');
   const [selected, setSelected] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const param = useRouteParam();
 
-  const apps = data ? data.apps : null;
+  // Pré-requête bornée : application_id ayant un document en attente (vue « docs »).
+  const pending = useAsync(() => api.pendingDocAppIds().catch(() => []), [reloadKey]);
+  const pendingIds = pending.data || [];
+  const ctx = { pendingDocApps: pendingIds };
 
-  // Deep-link : #/subscriptions/<id> ouvre directement le dossier
-  useEffect(() => {
-    if (param && apps) {
-      const found = apps.find((a) => a.id === param || a.id.startsWith(param));
-      if (found) setSelected(found);
-    }
-  }, [param, apps]);
+  // Compteurs par vue (bornés côté serveur). « docs » = taille de l'ensemble (pas de requête).
+  const counts = useAsync(async () => {
+    const entries = await Promise.all(VIEW_DEFS.map(async (v) => {
+      if (v.id === 'docs') return [v.id || 'all', pendingIds.length];
+      const c = await api.applicationsCount(v.clauses(ctx)).catch(() => null);
+      return [v.id || 'all', c];
+    }));
+    return Object.fromEntries(entries);
+  }, [reloadKey, pendingIds.length]);
 
-  const closeDetail = () => { setSelected(null); if (param) navigate('subscriptions'); };
-
-  // Contexte partagé par les vues (docs en attente par dossier)
-  const ctx = useMemo(() => {
-    const pendingDocApps = new Set(
-      (data ? data.docs : []).filter((d) => (d.status || 'pending') === 'pending').map((d) => d.application_id)
-    );
-    return { pendingDocApps };
-  }, [data]);
-
-  const views = useMemo(() => VIEW_DEFS.map((v) => ({
+  const views = VIEW_DEFS.map((v) => ({
     id: v.id, label: v.label, attn: v.attn,
-    count: (apps || []).filter((a) => v.match(a, ctx)).length,
-  })), [apps, ctx]);
-
-  if (loading) return html`<div style="padding:40px"><${Spinner}/></div>`;
-  if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;
+    count: counts.data ? (counts.data[v.id || 'all'] ?? null) : null,
+  }));
 
   const activeDef = VIEW_DEFS.find((v) => v.id === activeView) || VIEW_DEFS[0];
-  const rows = (apps || []).filter((a) => activeDef.match(a, ctx));
+
+  // Liste paginée serveur : la vue active fournit ses clauses PostgREST.
+  const fetchPage = ({ search, sortKey, sortDir, offset, limit }) =>
+    api.applicationsPage({ clauses: activeDef.clauses(ctx), search, sortKey, sortDir, offset, limit });
+
+  // Deep-link : #/subscriptions/<id> → on récupère le dossier par id.
+  useEffect(() => {
+    if (!param) return undefined;
+    let alive = true;
+    api.applicationById(param).then((row) => { if (alive && row) setSelected(row); }).catch(() => {});
+    return () => { alive = false; };
+  }, [param]);
+
+  const closeDetail = () => { setSelected(null); if (param) navigate('subscriptions'); };
 
   const columns = [
     { key: 'policy_number', label: 'N° / Réf.', render: (a) => a.policy_number || html`<span class="muted">${a.id.slice(0, 8)}…</span>` },
@@ -242,16 +239,16 @@ export function Subscriptions({ caps }) {
     <div class="card">
       <${SavedViews} views=${views} active=${activeView} onChange=${setActiveView} />
       <${DataTable}
-        key=${activeView}
         columns=${columns}
-        rows=${rows}
-        searchKeys=${['customer_email', 'immatriculation', 'marque', 'modele', 'customer_phone', 'policy_number']}
+        server=${fetchPage}
+        serverKey=${`${activeView}|${pendingIds.length}|${reloadKey}`}
+        searchPlaceholder="Rechercher (client, immat, marque…)"
         onRowClick=${(a) => setSelected(a)}
       />
     </div>
 
     ${selected ? html`<${Detail} app=${selected} caps=${caps}
       onClose=${closeDetail}
-      onSaved=${() => { closeDetail(); reload(); }} />` : null}
+      onSaved=${() => { closeDetail(); setReloadKey((k) => k + 1); }} />` : null}
   `;
 }

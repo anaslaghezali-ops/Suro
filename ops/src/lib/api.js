@@ -44,8 +44,15 @@ export const api = {
 
   // --- données métier (réutilise l'API existante) ---
   applications: () => SB().adminGetApplications(),
+  applicationsPage: (opts) => SB().adminListApplications(opts),
+  applicationsCount: (clauses) => SB().adminCountApplications(clauses),
+  applicationById: (id) => SB().adminApplicationById(id),
+  pendingDocAppIds: () => SB().adminPendingDocAppIds(),
   claims: () => SB().adminGetClaims(),
+  claimsPage: (opts) => SB().adminListClaims(opts),
+  claimsCounts: () => SB().adminClaimCounts(),
   payments: () => SB().adminGetPayments(),
+  paymentsPage: (opts) => SB().adminListPayments(opts),
   customers: () => SB().adminListCustomers(),
   documents: (appId) => SB().adminGetDocuments(appId),
 

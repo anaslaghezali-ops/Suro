@@ -131,7 +131,9 @@ donnée saisie par un client → exécutée dans le navigateur d'un **staff**.
 ### Jour 7 — 🟠 Sécuriser les buckets (documents & sinistres)
 - [ ] 🟠 Confirmer que `suro-documents` et `suro-claims` ne sont **pas publics** (accès via RLS / URLs signées uniquement).
 - [ ] 🟠 Revoir les policies storage (lecture = propriétaire par email — déjà rendu casse-insensible ; écriture = staff/propriétaire selon le cas).
-- [ ] 🟠 **Validation upload** : limiter type MIME + taille des fichiers (attestation, pièces sinistre) côté client ET, si possible, côté serveur.
+- [x] 🟠 **Validation upload (côté client)** : type MIME + taille limités. KYC client = 5 Mo, JPG/PNG/PDF
+  (`customer-portal.js`) ; upload admin (attestation/carte verte) = 10 Mo, JPG/PNG/PDF (`admin.js`). Testé (refus > taille / mauvais type).
+- [ ] 🟠 Renforcement **côté serveur** (limite de taille au niveau bucket Supabase) : à faire quand l'accès base sera dispo.
 - [ ] 🟡 Vérifier qu'un client ne peut pas lire les documents d'un autre (test avec 2 comptes).
 - **Vérif** : URL directe d'un fichier sans droit → refus ; upload d'un fichier trop gros / mauvais type → refus.
 
@@ -189,6 +191,90 @@ donnée saisie par un client → exécutée dans le navigateur d'un **staff**.
 - [ ] 🟡 Logs & supervision (erreurs, tentatives d'accès) ; alerte basique.
 - [ ] 🟡 `npm audit` / mise à jour des dépendances (front + backend).
 - **Vérif** : une restauration de backup fonctionne ; `npm audit` sans vulnérabilité critique.
+
+---
+
+## PHASE H — Scalabilité & maintenabilité (vraie montée en charge)
+
+> À traiter **après / en parallèle** de l'audit sécu, un peu chaque jour comme le reste.
+> Contexte (audit code du 2026-07-23, croisé avec l'analyse Cursor) : le **socle data
+> (Supabase + RLS + RBAC + audit) tient 10 000 clients**. Le goulot n'est pas Postgres,
+> c'est le **portail ops** et **l'organisation du code**. Plafond estimé sans ces refactors :
+> **~2 000–5 000 contrats actifs côté staff**. L'espace client (isolé par RLS) tient, lui.
+> **Déjà fait** : portail ops modularisé (`ops/src/routes` + `lib` + `components`) — ne pas re-faire.
+
+### Priorité 1 — Avant ~1 000 clients actifs
+
+#### Jour 13 — 🔴 CI minimale (le meilleur rapport effort/protection) — ✅ FAIT (2026-07-23)
+- [x] 🔴 Check **syntaxe** sur chaque PR/push (`.github/workflows/ci.yml` → `npm run check:js`).
+  Le script `scripts/check-syntax.mjs` analyse `ops/src` **en tant que modules ES** (un simple
+  `node --check *.js` parse en CommonJS et **rate** l'erreur qui a causé l'écran blanc).
+- [x] 🟡 Tests lancés en CI (`npm test`) : `privileges.matrix.test.mjs` + `api.assembly.test.mjs`.
+- **Vérif** : ✅ prouvé — bug ESM réinjecté dans `documents.js` → `check:js` **exit 1** (pointe la ligne) ; code propre → 41/41 OK, 15/15 tests.
+
+#### Jour 14 — 🔴 Pagination serveur du portail ops (le vrai goulot) — 🟠 EN COURS (2026-07-23)
+Fondation posée + 1ʳᵉ tranche prouvée. Aucune migration DB (PostgREST natif, `limit/offset` + `Content-Range`).
+- [x] 🔴 **Fondation** : `SURO_HTTP.sbList(path)` → `{ rows, total }` (total lu via `Prefer: count=exact` / `Content-Range`),
+  et **mode serveur** du `DataTable` (recherche débouncée + tri + pagination délégués au backend, rétro-compatible avec le mode client).
+- [x] 🔴 **Paiements**, **Contrats**, **Sinistres** convertis bout-en-bout (`adminListPayments/Applications/Claims`)
+  → filtre/tri/recherche côté serveur. Recherche multi-colonnes via un seul `or=(col.ilike…)` ; jamais deux `or=`.
+- [x] 🟠 **Sinistres** : les vues par statut deviennent des filtres serveur ; compteurs par vue via requêtes `count`
+  **bornées** (`adminClaimCounts`, `limit=1` + `Content-Range`) — ne scalent pas avec le volume.
+- [x] ⚪ Requêtes PostgREST **couvertes par tests unitaires** (`api.assembly.test.mjs`).
+- [ ] 🟡 **Journal d'audit** : passe par une RPC (`suro_audit_recent`) sans offset ; laissé tel quel (déjà borné à 200)
+  — une vraie pagination nécessiterait une migration DB.
+- [x] 🟠 **Souscriptions** converties (écran principal) : chaque vue = un filtre serveur — statuts, « expire <30j »
+  (`status=active` + `expires_at` entre aujourd'hui et +30j), « docs à vérifier » (pré-requête **bornée** des
+  `application_id` en attente puis `id=in.(…)`). Compteurs par vue via `count` bornés ; deep-link `#/subscriptions/<id>`
+  via fetch par id. **Aucune migration DB.**
+- [ ] 🟡 Restent **Clients** (RPC `suro_list_customers`) et **Pièces KYC** (agrégation recto/verso par dossier) :
+  une vraie pagination y **exige une migration DB** (RPC paginée ou vue) — à faire quand l'accès base sera dispo.
+- **Vérif navigateur** : sur **Paiements / Contrats / Sinistres / Souscriptions**, pagination/recherche/tri/vues
+  interrogent le serveur (onglet Réseau : `limit/offset`, réponse bornée) ; totaux via `Content-Range`. ✅ syntaxe + 48 tests au vert.
+
+#### Jour 15 — 🟠 Index DB sur les colonnes filtrées
+- [ ] 🟠 Index sur `customer_email`, `status`, `created_at` pour `insurance_applications`, `suro_payments`, `insurance_claims`
+  (les migrations indexent surtout `insurance_documents`/KYC). Attention aux policies RLS sur `lower(customer_email)` → index fonctionnel.
+- **Vérif** : `EXPLAIN ANALYZE` montre un *index scan* (pas de *seq scan*) sur les requêtes ops principales.
+
+#### Jour 16 — 🟡 Nettoyage de la dette legacy — 🟠 EN PARTIE (2026-07-23)
+- [x] 🟡 `backend/` **archivé** dans `_archive/backend/` ; `js/customer.js` (doublon mort) **supprimé**.
+- [ ] 🟡 Reste à traiter : `backoffice/` (remplacé par `ops/`) et `index2.html` (landing alternative).
+- **Vérif** : ✅ aucun lien mort après archivage/suppression (contrôlé) ; les surfaces sont toujours servies.
+
+### Priorité 2 — Avant ~5 000 clients
+
+#### Jour 17 — 🟠 Rafraîchissement de session automatique — ⚡ AMORCÉ (2026-07-23)
+- [x] 🟠 Briques ajoutées par le refactor : `refreshSession` / `ensureValidSession` (`js/services/session.js`).
+- [ ] 🟠 Reste à **câbler** : appeler `ensureValidSession` avant les requêtes authentifiées (ou avant expiration) sur toutes les surfaces.
+- **Constat** : JWT en `localStorage` — le refresh existe maintenant mais n'est pas encore branché partout.
+- **Vérif** : une session reste active au-delà de l'expiration du JWT sans re-login manuel.
+
+#### Jour 18 — 🟡 Rétention / purge de `suro_events`
+- [ ] 🟡 Job de purge (ou partition par date) : la table analytics grossit sans limite (insert à chaque interaction).
+- **Vérif** : la table est bornée dans le temps ; le Funnel reste rapide.
+
+#### Jour 19 — 🟡 Notifications : sortir du polling 30 s
+- [ ] 🟡 Remplacer le `setInterval(refreshBadge, 30000)` (`notifications.js:76`) par **Supabase Realtime** ou un intervalle adaptatif.
+- **Vérif** : plus de requête inutile quand rien ne change ; charge stable avec beaucoup d'utilisateurs connectés.
+
+#### Jour 20 — 🟠 Découper `api.js` (809 lignes, une seule classe) — ✅ FAIT (2026-07-23)
+- [x] 🟠 Éclaté en 9 services (`config, session, http, analytics, onboarding, auth, customer-portal, admin, api-notifications`)
+  assemblés dans `window.SURO_API` ; test d'assemblage `api.assembly.test.mjs` en CI.
+- **Vérif** : ✅ 15/15 tests ; les 9 pages HTML chargent la chaîne complète dans le bon ordre (contrôlé).
+
+#### Jour 21 — 🔴 Vrai flux de paiement (bloquant produit, indépendant du scale)
+- [ ] 🔴 Brancher un **prestataire réel** (CMI/banque) via **webhook + Edge Function** ; l'activation du contrat vient du prestataire, pas du client.
+- **Constat** : `tunnel.js` appelle `suro_mark_application_paid` côté client (sécurisé par RLS, mais **simulé**). Inacceptable pour une assurance en prod.
+- **Vérif** : un contrat ne passe `active` que sur confirmation serveur du paiement.
+
+### Priorité 3 — Startup mature
+
+- [ ] 🟡 **Jour 22** — Découper les monolithes client : `customer.js` (1901 l.), `tunnel.js` (1308 l.).
+- [ ] 🟡 **Jour 23** — Tests **E2E** des parcours critiques (tunnel → paiement → espace client → KYC → validation ops).
+- [ ] ⚪ **Jour 24** — TypeScript progressif (`ops/` puis `app/`), observabilité (logs/alertes Supabase), packages npm si l'équipe dépasse 5 devs.
+
+**En une phrase** : bonne fondation produit, plafond de scalabilité **opérationnelle** (côté staff) vers 2–5k contrats sans ces refactors — rattrapable **par incréments, sans réécriture**.
 
 ---
 

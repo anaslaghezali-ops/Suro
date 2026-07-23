@@ -34,10 +34,10 @@ function loadApiInSandbox() {
     vm.runInNewContext(code, sandbox, { filename: f });
   }
 
-  return sandbox.window.SURO_API;
+  return { API: sandbox.window.SURO_API, sandbox };
 }
 
-const API = loadApiInSandbox();
+const { API, sandbox } = loadApiInSandbox();
 
 const checks = [
   ['SURO_API défini', typeof API === 'function'],
@@ -52,20 +52,119 @@ const checks = [
 ];
 
 let failed = 0;
-for (const [label, ok] of checks) {
+let total = 0;
+const assert = (label, ok) => {
+  total++;
   if (!ok) { console.error('FAIL:', label); failed++; }
   else console.log('ok:', label);
-}
+};
+
+for (const [label, ok] of checks) assert(label, ok);
 
 // Session expirée → ensureValidSession retourne null sans refresh_token
 API.setSession({ access_token: 'a.b.c', email: 't@test.ma' });
 const expired = await API.ensureValidSession();
-if (expired !== null) {
-  console.error('FAIL: ensureValidSession sans refresh_token doit retourner null');
-  failed++;
-} else {
-  console.log('ok: ensureValidSession sans refresh_token');
+assert('ensureValidSession sans refresh_token', expired === null);
+
+// Construction des requêtes paginées (sans réseau : on capture les paths passés à sbList).
+const paths = [];
+let capturedPath = '';
+API.sbList = (path) => { capturedPath = path; paths.push(path); return Promise.resolve({ rows: [], total: 0 }); };
+
+// -- Paiements --
+assert('adminListPayments présent', typeof API.adminListPayments === 'function');
+await API.adminListPayments({ limit: 12, offset: 24, status: 'succeeded', search: 'jean dupont', sortKey: 'amount', sortDir: -1 });
+for (const piece of [
+  '/rest/v1/suro_payments?',
+  'limit=12', 'offset=24',
+  'order=amount.desc',
+  'or=(status.is.null,status.eq.succeeded)', // 'succeeded' inclut status NULL
+  'customer_email=ilike.',                    // recherche déléguée au serveur (mono-colonne)
+]) {
+  assert(`requête paiements contient « ${piece} »`, capturedPath.includes(piece));
+}
+await API.adminListPayments({ status: 'pending' });
+assert('paiements pending → status=eq.pending', capturedPath.includes('status=eq.pending') && !capturedPath.includes('is.null'));
+
+// -- Contrats (souscriptions) : statusIn + recherche multi-colonnes --
+assert('adminListApplications présent', typeof API.adminListApplications === 'function');
+await API.adminListApplications({ statusIn: ['active', 'expired'], search: 'foo', sortKey: 'annual_premium', sortDir: 1 });
+for (const piece of [
+  '/rest/v1/insurance_applications?',
+  'status=in.(active,expired)',
+  'order=annual_premium.asc',
+  'or=(customer_email.ilike.', 'immatriculation.ilike.', // recherche multi-colonnes
+]) {
+  assert(`requête contrats contient « ${piece} »`, capturedPath.includes(piece));
 }
 
+// -- Sinistres : status eq + recherche multi-colonnes --
+assert('adminListClaims présent', typeof API.adminListClaims === 'function');
+await API.adminListClaims({ status: 'pending', search: 'vol', sortKey: 'claim_type', sortDir: -1 });
+for (const piece of [
+  '/rest/v1/insurance_claims?',
+  'status=eq.pending',
+  'order=claim_type.desc',
+  'or=(claim_type.ilike.', 'description.ilike.',
+]) {
+  assert(`requête sinistres contient « ${piece} »`, capturedPath.includes(piece));
+}
+
+// -- Compteurs sinistres : une requête count (limit=1) par vue --
+assert('adminClaimCounts présent', typeof API.adminClaimCounts === 'function');
+paths.length = 0;
+const counts = await API.adminClaimCounts();
+assert('claimCounts → 5 requêtes count (all + 4 statuts)', paths.length === 5);
+assert('claimCounts requêtes bornées (limit=1)', paths.every((p) => p.includes('limit=1')));
+assert('claimCounts filtre par statut', paths.some((p) => p.includes('status=eq.pending')));
+assert('claimCounts renvoie un objet { all, pending, ... }', counts && typeof counts === 'object' && 'all' in counts && 'pending' in counts);
+
+// -- Souscriptions : clauses de vue (expiring / docs) + count --
+assert('adminListApplications clauses présent', typeof API.adminListApplications === 'function');
+await API.adminListApplications({ clauses: ['status=eq.active', 'expires_at=gte.2026-07-23', 'expires_at=lte.2026-08-22'], search: 'x', sortKey: 'created_at', sortDir: -1 });
+for (const piece of [
+  '/rest/v1/insurance_applications?', 'status=eq.active',
+  'expires_at=gte.2026-07-23', 'expires_at=lte.2026-08-22',
+  'or=(customer_email.ilike.',
+]) {
+  assert(`souscriptions (expiring) contient « ${piece} »`, capturedPath.includes(piece));
+}
+await API.adminListApplications({ clauses: ['id=in.(a,b,c)'] });
+assert('souscriptions docs → id=in.(...)', capturedPath.includes('id=in.(a,b,c)'));
+
+assert('adminCountApplications présent', typeof API.adminCountApplications === 'function');
+await API.adminCountApplications(['status=eq.nouvelle']);
+assert('count souscriptions borné + filtre',
+  capturedPath.includes('select=id') && capturedPath.includes('limit=1') && capturedPath.includes('status=eq.nouvelle'));
+
+// pendingDocAppIds + applicationById passent par sb (pas sbList) : on stubbe sb.
+let sbPath = '';
+API.sb = (path) => {
+  sbPath = path;
+  if (path.includes('insurance_documents')) {
+    return Promise.resolve([{ application_id: 'a1' }, { application_id: 'a1' }, { application_id: 'a2' }, { application_id: null }]);
+  }
+  return Promise.resolve([{ id: 'app-42' }]);
+};
+const pendingIds = await API.adminPendingDocAppIds();
+assert('pendingDocAppIds requête docs en attente', sbPath.includes('insurance_documents') && sbPath.includes('status.eq.pending'));
+assert('pendingDocAppIds dédupe + ignore null', Array.isArray(pendingIds) && pendingIds.length === 2 && pendingIds.includes('a1') && pendingIds.includes('a2'));
+const oneApp = await API.adminApplicationById('app-42');
+assert('applicationById → id=eq.<id>', sbPath.includes('id=eq.app-42'));
+assert('applicationById renvoie la ligne', oneApp && oneApp.id === 'app-42');
+
+// -- Validation upload admin (taille / type) : rejet AVANT tout réseau --
+sandbox.window.SURO_SESSION.ensureValidSession = async () => ({ access_token: 'x', email: 'a@b.ma' });
+let uploadErr = '';
+try {
+  await API.adminUploadDocument({ id: 'app1', customer_email: 'a@b.ma' }, { name: 'big.pdf', type: 'application/pdf', size: 11 * 1024 * 1024 });
+} catch (e) { uploadErr = e.message; }
+assert('upload admin refuse un fichier > 10 Mo', /volumineux/i.test(uploadErr));
+uploadErr = '';
+try {
+  await API.adminUploadDocument({ id: 'app1', customer_email: 'a@b.ma' }, { name: 'x.exe', type: 'application/x-msdownload', size: 100 });
+} catch (e) { uploadErr = e.message; }
+assert('upload admin refuse un mauvais type', /format non accept/i.test(uploadErr));
+
 if (failed) process.exit(1);
-console.log(`\n${checks.length + 1 - failed}/${checks.length + 1} passed`);
+console.log(`\n${total - failed}/${total} passed`);

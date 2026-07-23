@@ -248,6 +248,8 @@ table.priv-matrix input[type="checkbox"] { cursor: pointer; accent-color: var(--
 @keyframes slidein { from { transform: translateX(100%); } }
 @keyframes slideup { from { transform: translateY(12px); opacity: 0; } }
 
+.ops-menu-btn { display: none; }
+
 @media (max-width: 860px) {
   .ops-shell { grid-template-columns: 1fr; }
   .ops-sidebar { position: fixed; z-index: 50; width: 240px; transform: translateX(-100%); transition: transform 200ms ease; }
@@ -266,8 +268,6 @@ table.priv-matrix input[type="checkbox"] { cursor: pointer; accent-color: var(--
   }
   .ops-topbar .kbd { display: none; }
 }
-
-.ops-menu-btn { display: none; }
 
 .ops-topbar-actions {
   margin-left: auto;

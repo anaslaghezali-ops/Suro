@@ -214,14 +214,17 @@ donnée saisie par un client → exécutée dans le navigateur d'un **staff**.
 Fondation posée + 1ʳᵉ tranche prouvée. Aucune migration DB (PostgREST natif, `limit/offset` + `Content-Range`).
 - [x] 🔴 **Fondation** : `SURO_HTTP.sbList(path)` → `{ rows, total }` (total lu via `Prefer: count=exact` / `Content-Range`),
   et **mode serveur** du `DataTable` (recherche débouncée + tri + pagination délégués au backend, rétro-compatible avec le mode client).
-- [x] 🔴 **Paiements** convertis bout-en-bout : `adminListPayments({limit,offset,status,search,sortKey,sortDir})`
-  → filtre/tri/recherche côté serveur. Test unitaire de la requête PostgREST (`api.assembly.test.mjs`).
-- [ ] 🟠 Répliquer sur les listes **plates** restantes : Sinistres, Contrats, Journal d'audit.
-- [ ] 🟠 Écrans **complexes** (Souscriptions, Pièces KYC, Clients) : nécessitent des **comptes par vue côté serveur**
-  (une vue = un filtre + un `count`) — à faire avec soin (comptes agrégés, jointure docs pour « à vérifier »).
-- **Constat** : les autres écrans chargent encore des tables entières + filtrage navigateur → à convertir progressivement.
-- **Vérif navigateur** : sur **Paiements**, la pagination/recherche/tri interrogent le serveur (onglet Réseau : `limit/offset`,
-  réponse bornée) ; le total affiché vient de `Content-Range`. ✅ syntaxe + 23 tests au vert.
+- [x] 🔴 **Paiements**, **Contrats**, **Sinistres** convertis bout-en-bout (`adminListPayments/Applications/Claims`)
+  → filtre/tri/recherche côté serveur. Recherche multi-colonnes via un seul `or=(col.ilike…)` ; jamais deux `or=`.
+- [x] 🟠 **Sinistres** : les vues par statut deviennent des filtres serveur ; compteurs par vue via requêtes `count`
+  **bornées** (`adminClaimCounts`, `limit=1` + `Content-Range`) — ne scalent pas avec le volume.
+- [x] ⚪ Requêtes PostgREST **couvertes par tests unitaires** (`api.assembly.test.mjs`).
+- [ ] 🟡 **Journal d'audit** : passe par une RPC (`suro_audit_recent`) sans offset ; laissé tel quel (déjà borné à 200)
+  — une vraie pagination nécessiterait une migration DB.
+- [ ] 🟠 Écrans **complexes** (Souscriptions, Pièces KYC, Clients) : vues **calculées** (« expire <30j », jointure docs « à vérifier »)
+  → nécessitent comptes agrégés/jointures côté serveur — à faire avec soin.
+- **Vérif navigateur** : sur **Paiements / Contrats / Sinistres**, pagination/recherche/tri interrogent le serveur
+  (onglet Réseau : `limit/offset`, réponse bornée) ; totaux via `Content-Range`. ✅ syntaxe + 35 tests au vert.
 
 #### Jour 15 — 🟠 Index DB sur les colonnes filtrées
 - [ ] 🟠 Index sur `customer_email`, `status`, `created_at` pour `insurance_applications`, `suro_payments`, `insurance_claims`

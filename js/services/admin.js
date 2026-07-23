@@ -4,6 +4,16 @@
 
   const { SUPABASE_URL, SUPABASE_KEY } = root.SURO_CONFIG;
 
+  // --- Helpers de construction de requêtes paginées (PostgREST) ---
+  // Clause ORDER depuis le tri du DataTable (dir: 1 = asc, -1 = desc).
+  const orderClause = (sortKey, sortDir, def) =>
+    sortKey ? `${sortKey}.${sortDir === 1 ? 'asc' : 'desc'}` : def;
+  // Recherche multi-colonnes → un seul `or=(col.ilike.*q*,...)` (jamais deux `or=`).
+  const searchOr = (cols, search) => {
+    const needle = encodeURIComponent(`*${search}*`);
+    return `or=(${cols.map((c) => `${c}.ilike.${needle}`).join(',')})`;
+  };
+
   root.SURO_ADMIN = {
     async isAdmin() {
       try {
@@ -33,6 +43,20 @@
 
     adminGetApplications() {
       return this.sb('/rest/v1/insurance_applications?select=*&order=created_at.desc', { asUser: true });
+    },
+
+    // Souscriptions/contrats paginés côté serveur → { rows, total }.
+    // statusIn = liste (ex. ['active','expired']) ; sinon status = égalité simple.
+    adminListApplications({ limit = 12, offset = 0, statusIn, status, search, sortKey, sortDir } = {}) {
+      const parts = [
+        'select=*',
+        `order=${orderClause(sortKey, sortDir, 'created_at.desc')}`,
+        `limit=${limit}`, `offset=${offset}`,
+      ];
+      if (statusIn && statusIn.length) parts.push(`status=in.(${statusIn.join(',')})`);
+      else if (status) parts.push(`status=eq.${encodeURIComponent(status)}`);
+      if (search) parts.push(searchOr(['customer_email', 'immatriculation', 'marque', 'modele', 'policy_number'], search));
+      return this.sbList(`/rest/v1/insurance_applications?${parts.join('&')}`, { asUser: true });
     },
 
     adminGetApplicationAnswers(applicationId) {
@@ -70,6 +94,31 @@
 
     adminGetClaims() {
       return this.sb('/rest/v1/insurance_claims?select=*&order=created_at.desc', { asUser: true });
+    },
+
+    // Sinistres paginés côté serveur → { rows, total }.
+    adminListClaims({ limit = 12, offset = 0, status, search, sortKey, sortDir } = {}) {
+      const parts = [
+        'select=*',
+        `order=${orderClause(sortKey, sortDir, 'created_at.desc')}`,
+        `limit=${limit}`, `offset=${offset}`,
+      ];
+      if (status) parts.push(`status=eq.${encodeURIComponent(status)}`);
+      if (search) parts.push(searchOr(['claim_type', 'description'], search));
+      return this.sbList(`/rest/v1/insurance_claims?${parts.join('&')}`, { asUser: true });
+    },
+
+    // Compteurs par statut (vues) — requêtes bornées (limit=1, on ne lit que le total
+    // via Content-Range). Ne scale PAS avec le volume : une requête count par vue.
+    async adminClaimCounts() {
+      const statuses = ['pending', 'approved', 'rejected', 'paid'];
+      const results = await Promise.all([
+        this.sbList('/rest/v1/insurance_claims?select=id&limit=1', { asUser: true }),
+        ...statuses.map((s) => this.sbList(`/rest/v1/insurance_claims?select=id&limit=1&status=eq.${s}`, { asUser: true })),
+      ]);
+      const out = { all: results[0].total };
+      statuses.forEach((s, i) => { out[s] = results[i + 1].total; });
+      return out;
     },
 
     adminGetPayments() {

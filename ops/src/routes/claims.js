@@ -1,5 +1,5 @@
 import { html } from 'htm/preact';
-import { useState, useMemo } from 'preact/hooks';
+import { useState } from 'preact/hooks';
 import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
 import { DataTable } from '../components/DataTable.js';
@@ -122,19 +122,21 @@ function Detail({ claim, caps, onClose, onChanged }) {
 }
 
 export function Claims({ caps }) {
-  const { data, loading, error, reload } = useAsync(() => api.claims().catch(() => []), []);
   const [activeView, setActiveView] = useState('');
   const [selected, setSelected] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
-  const views = useMemo(() => CLAIM_VIEWS.map((v) => ({
-    id: v.id, label: v.label, attn: v.attn, count: (data || []).filter(v.match).length,
-  })), [data]);
+  // Compteurs par vue (bornés côté serveur) ; rechargés après un changement de statut.
+  const counts = useAsync(() => api.claimsCounts().catch(() => null), [reloadKey]);
+  const views = CLAIM_VIEWS.map((v) => ({
+    id: v.id, label: v.label, attn: v.attn,
+    count: counts.data ? (counts.data[v.id || 'all'] ?? null) : null,
+  }));
 
-  if (loading) return html`<div style="padding:40px"><${Spinner}/></div>`;
-  if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;
+  // Liste paginée serveur : la vue active devient un filtre `status`.
+  const fetchPage = ({ search, sortKey, sortDir, offset, limit }) =>
+    api.claimsPage({ status: activeView || undefined, search, sortKey, sortDir, offset, limit });
 
-  const activeDef = CLAIM_VIEWS.find((v) => v.id === activeView) || CLAIM_VIEWS[0];
-  const rows = (data || []).filter(activeDef.match);
   const columns = [
     { key: 'id', label: 'Réf.', render: (c) => html`<span class="muted">${c.id.slice(0, 8)}…</span>` },
     { key: 'application_id', label: 'Contrat', render: (c) => html`<span class="muted">${(c.application_id || '').slice(0, 8)}…</span>` },
@@ -150,11 +152,12 @@ export function Claims({ caps }) {
     </div>
     <div class="card">
       <${SavedViews} views=${views} active=${activeView} onChange=${setActiveView} />
-      <${DataTable} key=${activeView} columns=${columns} rows=${rows} searchKeys=${['claim_type', 'description']}
+      <${DataTable} columns=${columns} server=${fetchPage} serverKey=${activeView}
+        searchPlaceholder="Rechercher (type, description)…"
         onRowClick=${(c) => setSelected(c)} />
     </div>
     ${selected ? html`<${Detail} claim=${selected} caps=${caps}
       onClose=${() => setSelected(null)}
-      onChanged=${() => { setSelected(null); reload(); }} />` : null}
+      onChanged=${() => { setSelected(null); setReloadKey((k) => k + 1); }} />` : null}
   `;
 }

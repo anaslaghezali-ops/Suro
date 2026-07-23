@@ -13,12 +13,11 @@ function Loading() { return html`<div style="padding:40px"><${Spinner}/></div>`;
 
 /* Clients : voir routes/clients.js (fiche client 360). */
 
-/* ---------------- CONTRATS (souscriptions actives/expirées) ---------------- */
+/* ---------------- CONTRATS (souscriptions actives/expirées) — pagination serveur ---------------- */
 export function Contracts({ caps }) {
-  const { data, loading, error } = useAsync(() => api.applications().catch(() => []), []);
-  if (loading) return html`<${Loading}/>`;
-  if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;
-  const rows = (data || []).filter((a) => a.status === 'active' || a.status === 'expired');
+  // Contrats = souscriptions actives ou expirées ; filtre/tri/recherche côté serveur.
+  const fetchPage = ({ search, sortKey, sortDir, offset, limit }) =>
+    api.applicationsPage({ statusIn: ['active', 'expired'], search, sortKey, sortDir, offset, limit });
   const columns = [
     { key: 'policy_number', label: 'N° / Réf.', render: (a) => a.policy_number || html`<span class="muted">${a.id.slice(0, 8)}…</span>` },
     { key: 'customer_email', label: 'Client', sortable: true },
@@ -30,7 +29,8 @@ export function Contracts({ caps }) {
     { key: 'expires_at', label: 'Échéance', sortable: true, render: (a) => fmtDate(a.expires_at) },
   ];
   return html`<${Page} title="Contrats" subtitle="Contrats émis (souscriptions actives et expirées).">
-    <div class="card"><${DataTable} columns=${columns} rows=${rows} searchKeys=${['customer_email', 'immatriculation', 'marque', 'modele', 'policy_number']} /></div>
+    <div class="card"><${DataTable} columns=${columns} server=${fetchPage}
+      searchPlaceholder="Rechercher (client, immat, marque…)" /></div>
   <//>`;
 }
 

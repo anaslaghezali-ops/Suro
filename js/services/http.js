@@ -25,7 +25,8 @@
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
-        const msg = err.msg || err.error_description || err.message || err.hint || `Erreur serveur (${response.status})`;
+        // `err.error` : format des Edge Functions (suro-create-staff, suro-update-staff…).
+        const msg = err.msg || err.error_description || err.message || err.error || err.hint || `Erreur serveur (${response.status})`;
 
         if (options.asUser && response.status === 401 && !_retried && session && session.refresh_token) {
           const renewed = await root.SURO_SESSION.refreshSession();

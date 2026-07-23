@@ -263,7 +263,9 @@ export function Documents({ caps }) {
   }, []);
   const [tab, setTab] = useState('kyc');
 
-  if (loading) return html`<div style="padding:40px"><${Spinner}/></div>`;
+  // Spinner plein écran uniquement au 1er chargement. Les rechargements (après
+  // validation d'une face) se font en arrière-plan pour ne PAS fermer le dossier ouvert.
+  if (loading && !data) return html`<div style="padding:40px"><${Spinner}/></div>`;
   if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;
 
   const kycPending = (data.docs || []).filter((d) => Kyc().isKycDocument(d) && (d.status || 'pending') === 'pending').length;

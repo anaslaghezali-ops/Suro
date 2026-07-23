@@ -192,6 +192,73 @@ donnée saisie par un client → exécutée dans le navigateur d'un **staff**.
 
 ---
 
+## PHASE H — Scalabilité & maintenabilité (vraie montée en charge)
+
+> À traiter **après / en parallèle** de l'audit sécu, un peu chaque jour comme le reste.
+> Contexte (audit code du 2026-07-23, croisé avec l'analyse Cursor) : le **socle data
+> (Supabase + RLS + RBAC + audit) tient 10 000 clients**. Le goulot n'est pas Postgres,
+> c'est le **portail ops** et **l'organisation du code**. Plafond estimé sans ces refactors :
+> **~2 000–5 000 contrats actifs côté staff**. L'espace client (isolé par RLS) tient, lui.
+> **Déjà fait** : portail ops modularisé (`ops/src/routes` + `lib` + `components`) — ne pas re-faire.
+
+### Priorité 1 — Avant ~1 000 clients actifs
+
+#### Jour 13 — 🔴 CI minimale (le meilleur rapport effort/protection)
+- [ ] 🔴 Ajouter un check **syntaxe/lint ES module** sur chaque PR (GitHub Actions ; aucun `.github/workflows/` aujourd'hui).
+- [ ] 🟡 Faire tourner le test existant `ops/src/routes/privileges.matrix.test.mjs` dans la CI.
+- **Pourquoi** : l'écran blanc du 2026-07-23 (ternaire malformé `documents.js`) serait **bloqué avant merge**.
+- **Vérif** : une PR contenant une erreur de syntaxe ES → CI rouge, merge impossible.
+
+#### Jour 14 — 🔴 Pagination serveur du portail ops (le vrai goulot)
+- [ ] 🔴 Remplacer les `select=*` sans limite (`api.js` `adminGetApplications/Documents/Payments/Claims`) par
+  des appels **paginés** (RPC `limit/offset/search`, ou en-tête `Range` PostgREST) + filtrage **côté serveur**.
+- **Constat** : aujourd'hui l'ops charge des tables entières et filtre dans le navigateur → onglets lents, JSON lourd bien avant un problème serveur.
+- **Vérif** : un onglet avec ~5 000 lignes reste fluide ; le transfert réseau est borné (page par page).
+
+#### Jour 15 — 🟠 Index DB sur les colonnes filtrées
+- [ ] 🟠 Index sur `customer_email`, `status`, `created_at` pour `insurance_applications`, `suro_payments`, `insurance_claims`
+  (les migrations indexent surtout `insurance_documents`/KYC). Attention aux policies RLS sur `lower(customer_email)` → index fonctionnel.
+- **Vérif** : `EXPLAIN ANALYZE` montre un *index scan* (pas de *seq scan*) sur les requêtes ops principales.
+
+#### Jour 16 — 🟡 Nettoyage de la dette legacy
+- [ ] 🟡 Supprimer/archiver `backend/` (recoupe la décision du Jour 12), `backoffice/` (remplacé par `ops/`), `js/customer.js` (doublon mort).
+- [ ] 🟡 Trancher le sort de `index2.html` (landing alternative).
+- **Vérif** : aucun lien mort ; le site déployé sert toujours toutes les surfaces ; un nouveau dev sait quel fichier toucher.
+
+### Priorité 2 — Avant ~5 000 clients
+
+#### Jour 17 — 🟠 Rafraîchissement de session automatique
+- [ ] 🟠 Utiliser le `refresh_token` déjà stocké (`grant_type=refresh_token`) **ou** passer à `supabase-js` qui le gère seul.
+- **Constat** : JWT en `localStorage` **sans refresh** → déconnexions silencieuses toutes les ~1 h (pénible en support toute la journée).
+- **Vérif** : une session reste active au-delà de l'expiration du JWT sans re-login manuel.
+
+#### Jour 18 — 🟡 Rétention / purge de `suro_events`
+- [ ] 🟡 Job de purge (ou partition par date) : la table analytics grossit sans limite (insert à chaque interaction).
+- **Vérif** : la table est bornée dans le temps ; le Funnel reste rapide.
+
+#### Jour 19 — 🟡 Notifications : sortir du polling 30 s
+- [ ] 🟡 Remplacer le `setInterval(refreshBadge, 30000)` (`notifications.js:76`) par **Supabase Realtime** ou un intervalle adaptatif.
+- **Vérif** : plus de requête inutile quand rien ne change ; charge stable avec beaucoup d'utilisateurs connectés.
+
+#### Jour 20 — 🟠 Découper `api.js` (809 lignes, une seule classe)
+- [ ] 🟠 Séparer par domaine : `auth`, `customer`, `admin`, `storage`.
+- **Vérif** : mêmes appels côté front ; fichiers plus courts et lisibles.
+
+#### Jour 21 — 🔴 Vrai flux de paiement (bloquant produit, indépendant du scale)
+- [ ] 🔴 Brancher un **prestataire réel** (CMI/banque) via **webhook + Edge Function** ; l'activation du contrat vient du prestataire, pas du client.
+- **Constat** : `tunnel.js` appelle `suro_mark_application_paid` côté client (sécurisé par RLS, mais **simulé**). Inacceptable pour une assurance en prod.
+- **Vérif** : un contrat ne passe `active` que sur confirmation serveur du paiement.
+
+### Priorité 3 — Startup mature
+
+- [ ] 🟡 **Jour 22** — Découper les monolithes client : `customer.js` (1901 l.), `tunnel.js` (1308 l.).
+- [ ] 🟡 **Jour 23** — Tests **E2E** des parcours critiques (tunnel → paiement → espace client → KYC → validation ops).
+- [ ] ⚪ **Jour 24** — TypeScript progressif (`ops/` puis `app/`), observabilité (logs/alertes Supabase), packages npm si l'équipe dépasse 5 devs.
+
+**En une phrase** : bonne fondation produit, plafond de scalabilité **opérationnelle** (côté staff) vers 2–5k contrats sans ces refactors — rattrapable **par incréments, sans réécriture**.
+
+---
+
 ## Suivi
 - On coche au fur et à mesure. Chaque correctif base → migration dans `docs/migrations/`,
   chaque correctif code → commit sur `Cursor`.

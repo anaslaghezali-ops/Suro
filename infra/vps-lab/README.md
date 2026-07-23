@@ -9,15 +9,23 @@ Guide pour installer Supabase (Docker) et servir le site SURO sur un VPS de test
 - Accès SSH root ou sudo
 - Nom de domaine optionnel (IP suffit pour les premiers tests)
 
-## 1. Préparation serveur
+## Installation en une commande (recommandé)
 
-Sur le VPS :
+Sur le VPS en root :
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/anaslaghezali-ops/Suro/cursor/repo-improvements-adca/infra/vps-lab/00-install-all.sh | bash
+```
+
+Installe Docker, Supabase, nginx, le site SURO et applique les migrations SQL.
+
+## Étapes manuelles (alternative)
+
+### 1. Préparation serveur
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/anaslaghezali-ops/Suro/cursor/repo-improvements-adca/infra/vps-lab/01-server-bootstrap.sh | bash
 ```
-
-Ou copier `01-server-bootstrap.sh` et l'exécuter localement.
 
 ## 2. Supabase self-hosted
 

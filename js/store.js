@@ -6,6 +6,7 @@ class Store {
       onboarding: {
         step: 0,
         data: {
+          vehicle_type: 'voiture',
           immatriculation: null,
           marque: null,
           modele: null,
@@ -87,6 +88,7 @@ class Store {
     this.state.onboarding = {
       step: 0,
       data: {
+        vehicle_type: 'voiture',
         immatriculation: null,
         marque: null,
         modele: null,

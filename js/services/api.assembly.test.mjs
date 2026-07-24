@@ -26,7 +26,7 @@ function loadApiInSandbox() {
 
   const files = [
     'config.js', 'session.js', 'http.js', 'analytics.js', 'onboarding.js',
-    'auth.js', 'customer-portal.js', 'admin.js', 'api-notifications.js', 'api.js',
+    'auth.js', 'customer-portal.js', 'admin.js', 'api-notifications.js', 'vehicles.js', 'api.js',
   ];
 
   for (const f of files) {

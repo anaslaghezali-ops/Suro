@@ -126,20 +126,25 @@ class OnboardingForm {
           {
             id: 'marque',
             label: 'Marque',
-            type: 'text',
+            type: 'combobox',
+            catalog: 'brand',
             placeholder: isMoto ? 'Ex: Honda, Yamaha, KTM' : 'Ex: Dacia, Renault, Peugeot',
             validate: (value) => {
               if (!value) return 'La marque est nécessaire';
+              if (value.trim().length < 2) return 'Marque trop courte';
               return true;
             },
           },
           {
             id: 'modele',
             label: 'Modèle',
-            type: 'text',
+            type: 'combobox',
+            catalog: 'model',
+            dependsOn: 'marque',
             placeholder: isMoto ? 'Ex: PCX, MT-07, Duke' : 'Ex: Logan, Clio, 208',
             validate: (value) => {
               if (!value) return 'Le modèle est nécessaire';
+              if (value.trim().length < 1) return 'Modèle trop court';
               return true;
             },
           },
@@ -365,6 +370,200 @@ class OnboardingForm {
     return icons[icon] || '';
   }
 
+  escapeAttr(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;');
+  }
+
+  renderComboboxHTML(sub, subValue) {
+    const hintId = `hint-${sub.id}`;
+    const hint = sub.catalog === 'model'
+      ? 'Choisis une marque pour voir les modèles suggérés, ou saisis librement.'
+      : 'Commence à taper pour voir les suggestions, ou saisis librement.';
+    return `
+      <div class="form-combobox" data-combobox="${sub.id}">
+        <input
+          type="text"
+          id="field-${sub.id}"
+          class="form-input form-combobox-input"
+          placeholder="${this.escapeAttr(sub.placeholder || '')}"
+          value="${this.escapeAttr(subValue)}"
+          autocomplete="off"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded="false"
+          aria-controls="listbox-${sub.id}"
+          aria-describedby="${hintId}"
+        />
+        <ul id="listbox-${sub.id}" class="form-combobox-list" role="listbox" hidden></ul>
+        <p class="form-combobox-hint" id="${hintId}">${hint}</p>
+      </div>`;
+  }
+
+  findBrandByName(name) {
+    const q = (name || '').trim().toLowerCase();
+    if (!q || !this._vehicleBrands) return null;
+    return this._vehicleBrands.find((b) => b.name.toLowerCase() === q) || null;
+  }
+
+  async ensureVehicleBrands() {
+    const vehicleType = this.store.getState('onboarding.data.vehicle_type') || 'voiture';
+    if (this._vehicleCatalogType !== vehicleType) {
+      if (window.SURO_VEHICLES) window.SURO_VEHICLES.clearCache();
+      this._vehicleCatalogType = vehicleType;
+      this._selectedBrandId = null;
+      this._vehicleModels = [];
+    }
+    if (!window.SURO_VEHICLES) {
+      this._vehicleBrands = [];
+      return;
+    }
+    try {
+      this._vehicleBrands = await window.SURO_VEHICLES.listBrands(vehicleType);
+    } catch (e) {
+      this._vehicleBrands = [];
+    }
+    const marque = this.store.getState('onboarding.data.marque') || '';
+    const brand = this.findBrandByName(marque);
+    if (brand) {
+      this._selectedBrandId = brand.id;
+      try {
+        this._vehicleModels = await window.SURO_VEHICLES.listModels(brand.id);
+      } catch (err) {
+        this._vehicleModels = [];
+      }
+    }
+  }
+
+  async loadModelsForBrand(brandId) {
+    this._selectedBrandId = brandId || null;
+    if (!brandId || !window.SURO_VEHICLES) {
+      this._vehicleModels = [];
+      return;
+    }
+    try {
+      this._vehicleModels = await window.SURO_VEHICLES.listModels(brandId);
+    } catch (e) {
+      this._vehicleModels = [];
+    }
+  }
+
+  setupCombobox(sub) {
+    const input = document.getElementById(`field-${sub.id}`);
+    const list = document.getElementById(`listbox-${sub.id}`);
+    if (!input || !list) return;
+
+    let activeIndex = -1;
+
+    const getItems = () => {
+      if (sub.catalog === 'brand') {
+        return (this._vehicleBrands || []).map((b) => b.name);
+      }
+      if (sub.catalog === 'model') {
+        return (this._vehicleModels || []).map((m) => m.name);
+      }
+      return [];
+    };
+
+    const closeList = () => {
+      list.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+      activeIndex = -1;
+      list.querySelectorAll('[role="option"]').forEach((el) => el.classList.remove('active'));
+    };
+
+    const selectValue = async (value) => {
+      input.value = value;
+      closeList();
+      if (sub.catalog === 'brand') {
+        const brand = this.findBrandByName(value);
+        await this.loadModelsForBrand(brand ? brand.id : null);
+        const modeleInput = document.getElementById('field-modele');
+        if (modeleInput && brand) {
+          const prevMarque = this.store.getState('onboarding.data.marque') || '';
+          if (prevMarque.trim().toLowerCase() !== value.trim().toLowerCase()) {
+            modeleInput.value = '';
+            this.store.setState('onboarding.data.modele', '');
+          }
+        }
+      }
+    };
+
+    const renderList = (query) => {
+      const q = (query || '').trim().toLowerCase();
+      const all = getItems();
+      const filtered = q
+        ? all.filter((name) => name.toLowerCase().includes(q))
+        : all;
+      const shown = filtered.slice(0, 8);
+      if (!shown.length) {
+        closeList();
+        return;
+      }
+      list.innerHTML = shown.map((name, i) =>
+        `<li class="form-combobox-option" role="option" data-index="${i}" tabindex="-1">${name}</li>`
+      ).join('');
+      list.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+      activeIndex = -1;
+    };
+
+    input.addEventListener('input', () => {
+      if (sub.catalog === 'brand') {
+        this._selectedBrandId = null;
+        this._vehicleModels = [];
+      }
+      renderList(input.value);
+    });
+
+    input.addEventListener('focus', () => renderList(input.value));
+
+    input.addEventListener('blur', () => {
+      setTimeout(closeList, 150);
+    });
+
+    input.addEventListener('keydown', (e) => {
+      const options = [...list.querySelectorAll('[role="option"]')];
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (list.hidden) renderList(input.value);
+        activeIndex = Math.min(activeIndex + 1, options.length - 1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        activeIndex = Math.max(activeIndex - 1, 0);
+      } else if (e.key === 'Enter' && activeIndex >= 0 && options[activeIndex]) {
+        e.preventDefault();
+        selectValue(options[activeIndex].textContent);
+        return;
+      } else if (e.key === 'Escape') {
+        closeList();
+        return;
+      } else {
+        return;
+      }
+      options.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
+      if (options[activeIndex]) options[activeIndex].scrollIntoView({ block: 'nearest' });
+    });
+
+    list.addEventListener('mousedown', (e) => {
+      const option = e.target.closest('[role="option"]');
+      if (!option) return;
+      e.preventDefault();
+      selectValue(option.textContent);
+    });
+  }
+
+  async setupVehicleComboboxes() {
+    await this.ensureVehicleBrands();
+    const vehicleField = this.fields.find((f) => f.id === 'vehicle');
+    if (!vehicleField) return;
+    vehicleField.fields
+      .filter((sub) => sub.type === 'combobox')
+      .forEach((sub) => this.setupCombobox(sub));
+  }
+
   render() {
     // Recalcule les étapes : le champ de tarification s'adapte au type choisi
     // (puissance CV pour voiture, cylindrée cm³ pour moto).
@@ -449,9 +648,13 @@ class OnboardingForm {
           ? (this.secrets && this.secrets[sub.id]) || ''
           : this.store.getState(`onboarding.data.${sub.id}`) || '';
         const fullClass = sub.fullWidth ? ' form-subfield--full' : '';
-        const inputHTML = sub.inputType === 'textarea'
-          ? `<textarea id="field-${sub.id}" class="form-textarea" placeholder="${sub.placeholder}" autocomplete="${sub.autocomplete || 'off'}">${subValue}</textarea>`
-          : `<input
+        let inputHTML;
+        if (sub.type === 'combobox') {
+          inputHTML = this.renderComboboxHTML(sub, subValue);
+        } else if (sub.inputType === 'textarea') {
+          inputHTML = `<textarea id="field-${sub.id}" class="form-textarea" placeholder="${sub.placeholder}" autocomplete="${sub.autocomplete || 'off'}">${subValue}</textarea>`;
+        } else {
+          inputHTML = `<input
               type="${sub.type}"
               id="field-${sub.id}"
               class="form-input"
@@ -460,6 +663,7 @@ class OnboardingForm {
               autocomplete="${sub.autocomplete || 'off'}"
               ${sub.type === 'number' ? 'inputmode="numeric"' : ''}
             />`;
+        }
         formHTML += `
           <div class="form-subfield${fullClass}">
             <label class="form-sublabel" for="field-${sub.id}">${sub.label}</label>
@@ -509,6 +713,10 @@ class OnboardingForm {
 
     if (field.type === 'choice') {
       this.setupChoiceKeyboard();
+    }
+
+    if (field.id === 'vehicle') {
+      this.setupVehicleComboboxes();
     }
 
     // Focus input if not choice
@@ -729,8 +937,19 @@ class OnboardingForm {
 
   selectChoice(value) {
     const field = this.fields[this.currentStep];
+    const prev = this.store.getState(`onboarding.data.${field.id}`);
     this.store.setState(`onboarding.data.${field.id}`, value);
     this.api.track('choice_selected', field.id, { value });
+
+    if (field.id === 'vehicle_type' && prev && prev !== value) {
+      this.store.setState('onboarding.data.marque', '');
+      this.store.setState('onboarding.data.modele', '');
+      this._vehicleCatalogType = null;
+      this._selectedBrandId = null;
+      this._vehicleBrands = [];
+      this._vehicleModels = [];
+      if (window.SURO_VEHICLES) window.SURO_VEHICLES.clearCache();
+    }
 
     document.querySelectorAll('.choice-btn').forEach((btn) => {
       const isSelected = btn.dataset.value === value;

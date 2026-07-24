@@ -1,9 +1,11 @@
 /* API portail cabinet partenaire — RPC Supabase dédiées. */
 (function () {
-  const { request } = window.SURO_HTTP;
-
-  async function rpc(fn, params) {
-    return request('POST', '/rest/v1/rpc/' + fn, params || {});
+  function rpc(fn, params) {
+    return window.SURO_HTTP.sb('/rest/v1/rpc/' + fn, {
+      method: 'POST',
+      asUser: true,
+      body: JSON.stringify(params || {}),
+    });
   }
 
   window.SURO_CABINET = {

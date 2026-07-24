@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="css/tokens.css?v=37">
   <link rel="stylesheet" href="css/components.css?v=40">
   <link rel="stylesheet" href="css/main.css?v=41">
-  <link rel="stylesheet" href="css/landing-dark-d.css?v=1">
+  <link rel="stylesheet" href="css/landing-dark-d.css?v=2">
   <link rel="stylesheet" href="css/tunnel.css?v=48">
   <script type="application/ld+json">
   {
@@ -74,10 +74,13 @@
 
   <main>
     <!-- HERO + TUNNEL -->
-    <section class="hero hero--ink hero--stacked" id="souscrire">
-      <div class="hero-stacked-inner">
-        <div class="hero-copy hero-copy--centered">
-          <p class="hero-ink-eyebrow">Assurance auto · Maroc</p>
+    <section class="hero" id="souscrire">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <div class="hero-eyebrow">
+            <span class="hero-eyebrow-dot"></span>
+            Assurance auto 100% en ligne
+          </div>
           <h1>Ton assurance auto,<br>prête en 5 minutes.</h1>
           <p class="hero-description">
             Devis personnalisé et paiement sécurisé — sans paperasse, sans attente au guichet.
@@ -91,7 +94,7 @@
             Tarif affiché avant paiement — aucun frais ni condition cachée.
           </p>
 
-          <div class="hero-stats hero-stats--centered">
+          <div class="hero-stats">
             <div>
               <div class="hero-stat-value">5 234</div>
               <div class="hero-stat-label">Clients assurés</div>
@@ -105,9 +108,42 @@
               <div class="hero-stat-label">Temps moyen</div>
             </div>
           </div>
+
+          <!-- Aperçu produit (CSS) -->
+          <div class="hero-visual" aria-hidden="true">
+            <div class="product-mockup">
+              <div class="mockup-header">
+                <span class="mockup-logo">
+                  <img class="logo-mark logo-mark--sm" src="assets/brand/suro-mark.svg" width="24" height="24" alt="">
+                  <span class="logo-word">SURO</span>
+                </span>
+                <span class="mockup-badge mockup-badge--live">Actif</span>
+              </div>
+              <div class="mockup-card mockup-card--policy">
+                <div class="mockup-card-label">Contrat auto</div>
+                <div class="mockup-card-title">Renault Clio · 2021</div>
+                <div class="mockup-card-meta">12345-A-6 · Couverture complète</div>
+                <div class="mockup-card-price">4 200 <span>DH/an</span></div>
+              </div>
+              <div class="mockup-card mockup-card--doc">
+                <div class="mockup-doc-icon">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>
+                </div>
+                <div>
+                  <div class="mockup-card-label">Carte verte</div>
+                  <div class="mockup-card-meta">PDF dispo · Envoi à domicile</div>
+                </div>
+                <span class="mockup-check">✓</span>
+              </div>
+              <div class="mockup-footer">
+                <span class="mockup-pill">Sinistre déclaré en 2 min</span>
+              </div>
+            </div>
+            <div class="hero-visual-glow"></div>
+          </div>
         </div>
 
-        <div class="hero-form hero-form--stacked" id="souscrire-form">
+        <div class="hero-form" id="souscrire-form">
           <div class="tunnel-focus-backdrop" id="tunnel-focus-backdrop" onclick="window.SURO_FORM && window.SURO_FORM.closeFocusMode()"></div>
           <div class="tunnel-card" id="tunnel-card">
             <div class="tunnel-card-header">

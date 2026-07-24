@@ -52,8 +52,8 @@ if [[ -n "${PROD_DATABASE_URL:-}" ]]; then
   psql "$PROD_DATABASE_URL" -v ON_ERROR_STOP=1 -f "$SCRIPTS/verify-prod-untouched.sql" \
     > "$REPORT_DIR/05-prod-untouched.log" 2>&1 || true
 else
-  echo "SKIP: PROD_DATABASE_URL non défini — exécution prod à faire par le Lead Architect" \
-    > "$REPORT_DIR/05-prod-untouched.log"
+  "$SCRIPTS/verify-prod-untouched-rest.sh" \
+    > "$REPORT_DIR/05-prod-untouched.log" 2>&1 || true
 fi
 log_section "PROD UNTOUCHED (#8)" "$REPORT_DIR/05-prod-untouched.log"
 

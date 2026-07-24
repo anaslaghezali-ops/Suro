@@ -195,7 +195,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 32px;
+      margin-bottom: 22px;
       flex-shrink: 0;
     }
 
@@ -228,20 +228,249 @@
     }
 
     h2 {
-      font-size: 36px;
+      font-size: clamp(26px, 3.2vw, 34px);
       font-weight: 800;
       line-height: 1.15;
       letter-spacing: -0.02em;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     h3 {
-      font-size: 18px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--primary);
       text-transform: uppercase;
-      letter-spacing: .06em;
+      letter-spacing: .1em;
+      margin-bottom: 10px;
+    }
+
+    .slide-lead {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 18px;
+      max-width: 92%;
+    }
+
+    .slide-note {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+      margin-top: auto;
+      padding-top: 12px;
+    }
+
+    .slide-note strong { color: var(--ink); }
+
+    .callout {
+      margin-top: 18px;
+      padding: 12px 16px;
+      background: var(--bg);
+      border-left: 4px solid var(--primary);
+      border-radius: 0 10px 10px 0;
+      font-size: 14px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .callout strong { color: var(--ink); }
+
+    .flow-step--active {
+      background: var(--primary) !important;
+      color: #fff !important;
+      border-color: var(--primary) !important;
+    }
+
+    .brand-card {
+      background: rgba(15, 118, 110, 0.06);
+      border-color: rgba(15, 118, 110, 0.2);
+    }
+
+    .brand-card h4 {
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .brand-quote {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.35;
+    }
+
+    .brand-tags {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-card {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+
+    .kpi-card .val {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .kpi-card .lbl {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 5px;
+      line-height: 1.35;
+    }
+
+    th.col-suro,
+    td.col-suro {
+      background: rgba(15, 118, 110, 0.06);
+    }
+
+    th.col-suro {
+      color: var(--primary) !important;
+    }
+
+    td.col-suro {
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    .moat-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .moat-tag {
+      font-size: 12px;
+      padding: 6px 12px;
+      background: rgba(15, 118, 110, 0.08);
+      border: 1px solid rgba(15, 118, 110, 0.18);
+      border-radius: 999px;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+
+    .fund-ask {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 4px;
+      line-height: 1.1;
+    }
+
+    .fund-runway {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .fund-alloc-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 9px;
+      font-size: 13px;
+    }
+
+    .fund-alloc-row span:first-child {
+      width: 140px;
+      flex-shrink: 0;
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .fund-alloc-bar {
+      flex: 1;
+      height: 8px;
+      background: var(--line);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .fund-alloc-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      border-radius: 4px;
+    }
+
+    .fund-alloc-pct {
+      width: 36px;
+      text-align: right;
+      font-weight: 700;
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    .objectives-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
       margin-bottom: 12px;
+    }
+
+    .table-compact {
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .table-compact th,
+    .table-compact td {
+      padding: 10px 12px;
+    }
+
+    .slide--dense .slide-header { margin-bottom: 14px; }
+    .slide--dense h2 { font-size: clamp(22px, 2.6vw, 30px); }
+
+    .team-note {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 20px;
+    }
+
+    .ask-list {
+      list-style: none;
+      padding: 0;
+      margin: 12px 0 0;
+    }
+
+    .ask-list li {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 6px;
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .ask-list li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--primary-light);
+      font-weight: 700;
+    }
+
+    .section-label-sm {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 10px;
     }
 
     .subtitle {
@@ -1008,6 +1237,22 @@
         background-color: #D1FAE5 !important;
         color: #065F46 !important;
       }
+
+      .market-stat,
+      .market-digital-item {
+        background-color: #FAFBFC !important;
+        border-color: #E5E7EB !important;
+      }
+
+      .market-digital-item {
+        background-color: rgba(15, 118, 110, 0.06) !important;
+      }
+
+      .market-gap {
+        background-color: #FEF3C7 !important;
+        border-color: #FDE68A !important;
+        color: #92400E !important;
+      }
     }
   </style>
 </head>
@@ -1036,12 +1281,12 @@
         <img src="../../assets/brand/suro-mark.svg" alt="SURO">
         <span>SURO</span>
       </div>
-      <p class="tagline">Pitch investisseurs · Seed · 2026</p>
+      <p class="tagline">Pitch investisseurs · Levée Seed · 2026</p>
       <h1>L'assurance auto<br>qui se fait en 5 minutes.</h1>
-      <p class="subtitle">Plateforme digitale de bout en bout — souscription, KYC, sinistres, espace client. Maroc.</p>
+      <p class="subtitle">Plateforme digitale de bout en bout — souscription, KYC, sinistres, espace client.<br>Intermédiaire technologique · Suro Assurance · Maroc.</p>
       <div class="cover-meta">
-        <span>Suro Assurance</span>
-        <span>Confidentiel</span>
+        <span>support@suro.ma</span>
+        <span>Confidentiel · Démo live</span>
       </div>
     </div>
   </section>
@@ -1054,19 +1299,20 @@
         <span class="slide-num">02 / 12</span>
       </div>
       <h3>Le problème</h3>
-      <h2>S'assurer au Maroc, c'est encore trop pénible.</h2>
-      <div class="two-col" style="margin-top:20px">
+      <h2>S'assurer au Maroc reste opaque, lent et frustrant.</h2>
+      <p class="slide-lead">Le conducteur veut une couverture rapide et claire — il obtient paperasse, attente et prix flous.</p>
+      <div class="two-col">
         <div>
           <ul>
-            <li><strong>Parcours opaque</strong> — devis flou, paperasse, allers-retours en agence</li>
-            <li><strong>Temps perdu</strong> — formulaires interminables, peu de transparence sur le prix final</li>
-            <li><strong>Après la vente</strong> — sinistres, documents, renouvellement = friction maximale</li>
+            <li><strong>Parcours opaque</strong> — devis incomplet, allers-retours en agence, conditions peu lisibles</li>
+            <li><strong>Temps perdu</strong> — formulaires longs, peu de transparence sur le prix TTC final</li>
+            <li><strong>Après la vente</strong> — sinistres, documents et renouvellement = friction maximale</li>
           </ul>
           <p class="quote">« Les gens ne veulent pas s'assurer. Ils veulent arrêter de flipper. »</p>
         </div>
-        <div class="three-col" style="grid-template-columns:1fr; gap:14px; margin-top:0">
+        <div class="three-col" style="grid-template-columns:1fr; gap:12px; margin-top:0">
           <div class="card stat"><div class="num">70%</div><div class="lbl">d'abandon estimé sur les parcours assurance classiques</div></div>
-          <div class="card stat"><div class="num">10–15 min</div><div class="lbl">temps moyen d'un parcours traditionnel</div></div>
+          <div class="card stat"><div class="num">10–15 min</div><div class="lbl">temps moyen d'un parcours traditionnel en agence</div></div>
           <div class="card stat"><div class="num">0</div><div class="lbl">expérience mobile-first unifiée post-souscription</div></div>
         </div>
       </div>
@@ -1083,23 +1329,24 @@
       </div>
       <h3>La solution</h3>
       <h2>Assurance sans friction.<br>Confiance par défaut.</h2>
-      <div class="three-col">
+      <p class="slide-lead">SURO digitalise l'intégralité du parcours — du devis à la carte verte — avec un prix TTC affiché avant tout engagement.</p>
+      <div class="three-col" style="margin-top:16px">
         <div class="card card--accent">
           <h4>Devis en 5 min</h4>
-          <p>Immatriculation, véhicule, couverture — prix TTC affiché avant tout paiement.</p>
+          <p>Immatriculation, véhicule, couverture — tarif TTC affiché avant paiement, sans surprise.</p>
         </div>
         <div class="card">
           <h4>100 % digital</h4>
-          <p>Souscription, KYC, paiement, contrat et sinistres — tout en ligne.</p>
+          <p>Souscription, KYC, paiement, contrat, sinistres et renouvellement — tout en ligne.</p>
         </div>
         <div class="card">
           <h4>Relation continue</h4>
-          <p>Espace client unifié : contrats, documents, messagerie, renouvellement.</p>
+          <p>Espace client unifié : contrats, documents, messagerie et suivi sinistre en temps réel.</p>
         </div>
       </div>
-      <p style="margin-top:28px; font-size:15px; color:var(--muted)">
-        <strong>Positionnement :</strong> intermédiaire technologique premium — ni courtier classique, ni simple comparateur de leads.
-      </p>
+      <div class="callout">
+        <strong>Positionnement :</strong> intermédiaire technologique premium — ni courtier classique, ni simple comparateur de leads. Contrat d'assurance avec <strong>Suro Assurance</strong>.
+      </div>
     </div>
     <div class="slide-footer"></div>
   </section>
@@ -1113,39 +1360,42 @@
       </div>
       <h3>Produit</h3>
       <h2>MVP opérationnel — pas une maquette.</h2>
-      <div style="margin-bottom:16px">
+      <p class="slide-lead">Plateforme live en environnement lab : tunnel, espace client et portail Ops déjà déployés.</p>
+      <div style="margin-bottom:12px">
         <span class="badge badge--live">Live</span>
-        <span class="badge">Voiture + Moto</span>
+        <span class="badge">Auto + Moto</span>
         <span class="badge">Supabase</span>
         <span class="badge">Portail Ops</span>
+        <span class="badge">CI / Sécurité</span>
       </div>
-      <table>
+      <table class="table-compact">
         <thead>
           <tr><th>Module</th><th>Fonctionnalités livrées</th><th>Statut</th></tr>
         </thead>
         <tbody>
           <tr>
             <td>Tunnel souscription</td>
-            <td>Devis RPC, marque/modèle, carburant, couverture, compte, paiement</td>
+            <td>Devis RPC, catalogue marque/modèle, carburant, couverture, compte, paiement</td>
             <td class="check">✓ Prod lab</td>
           </tr>
           <tr>
             <td>Espace client</td>
-            <td>Contrats, sinistres, KYC, paiements, messagerie, bannières intelligentes</td>
+            <td>Contrats, sinistres, KYC 6 faces, paiements, messagerie, bannières contextuelles</td>
             <td class="check">✓ Prod lab</td>
           </tr>
           <tr>
             <td>Portail Ops</td>
-            <td>Souscriptions, sinistres, KYC, staff, pagination serveur</td>
+            <td>Souscriptions, sinistres, validation KYC, staff, pagination serveur</td>
             <td class="check">✓ Prod lab</td>
           </tr>
           <tr>
             <td>Infrastructure</td>
-            <td>Cloud + VPS lab Maroc, CI, programme sécurité</td>
+            <td>Supabase Cloud + VPS lab Maroc, déploiement CI, programme sécurité</td>
             <td class="check">✓ En cours</td>
           </tr>
         </tbody>
       </table>
+      <p class="slide-note"><strong>Démo :</strong> tunnel complet de souscription + espace client + back-office Ops disponibles en live.</p>
     </div>
     <div class="slide-footer"></div>
   </section>
@@ -1159,6 +1409,7 @@
       </div>
       <h3>Parcours</h3>
       <h2>De l'atterrissage à la carte verte.</h2>
+      <p class="slide-lead">Un funnel unique, mobile-first, sans rupture entre souscription et relation client.</p>
       <div class="flow">
         <span class="flow-step">Landing</span>
         <span class="flow-arrow">→</span>
@@ -1170,22 +1421,23 @@
         <span class="flow-arrow">→</span>
         <span class="flow-step">Paiement</span>
         <span class="flow-arrow">→</span>
-        <span class="flow-step" style="background:var(--primary);color:white;border-color:var(--primary)">Espace client</span>
+        <span class="flow-step flow-step--active">Espace client</span>
       </div>
-      <div class="two-col" style="margin-top:8px">
+      <div class="two-col" style="margin-top:12px">
         <div>
-          <h4 style="font-size:16px;margin-bottom:12px">Après souscription</h4>
+          <p class="section-label-sm">Après souscription</p>
           <ul>
-            <li>Upload CIN, permis, carte grise (recto/verso)</li>
-            <li>Validation Ops &lt; 48 h ouvrées</li>
+            <li>Upload CIN, permis, carte grise (6 faces KYC)</li>
+            <li>Validation Ops sous 48 h ouvrées</li>
             <li>Déclaration sinistre + messagerie temps réel</li>
+            <li>Attestation PDF immédiate · carte verte à domicile</li>
             <li>Renouvellement en un clic</li>
           </ul>
         </div>
-        <div class="card" style="background:var(--primary-ghost, rgba(15,118,110,.06)); border-color:rgba(15,118,110,.2)">
-          <h4 style="color:var(--primary); margin-bottom:12px">Ton de marque</h4>
-          <p style="font-size:22px; font-weight:700; color:var(--ink); line-height:1.35">« T'es couvert en 5 min.<br>Pas plus. »</p>
-          <p style="margin-top:12px; font-size:14px">Direct · Honnête · Tutoiement · Zéro jargon</p>
+        <div class="card brand-card">
+          <h4>Ton de marque</h4>
+          <p class="brand-quote">« T'es couvert en 5 min.<br>Pas plus. »</p>
+          <p class="brand-tags">Direct · Honnête · Tutoiement · Zéro jargon</p>
         </div>
       </div>
     </div>
@@ -1193,14 +1445,15 @@
   </section>
 
   <!-- SLIDE 6 — MARKET -->
-  <section class="slide" data-slide="6">
+  <section class="slide slide--dense" data-slide="6">
     <div class="slide-inner">
       <div class="slide-header">
         <div class="brand"><img src="../../assets/brand/suro-mark.svg" alt=""> SURO</div>
         <span class="slide-num">06 / 12</span>
       </div>
       <h3>Marché</h3>
-      <h2>1,5 M de contrats auto — une génération 100 % mobile, un canal digital quasi vierge.</h2>
+      <h2>Un marché de 16 Mds MAD, prêt pour le digital.</h2>
+      <p class="slide-lead">~1,5 M contrats auto renouvelés chaque année — population ultra-connectée, canal direct quasi vierge.</p>
 
       <div class="market-stats">
         <div class="market-stat">
@@ -1281,29 +1534,33 @@
       </div>
       <h3>Modèle économique</h3>
       <h2>Revenus récurrents sur chaque police.</h2>
-      <div class="three-col">
+      <p class="slide-lead">Marge sur prime souscrite + LTV au renouvellement — structure de coûts digitale, sans réseau physique.</p>
+      <div class="three-col" style="margin-top:14px">
         <div class="card">
           <h4>Commission / marge</h4>
-          <p>% sur chaque prime souscrite — revenu à l'activation du contrat.</p>
+          <p>% sur chaque prime activée — revenu dès la souscription, récurrent au renouvellement.</p>
         </div>
         <div class="card">
-          <h4>Renouvellement</h4>
-          <p>LTV = prime annuelle × années de rétention × taux de marge.</p>
+          <h4>LTV & rétention</h4>
+          <p>Prime annuelle × années de rétention × taux de marge. Renouvellement digital = coût marginal faible.</p>
         </div>
         <div class="card">
           <h4>Upsell & B2B2C</h4>
-          <p>Couverture minimal → complète. Partenariats concessionnaires, fintechs.</p>
+          <p>Tiers → Tous Risques. Partenariats concessionnaires, fintechs et distributeurs auto.</p>
         </div>
       </div>
-      <div class="two-col" style="margin-top:28px">
+      <div class="two-col" style="margin-top:20px">
         <div class="card stat">
-          <div class="num" style="font-size:32px">CAC ↓</div>
-          <div class="lbl">Digital pur — pas de réseau d'agences à financer</div>
+          <div class="num" style="font-size:30px">CAC ↓</div>
+          <div class="lbl">Acquisition 100% digitale — pas de réseau d'agences à financer</div>
         </div>
         <div class="card stat">
-          <div class="num" style="font-size:32px">Ops ↓</div>
-          <div class="lbl">Portail interne — sinistres & KYC sans legacy</div>
+          <div class="num" style="font-size:30px">Ops ↓</div>
+          <div class="lbl">Portail Ops intégré — KYC & sinistres sans legacy IT</div>
         </div>
+      </div>
+      <div class="callout">
+        <strong>Unit economics cible :</strong> prime moyenne 3 500 MAD · marge ~15–20% · LTV 3+ ans · CAC payback &lt; 12 mois sur cohorte pilote.
       </div>
     </div>
     <div class="slide-footer"></div>
@@ -1318,6 +1575,12 @@
       </div>
       <h3>Traction & roadmap</h3>
       <h2>Exécution démontrée. Commercialisation à venir.</h2>
+      <p class="slide-lead">Le produit est live — la levée finance le passage au go-to-market régulé.</p>
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="val">MVP live</div><div class="lbl">Tunnel + client + Ops déployés</div></div>
+        <div class="kpi-card"><div class="val">4 modules</div><div class="lbl">Souscription · KYC · Sinistres · Paiements</div></div>
+        <div class="kpi-card"><div class="val">Lab MA</div><div class="lbl">Cloud + VPS Maroc opérationnels</div></div>
+      </div>
       <div class="timeline">
         <div class="tl-step active">
           <div class="phase">Aujourd'hui</div>
@@ -1337,12 +1600,10 @@
         <div class="tl-step">
           <div class="phase">2027+</div>
           <h4>Scale</h4>
-          <p>Acquisition paid · flottes · API distributeurs</p>
+          <p>Acquisition paid · flottes PME · API distributeurs</p>
         </div>
       </div>
-      <p style="margin-top:24px; font-size:14px; color:var(--muted)">
-        <strong>KPIs investisseurs :</strong> contrats actifs · prime souscrite · conversion tunnel · CAC · taux de renouvellement · NPS
-      </p>
+      <p class="slide-note"><strong>KPIs investisseurs :</strong> contrats actifs · prime souscrite · conversion tunnel · CAC · renouvellement · NPS</p>
     </div>
     <div class="slide-footer"></div>
   </section>
@@ -1356,19 +1617,26 @@
       </div>
       <h3>Concurrence</h3>
       <h2>Pourquoi SURO gagne.</h2>
-      <table>
+      <p class="slide-lead">Ni l'agence traditionnelle, ni le comparateur de leads ne couvrent le parcours complet en mobile-first.</p>
+      <table class="table-compact">
         <thead>
-          <tr><th></th><th>Agences / courtiers</th><th>Comparateurs</th><th style="color:var(--primary)">SURO</th></tr>
+          <tr><th></th><th>Agences / courtiers</th><th>Comparateurs</th><th class="col-suro">SURO</th></tr>
         </thead>
         <tbody>
-          <tr><td>Souscription end-to-end</td><td class="cross">Partiel</td><td class="cross">Lead gen</td><td class="check">✓ Native</td></tr>
-          <tr><td>Prix TTC avant paiement</td><td class="cross">Rare</td><td>Parfois</td><td class="check">✓ Systématique</td></tr>
-          <tr><td>Espace client unifié</td><td class="cross">Faible</td><td class="cross">Non</td><td class="check">✓ Complet</td></tr>
-          <tr><td>Mobile-first</td><td class="cross">Non</td><td>Moyen</td><td class="check">✓ Oui</td></tr>
-          <tr><td>Ops intégré sinistres/KYC</td><td class="cross">Legacy</td><td class="cross">Non</td><td class="check">✓ Built-in</td></tr>
+          <tr><td>Souscription end-to-end</td><td class="cross">Partiel</td><td class="cross">Lead gen</td><td class="check col-suro">✓ Native</td></tr>
+          <tr><td>Prix TTC avant paiement</td><td class="cross">Rare</td><td>Parfois</td><td class="check col-suro">✓ Systématique</td></tr>
+          <tr><td>Espace client unifié</td><td class="cross">Faible</td><td class="cross">Non</td><td class="check col-suro">✓ Complet</td></tr>
+          <tr><td>Mobile-first</td><td class="cross">Non</td><td>Moyen</td><td class="check col-suro">✓ Oui</td></tr>
+          <tr><td>Ops intégré sinistres/KYC</td><td class="cross">Legacy</td><td class="cross">Non</td><td class="check col-suro">✓ Built-in</td></tr>
         </tbody>
       </table>
-      <p style="margin-top:20px; font-size:14px; color:var(--muted)"><strong>Moat :</strong> données véhicules · relation client directe · coût marginal faible · expérience sinistre intégrée</p>
+      <div class="moat-tags">
+        <span class="moat-tag">Données véhicules propriétaires</span>
+        <span class="moat-tag">Relation client directe</span>
+        <span class="moat-tag">Coût marginal faible</span>
+        <span class="moat-tag">Sinistre intégré</span>
+        <span class="moat-tag">Marque jeune & digitale</span>
+      </div>
     </div>
     <div class="slide-footer"></div>
   </section>
@@ -1382,29 +1650,28 @@
       </div>
       <h3>Équipe</h3>
       <h2>Exécution produit déjà prouvée.</h2>
+      <p class="slide-lead">L'équipe fondatrice a livré le MVP complet — la levée permet de compléter l'expertise assurance & conformité.</p>
       <div class="team">
         <div class="team-card">
           <div class="avatar">?</div>
           <h4>[Fondateur·rice]</h4>
           <div class="role">CEO / Produit</div>
-          <p>Vision produit, go-to-market, partenariats assurance</p>
+          <p>Vision produit, go-to-market, partenariats assureurs et distribution</p>
         </div>
         <div class="team-card">
           <div class="avatar">?</div>
           <h4>[CTO / Tech]</h4>
           <div class="role">Technologie</div>
-          <p>Plateforme full-stack livrée — Supabase, Ops, mobile</p>
+          <p>Plateforme full-stack livrée — Supabase, tunnel, Ops, infra cloud</p>
         </div>
         <div class="team-card">
-          <div class="avatar">?</div>
+          <div class="avatar">+</div>
           <h4>[À recruter]</h4>
           <div class="role">Assurance / Conformité</div>
-          <p>ACAPS, distribution, actuariat, relation assureur</p>
+          <p>ACAPS, distribution légale, actuariat, relation Suro Assurance</p>
         </div>
       </div>
-      <p style="margin-top:28px; text-align:center; color:var(--muted); font-size:15px">
-        → Compléter les profils, photos et bios avant envoi aux investisseurs
-      </p>
+      <p class="team-note">→ Compléter profils, photos et bios avant envoi investisseurs · Advisors assurance & insurtech à formaliser</p>
     </div>
     <div class="slide-footer"></div>
   </section>
@@ -1418,26 +1685,22 @@
       </div>
       <h3>Finances</h3>
       <h2>Levée Seed — utilisation des fonds.</h2>
+      <p class="slide-lead">Financer 18–24 mois de runway pour passer du lab au lancement commercial régulé.</p>
       <div class="two-col">
         <div>
-          <p style="font-size:28px; font-weight:800; color:var(--primary); margin-bottom:8px">[X] MAD / [X] €</p>
-          <p style="font-size:15px; color:var(--muted); margin-bottom:24px">Runway cible : 18–24 mois</p>
-          <table>
-            <thead><tr><th>Poste</th><th>%</th></tr></thead>
-            <tbody>
-              <tr><td>Produit & tech</td><td><strong>35 %</strong></td></tr>
-              <tr><td>Distribution & marketing</td><td><strong>30 %</strong></td></tr>
-              <tr><td>Assurance & légal</td><td><strong>20 %</strong></td></tr>
-              <tr><td>Ops & support</td><td><strong>10 %</strong></td></tr>
-              <tr><td>Fonds de roulement</td><td><strong>5 %</strong></td></tr>
-            </tbody>
-          </table>
+          <p class="fund-ask">[X] MAD / [X] €</p>
+          <p class="fund-runway">Runway cible : 18–24 mois</p>
+          <div class="fund-alloc-row"><span>Produit & tech</span><div class="fund-alloc-bar"><div class="fund-alloc-fill" style="width:35%"></div></div><span class="fund-alloc-pct">35%</span></div>
+          <div class="fund-alloc-row"><span>Distribution & MKT</span><div class="fund-alloc-bar"><div class="fund-alloc-fill" style="width:30%"></div></div><span class="fund-alloc-pct">30%</span></div>
+          <div class="fund-alloc-row"><span>Assurance & légal</span><div class="fund-alloc-bar"><div class="fund-alloc-fill" style="width:20%"></div></div><span class="fund-alloc-pct">20%</span></div>
+          <div class="fund-alloc-row"><span>Ops & support</span><div class="fund-alloc-bar"><div class="fund-alloc-fill" style="width:10%"></div></div><span class="fund-alloc-pct">10%</span></div>
+          <div class="fund-alloc-row"><span>Fonds de roulement</span><div class="fund-alloc-bar"><div class="fund-alloc-fill" style="width:5%"></div></div><span class="fund-alloc-pct">5%</span></div>
         </div>
         <div>
-          <h4 style="font-size:14px; margin-bottom:16px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em">Objectifs à 18 mois</h4>
-          <div class="card" style="margin-bottom:12px"><h4>[X] contrats actifs</h4><p>Prime annuelle souscrite cumulée</p></div>
-          <div class="card" style="margin-bottom:12px"><h4>Break-even unitaire</h4><p>LTV &gt; CAC démontré sur cohorte pilote</p></div>
-          <div class="card"><h4>Partenariat assureur signé</h4><p>Distribution légale & capacité de souscription</p></div>
+          <p class="objectives-title">Objectifs à 18 mois</p>
+          <div class="card" style="margin-bottom:10px"><h4>[X] contrats actifs</h4><p>Prime annuelle souscrite cumulée sur cohorte pilote</p></div>
+          <div class="card" style="margin-bottom:10px"><h4>Break-even unitaire</h4><p>LTV &gt; CAC démontré sur la première cohorte</p></div>
+          <div class="card"><h4>Partenariat assureur signé</h4><p>Distribution légale ACAPS & capacité de souscription à l'échelle</p></div>
         </div>
       </div>
     </div>
@@ -1455,14 +1718,18 @@
       <h1>La référence de l'assurance directe au Maroc.</h1>
       <p class="subtitle">SURO ne vend pas une police. SURO vend la fin de l'anxiété.</p>
       <div class="ask-box">
-        <h4>The ask</h4>
-        <p style="color:rgba(255,255,255,.85); font-size:17px; line-height:1.6">
-          Levée <strong>Seed</strong> pour passer du lab au lancement commercial.<br>
-          Intros assureurs, distributeurs auto, investisseurs insurtech MENA.
+        <h4>The ask · Levée Seed</h4>
+        <p style="color:rgba(255,255,255,.85); font-size:17px; line-height:1.6; margin-bottom:0">
+          Passer du lab au lancement commercial régulé — 18 à 24 mois de runway.
         </p>
+        <ul class="ask-list">
+          <li>Intros assureurs & distributeurs auto</li>
+          <li>Investisseurs insurtech MENA & angels sectoriels</li>
+          <li>Conseil conformité ACAPS & structuration levée</li>
+        </ul>
       </div>
-      <p style="margin-top:32px; color:rgba(255,255,255,.5); font-size:14px">
-        [email@suro.ma] · Démo live disponible
+      <p style="margin-top:28px; color:rgba(255,255,255,.5); font-size:14px">
+        support@suro.ma · Démo live disponible · Confidentiel
       </p>
     </div>
   </section>

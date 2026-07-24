@@ -200,6 +200,14 @@
       );
     },
 
+    getClaimsAwaitingCustomerReply() {
+      return this.sb('/rest/v1/rpc/suro_claims_awaiting_customer_reply', {
+        method: 'POST',
+        asUser: true,
+        body: JSON.stringify({}),
+      });
+    },
+
     sendClaimMessage(claimId, body, sender) {
       const session = this.getSession();
       return this.sb('/rest/v1/insurance_claim_messages', {

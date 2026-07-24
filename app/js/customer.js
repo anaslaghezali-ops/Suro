@@ -79,6 +79,8 @@ class CustomerDashboard {
     this.payments = null;
     this.documents = null;
     this._documentsPolicyId = null;
+    this._awaitingReplyClaims = null;
+    this._claimsAwaitingReplyFilter = false;
     this._nextRenewalPolicyId = null;
     this._profileSnapshot = null;
     this._profileFormBound = false;
@@ -106,7 +108,12 @@ class CustomerDashboard {
       this.navigateTo('documents');
     } else {
       const hashPage = (location.hash || '').replace(/^#/, '').split('?')[0];
-      if (hashPage && document.getElementById(`${hashPage}-page`)) {
+      if (sessionStorage.getItem('suroClaimsAwaitingReplyView')) {
+        sessionStorage.removeItem('suroClaimsAwaitingReplyView');
+        const select = document.getElementById('filter-claim-status');
+        if (select) select.value = 'awaiting_reply';
+        this.navigateTo('claims');
+      } else if (hashPage && document.getElementById(`${hashPage}-page`)) {
         this.navigateTo(hashPage);
       } else {
         this.loadDashboard();
@@ -520,6 +527,9 @@ class CustomerDashboard {
       ]);
       this.renderPendingPaymentBanner(policies, 'pending-payment-banner-dashboard');
       this.renderPendingDocsBanner(policies, allDocs, 'pending-docs-banner-dashboard');
+      const awaitingReply = await this.fetchClaimsAwaitingReply(true);
+      this.renderPendingClaimReplyBanner(awaitingReply, 'pending-claim-reply-banner-dashboard');
+      this.updateClaimsNavBadge(awaitingReply);
       this.updateDocumentsNavBadge(policies, allDocs);
       const claims = await this.api.getMyClaims() || [];
       // Nombre réel de paiements (initial + renouvellements), pas de contrats
@@ -591,19 +601,29 @@ class CustomerDashboard {
   async loadClaims() {
     this.setTableSkeleton('claims-tbody', 5, 3);
     try {
-      const claims = await this.api.getMyClaims() || [];
+      const [claims, awaitingReply] = await Promise.all([
+        this.api.getMyClaims().then((r) => r || []),
+        this.fetchClaimsAwaitingReply(true),
+      ]);
       this.claims = claims;
+      this.updateClaimsNavBadge(awaitingReply);
+      const awaitingIds = new Set((awaitingReply || []).map((r) => r.claim_id));
       const statusFilter = document.getElementById('filter-claim-status')?.value || '';
-      const filtered = statusFilter ? claims.filter(c => c.status === statusFilter) : claims;
+      let filtered = claims;
+      if (statusFilter === 'awaiting_reply') {
+        filtered = claims.filter((c) => awaitingIds.has(c.id));
+      } else if (statusFilter) {
+        filtered = claims.filter((c) => c.status === statusFilter);
+      }
       const tbody = document.getElementById('claims-tbody');
 
       tbody.innerHTML = filtered.length ? filtered.map(c => `
         <tr>
-          <td data-label="Type">${this.escape(c.claim_type || 'N/A')}</td>
+          <td data-label="Type">${this.escape(this.claimTypeLabel(c.claim_type))}${awaitingIds.has(c.id) ? '<span class="claim-reply-badge">À répondre</span>' : ''}</td>
           <td data-label="Description">${this.escape((c.description || '').slice(0, 60))}${(c.description || '').length > 60 ? '…' : ''}</td>
           <td data-label="Date">${c.claim_date ? new Date(c.claim_date).toLocaleDateString('fr-FR') : '—'}</td>
           <td data-label="Statut"><span class="status-badge status-${c.status}">${this.formatStatus(c.status)}</span></td>
-          <td data-label=""><button class="btn btn-primary btn-sm" onclick="dashboard.viewClaimDetail('${c.id}')">Suivre</button></td>
+          <td data-label=""><button class="btn btn-primary btn-sm" onclick="dashboard.openClaimForReply('${c.id}')">${awaitingIds.has(c.id) ? 'Répondre' : 'Suivre'}</button></td>
         </tr>
       `).join('') : this.emptyStateHTML(5, {
         title: statusFilter ? 'Aucun sinistre pour ce filtre' : 'Aucun sinistre déclaré',
@@ -1201,6 +1221,95 @@ class CustomerDashboard {
     return this.documents;
   }
 
+  async fetchClaimsAwaitingReply(force = false) {
+    if (!this._awaitingReplyClaims || force) {
+      try {
+        this._awaitingReplyClaims = await this.api.getClaimsAwaitingCustomerReply() || [];
+      } catch (e) {
+        this._awaitingReplyClaims = [];
+      }
+    }
+    return this._awaitingReplyClaims;
+  }
+
+  claimTypeLabel(type) {
+    const labels = {
+      accident: 'Accident',
+      theft: 'Vol',
+      fire: 'Incendie',
+      glass: 'Bris de glace',
+      other: 'Autre',
+    };
+    return labels[type] || type || 'Sinistre';
+  }
+
+  previewClaimMessage(body, max = 72) {
+    const text = (body || '').trim().replace(/\s+/g, ' ');
+    if (!text) return '';
+    if (text.length <= max) return text;
+    return `${text.slice(0, max - 1)}…`;
+  }
+
+  renderPendingClaimReplyBanner(rows, elId = 'pending-claim-reply-banner-dashboard') {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const awaiting = rows || [];
+    if (!awaiting.length) { el.innerHTML = ''; return; }
+
+    if (awaiting.length === 1) {
+      const row = awaiting[0];
+      const preview = this.previewClaimMessage(row.last_body);
+      const typeLabel = this.claimTypeLabel(row.claim_type);
+      el.innerHTML = `
+        <div class="pending-banner pending-banner--reply" role="status">
+          <div class="pending-banner-inner">
+            <span class="pending-banner-icon" aria-hidden="true">💬</span>
+            <div class="pending-banner-copy">
+              <div class="pending-banner-title">SURO t'a répondu</div>
+              <p class="pending-banner-desc">Sinistre ${this.escape(typeLabel)}${preview ? ` — « ${this.escape(preview)} »` : ''}</p>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="dashboard.openClaimForReply('${row.claim_id}')">Répondre</button>
+        </div>`;
+      return;
+    }
+
+    el.innerHTML = `
+      <div class="pending-banner pending-banner--reply" role="status">
+        <div class="pending-banner-inner">
+          <span class="pending-banner-icon" aria-hidden="true">💬</span>
+          <div class="pending-banner-copy">
+            <div class="pending-banner-title">${awaiting.length} messages SURO en attente de réponse</div>
+            <p class="pending-banner-desc">Consulte tes sinistres pour répondre à l'équipe.</p>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" onclick="dashboard.openClaimsAwaitingReply()">Voir mes sinistres</button>
+      </div>`;
+  }
+
+  updateClaimsNavBadge(rows) {
+    const badge = document.getElementById('nav-claims-badge');
+    if (!badge) return;
+    const count = (rows || []).length;
+    if (count > 0) {
+      badge.textContent = String(count);
+      badge.hidden = false;
+    } else {
+      badge.hidden = true;
+    }
+  }
+
+  openClaimsAwaitingReply() {
+    sessionStorage.setItem('suroClaimsAwaitingReplyView', '1');
+    const select = document.getElementById('filter-claim-status');
+    if (select) select.value = 'awaiting_reply';
+    this.navigateTo('claims');
+  }
+
+  openClaimForReply(claimId) {
+    this.viewClaimDetail(claimId, { focusMessages: true });
+  }
+
   summarizeKycForPolicy(applicationId, allDocs) {
     return Kyc().summarizeKycForPolicy(applicationId, allDocs);
   }
@@ -1642,7 +1751,8 @@ class CustomerDashboard {
       </div>`).join('');
   }
 
-  async viewClaimDetail(claimId) {
+  async viewClaimDetail(claimId, options = {}) {
+    const { focusMessages = false } = options;
     try {
       const claims = this.claims || await this.api.getMyClaims() || [];
       const c = claims.find(x => x.id === claimId);
@@ -1665,7 +1775,7 @@ class CustomerDashboard {
       const body = document.getElementById('modal-body');
 
       body.innerHTML = `
-        <h2>Sinistre — ${this.escape(c.claim_type || '')}</h2>
+        <h2>Sinistre — ${this.escape(this.claimTypeLabel(c.claim_type))}</h2>
         <p style="color:#6B7280;font-size:14px;margin-top:4px;">Survenu le ${c.claim_date ? new Date(c.claim_date).toLocaleDateString('fr-FR') : '—'}</p>
 
         ${this.claimTimelineHTML(c)}
@@ -1683,7 +1793,7 @@ class CustomerDashboard {
           </div>
         </div>
 
-        <div style="margin-top:24px;padding-top:16px;border-top:1px solid #E5E7EB;">
+        <div id="claim-messages-section" style="margin-top:24px;padding-top:16px;border-top:1px solid #E5E7EB;">
           <h3 style="font-size:15px;margin-bottom:8px;">💬 Messages avec ton gestionnaire</h3>
           <div id="claim-messages">${this.renderClaimMessages(messages)}</div>
           <form id="claim-msg-form" style="display:flex;gap:8px;margin-top:12px;">
@@ -1703,12 +1813,24 @@ class CustomerDashboard {
           input.value = '';
           const msgs = await this.api.getClaimMessages(claimId).catch(() => []);
           document.getElementById('claim-messages').innerHTML = this.renderClaimMessages(msgs);
+          const awaitingReply = await this.fetchClaimsAwaitingReply(true);
+          this.renderPendingClaimReplyBanner(awaitingReply, 'pending-claim-reply-banner-dashboard');
+          this.updateClaimsNavBadge(awaitingReply);
         } catch (err) {
           toast('Message non envoyé, réessaie.', 'err');
         }
       };
 
       openModal('detail-modal');
+
+      if (focusMessages) {
+        requestAnimationFrame(() => {
+          const section = document.getElementById('claim-messages-section');
+          const input = document.getElementById('claim-msg-input');
+          section?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          input?.focus();
+        });
+      }
     } catch (error) {
       if (this.handleAuthError(error)) return;
       console.error('Error loading claim detail:', error);

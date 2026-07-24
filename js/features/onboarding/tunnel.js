@@ -339,8 +339,8 @@ class OnboardingForm {
     const base = this.getAssetBase();
     const copyByVariant = {
       account: `J'ai lu et j'accepte les <a href="${base}conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="${base}confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a> de la plateforme SURO.`,
-      subscription: `J'ai lu et j'accepte les <a href="${base}conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="${base}confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>. Je reconnais que SURO agit en qualité d'intermédiaire technologique, que le contrat d'assurance est conclu avec <strong>Wafa Assurance</strong> et que SURO n'est pas partie à ce contrat.`,
-      payment: `En validant mon paiement, j'accepte les <a href="${base}conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="${base}confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>, ainsi que les conditions contractuelles de l'assureur. Je reconnais que SURO agit en qualité d'intermédiaire technologique et que le contrat d'assurance est conclu avec <strong>Wafa Assurance</strong>.`,
+      subscription: `J'ai lu et j'accepte les <a href="${base}conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="${base}confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>. Je reconnais que SURO agit en qualité d'intermédiaire technologique, que le contrat d'assurance est conclu avec <strong>Suro Assurance</strong> et que SURO n'est pas partie à ce contrat.`,
+      payment: `En validant mon paiement, j'accepte les <a href="${base}conditions.html" target="_blank" rel="noopener">conditions générales d'utilisation et de vente (CGU/CGV)</a> et la <a href="${base}confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>, ainsi que les conditions contractuelles de l'assureur. Je reconnais que SURO agit en qualité d'intermédiaire technologique et que le contrat d'assurance est conclu avec <strong>Suro Assurance</strong>.`,
     };
     const copy = copyByVariant[variant] || copyByVariant.subscription;
     return `
@@ -1341,7 +1341,7 @@ class OnboardingForm {
       <div class="payment-section">
         <h3>Choisir une méthode de paiement</h3>
         ${amountHTML}
-        <p class="payment-transparency">Le montant affiché est estimatif TTC selon les informations saisies. La prime définitive est confirmée par Wafa Assurance, assureur du contrat.</p>
+        <p class="payment-transparency">Le montant affiché est estimatif TTC selon les informations saisies. La prime définitive est confirmée par Suro Assurance, assureur du contrat.</p>
         ${this.renderLegalConsentBlock('payment-consent', 'payment')}
         <p class="payment-legal payment-legal--hint">Coche la case ci-dessus pour activer le paiement. Les CGU/CGV sont consultables à tout moment avant validation.</p>
 
@@ -1460,7 +1460,7 @@ class OnboardingForm {
           </div>
 
           <div class="success-info success-info--warn">
-            Contrat d'assurance souscrit auprès de <strong>Wafa Assurance</strong>. SURO facilite la souscription en qualité d'intermédiaire technologique.
+            Contrat d'assurance souscrit auprès de <strong>Suro Assurance</strong>. SURO facilite la souscription en qualité d'intermédiaire technologique.
           </div>
 
           <div class="success-info success-info--warn">

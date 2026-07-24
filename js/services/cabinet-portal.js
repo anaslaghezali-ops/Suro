@@ -44,11 +44,12 @@
       });
     },
 
-    async addUser(email, role, displayName) {
+    async addUser(email, role, displayName, cabinetId) {
       return rpc('suro_cabinet_add_user', {
         p_email: email,
         p_role: role,
         p_display_name: displayName || null,
+        p_cabinet_id: cabinetId || null,
       });
     },
 
@@ -66,6 +67,13 @@
         p_name: name,
         p_slug: slug,
         p_cabinet_id: cabinetId || null,
+      });
+    },
+
+    async staffSetCabinetActive(cabinetId, active) {
+      return rpc('suro_staff_set_cabinet_active', {
+        p_cabinet_id: cabinetId,
+        p_active: active,
       });
     },
   };

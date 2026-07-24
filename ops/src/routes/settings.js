@@ -73,7 +73,16 @@ function OperatingModeSettings({ editable }) {
   const save = async () => {
     setBusy(true);
     try {
-      await api.updateSetting('operating_mode', current);
+      const result = await api.switchOperatingMode(current);
+      if (result && result.ok === false) {
+        const parts = [result.message || result.error];
+        if (result.open_tasks != null) parts.push(`dossiers ouverts : ${result.open_tasks}`);
+        if (result.open_claims != null) parts.push(`sinistres ouverts : ${result.open_claims}`);
+        if (result.pending_kyc != null) parts.push(`KYC Ops en attente : ${result.pending_kyc}`);
+        if (result.pending_claims != null) parts.push(`sinistres Ops en attente : ${result.pending_claims}`);
+        toast(parts.filter(Boolean).join(' — '), 'err');
+        return;
+      }
       await api.logAction('update', 'settings', null, { operating_mode: current }).catch(() => {});
       window.dispatchEvent(new CustomEvent('suro-operating-mode-changed', { detail: current }));
       toast('Mode d’exploitation enregistré', 'ok');

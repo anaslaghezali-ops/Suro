@@ -15,11 +15,24 @@
 | **SURO-intermédiaire** | `operating_mode = intermediaire` (défaut) | Round-robin cabinets → `suro_broker_tasks` |
 | **SURO-courtier** | `operating_mode = courtier` | File Ops interne → notification admin, traitement via écrans Documents / Souscriptions |
 
-Fonctions : `suro_get_operating_mode()`, `suro_courtier_enqueue_kyc_review()`.  
-Migration : `docs/migrations/20260726_operating_mode.sql`.  
-Bascule : Ops → Paramètres → Mode d'exploitation (`settings.edit`).
+Fonctions : `suro_get_operating_mode()`, `suro_courtier_enqueue_kyc_review()`, `suro_switch_operating_mode()`.  
+Migrations : `20260726_operating_mode.sql`, `20260727_cabinet_fixes.sql`.  
+Bascule : Ops → Paramètres → Mode d'exploitation via RPC `suro_switch_operating_mode` (garde-fous intégrés).
 
 Le portail `/cabinet/` et l'écran Ops « Cabinets » sont masqués en mode courtier.
+
+### Bascule de mode (`suro_switch_operating_mode`)
+
+**Réservé** `super_admin` / `admin`. Utiliser la RPC — pas de PATCH direct sur `suro_settings.operating_mode`.
+
+| Bascule vers | Bloquée si |
+|--------------|------------|
+| **courtier** | Dossiers `suro_broker_tasks` ouverts (≠ `police_emise`/`refuse`/`cloture`) OU sinistres `suro_claim_cabinet` non clôturés |
+| **intermediaire** | Notifications Ops `kyc_ready_for_ops` / `claim_ready_for_ops` encore en attente |
+
+**Runbook** : (1) lire les compteurs RPC → (2) clôturer le travail en cours → (3) `suro_switch_operating_mode('…')` → (4) test KYC/sinistre.
+
+**Messages client (M3)** : texte libre cabinet → `suro_task_events` / `suro_claim_status_events` uniquement ; le client reçoit des **templates SURO fixes**.
 
 ### SURO est-il une plateforme SaaS multi-tenant ?
 
@@ -76,7 +89,9 @@ Le cabinet **traite** les dossiers qui lui sont **assignés** ; il ne possède p
 | Cabinet partenaire | **Non** — saisit le `policy_number` et le PDF **déjà émis par l’assureur** via RPC `emettre_police` | **Non** |
 | **Assureur agréé ACAPS** | **Oui** — seul émetteur légal de la police / attestation | **Oui** — via circuit CMI / compte assureur |
 
-Le RPC `suro_cabinet_task_action('emettre_police')` **enregistre** une police déjà émise par l’assureur agréé (numéro + document). Il ne constitue **pas** une émission d’assurance par SURO ni par le cabinet.
+Le RPC `suro_cabinet_task_action('emettre_police')` **enregistre** dans le référentiel SURO une police **déjà émise par l'assureur agréé** (`policy_number` + PDF attestant). Ce n'est **pas** une émission d'assurance par SURO ni par le cabinet.
+
+> **En attente de confirmation juridique** : identité exacte de l'assureur agréé ACAPS porteur de risque (dénomination sociale, agrément, convention de distribution). Tant que non tranché, utiliser le placeholder contractuel ci-dessus sur les attestations et CGV.
 
 ### Schéma réglementaire cible
 
@@ -165,9 +180,9 @@ Trigger `suro_trg_kyc_task` sur `insurance_documents` INSERT :
 
 1. Auto-check (`suro_cabinet_auto_check`) : 6 pièces KYC présentes, `storage_path` non vide
 2. Si OK → selon `suro_get_operating_mode()` :
-   - **intermediaire** : `suro_cabinet_try_create_task(application_id)` → tâche cabinet + round-robin
+   - **intermediaire** : `suro_cabinet_try_create_task(application_id)` → tâche cabinet + round-robin (si 0 cabinet actif → notif Ops `cabinet_unassigned`, pas d'exception)
    - **courtier** : `suro_courtier_enqueue_kyc_review(application_id)` → notification Ops (`kyc_ready_for_ops`) + client
-3. Notification client SURO (les deux modes) ; notification gestionnaire cabinet (intermédiaire uniquement)
+3. Trigger encapsulé : erreur cabinet **n'annule jamais** l'INSERT `insurance_documents`
 
 ---
 
@@ -239,10 +254,12 @@ Fichiers : `20260725_cabinet_module.sql` + `20260725_cabinet_rls_hardening.sql` 
 
 Créés par `staging/scripts/seed-cabinets.sh` — détails et mots de passe : `staging/STAGING_TEST_ACCOUNTS.md`
 
-| Email | Cabinet | Test |
-|-------|---------|------|
-| `gestionnaire.agma@suro.ma` | AGMA | Ne doit voir **que** les tâches `cabinet_id` AGMA |
-| `gestionnaire.atlas@suro.ma` | Atlas | Idem Atlas — **zéro** dossier AGMA |
+| Email | Cabinet | Rôle | Test |
+|-------|---------|------|------|
+| `gestionnaire.agma@suro.ma` | AGMA | gestionnaire | Ne doit voir **que** les tâches AGMA |
+| `gestionnaire.atlas@suro.ma` | Atlas | gestionnaire | Zéro dossier AGMA |
+| `admin.agma@suro.ma` | AGMA | admin_cabinet | Gestion équipe AGMA |
+| `admin.atlas@suro.ma` | Atlas | admin_cabinet | Gestion équipe Atlas |
 
 **Procédure test fuite** :
 
@@ -263,14 +280,20 @@ Créés par `staging/scripts/seed-cabinets.sh` — détails et mots de passe : `
 | `docs/migrations/20260726_operating_mode_down.sql` | Rollback mode d'exploitation |
 | `docs/migrations/20260726_cabinet_rls_perf.sql` | RLS perf + `user_cabinet_ids()` + unicité 1 cabinet/user |
 | `docs/migrations/20260726_cabinet_rls_perf_down.sql` | Rollback RLS perf |
+| `docs/migrations/20260727_cabinet_fixes.sql` | C1/M1/M2/M3 — audit CTO |
+| `docs/migrations/20260727_cabinet_fixes_down.sql` | Rollback correctifs audit |
+| `docs/migrations/20260727_cabinet_staff_admin.sql` | RPC activation cabinet (Ops UI) |
+| `docs/migrations/20260727_cabinet_staff_admin_down.sql` | Rollback staff admin |
 
 Ordre d'application : voir `staging/scripts/apply-migrations.sh`
 
 Ordre de rollback (staging) :
 
-1. `20260726_operating_mode_down.sql`
-2. `20260726_cabinet_rls_perf_down.sql`
-3. `20260725_cabinet_module_down.sql`
+1. `20260727_cabinet_staff_admin_down.sql` (si appliqué)
+2. `20260727_cabinet_fixes_down.sql`
+3. `20260726_operating_mode_down.sql`
+4. `20260726_cabinet_rls_perf_down.sql`
+5. `20260725_cabinet_module_down.sql`
 
 ---
 

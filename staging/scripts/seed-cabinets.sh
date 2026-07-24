@@ -48,17 +48,23 @@ SQL
 
 run_psql < "$STAGING_DIR/sql/seed_cabinets.sql"
 
-AGMA_ID=$(create_user "gestionnaire.agma@suro.ma" "Ahmed AGMA")
-ATLAS_ID=$(create_user "gestionnaire.atlas@suro.ma" "Fatima Atlas")
+AGMA_GEST_ID=$(create_user "gestionnaire.agma@suro.ma" "Ahmed AGMA")
+ATLAS_GEST_ID=$(create_user "gestionnaire.atlas@suro.ma" "Fatima Atlas")
+AGMA_ADMIN_ID=$(create_user "admin.agma@suro.ma" "Karim AGMA Admin")
+ATLAS_ADMIN_ID=$(create_user "admin.atlas@suro.ma" "Sara Atlas Admin")
 
-link_user "agma" "$AGMA_ID" "gestionnaire" "Ahmed AGMA"
-link_user "atlas" "$ATLAS_ID" "gestionnaire" "Fatima Atlas"
+link_user "agma" "$AGMA_GEST_ID" "gestionnaire" "Ahmed AGMA"
+link_user "atlas" "$ATLAS_GEST_ID" "gestionnaire" "Fatima Atlas"
+link_user "agma" "$AGMA_ADMIN_ID" "admin_cabinet" "Karim AGMA Admin"
+link_user "atlas" "$ATLAS_ADMIN_ID" "admin_cabinet" "Sara Atlas Admin"
 
 cat <<EOF
 
 Comptes de test inter-tenant créés :
-  gestionnaire.agma@suro.ma   → Cabinet AGMA
-  gestionnaire.atlas@suro.ma  → Cabinet Atlas
+  gestionnaire.agma@suro.ma   → Cabinet AGMA (gestionnaire)
+  gestionnaire.atlas@suro.ma  → Cabinet Atlas (gestionnaire)
+  admin.agma@suro.ma          → Cabinet AGMA (admin_cabinet)
+  admin.atlas@suro.ma         → Cabinet Atlas (admin_cabinet)
   Mot de passe : (valeur STAGING_SEED_PASSWORD)
 
 Test fuite : connecter chaque compte au portail /cabinet/ — aucun ne doit voir les dossiers de l'autre.

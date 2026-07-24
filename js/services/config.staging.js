@@ -1,9 +1,9 @@
-/* Configuration Supabase STAGING — projet séparé de la production.
- * Créer un 2e projet sur supabase.com, puis remplacer les valeurs ci-dessous.
- * Ne jamais committer de clés service_role ici. */
+/* Configuration Supabase STAGING — VPS self-hosted (isolé de la prod cloud).
+ * URL : http://185.98.136.100 — projet Supabase Docker sur le VPS lab.
+ * Activer : ?env=staging sur cabinet/ ou localStorage.suro_env = 'staging' */
 window.SURO_CONFIG_STAGING = {
-  SUPABASE_URL: 'https://VOTRE_PROJET_STAGING.supabase.co',
-  SUPABASE_KEY: 'VOTRE_CLE_PUBLISHABLE_STAGING',
+  SUPABASE_URL: 'http://185.98.136.100',
+  SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE',
   API_VERSION: 1,
   ENV: 'staging',
 };

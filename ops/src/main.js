@@ -9,6 +9,12 @@ import { navFor } from './lib/permissions.js';
 
 const LOGIN = '../admin-login.html';
 
+function readOperatingMode(settings) {
+  const by = {};
+  (settings || []).forEach((s) => { by[s.key] = s.value; });
+  return by.operating_mode === 'courtier' ? 'courtier' : 'intermediaire';
+}
+
 function Toasts() {
   const [items, setItems] = useState([]);
   useEffect(() => {
@@ -24,8 +30,22 @@ function Toasts() {
 function App() {
   const [role, setRole] = useState(undefined); // undefined = chargement
   const [caps, setCaps] = useState(null); // capacités de l'utilisateur
+  const [operatingMode, setOperatingMode] = useState('intermediaire');
   const [session] = useState(api.session());
   const route = useRoute();
+
+  const loadOperatingMode = () => {
+    api.getSettings()
+      .then((s) => setOperatingMode(readOperatingMode(s)))
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    loadOperatingMode();
+    const onMode = (e) => setOperatingMode(e.detail === 'courtier' ? 'courtier' : 'intermediaire');
+    window.addEventListener('suro-operating-mode-changed', onMode);
+    return () => window.removeEventListener('suro-operating-mode-changed', onMode);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -51,16 +71,16 @@ function App() {
 
   if (role === undefined) return html`<${FullSpinner}/>`;
 
-  // Garde de route : on ne rend qu'un écran autorisé pour le rôle
-  const allowed = navFor(role).map((n) => n.id);
+  // Garde de route : on ne rend qu'un écran autorisé pour le rôle + mode
+  const allowed = navFor(role, operatingMode).map((n) => n.id);
   const activeId = allowed.includes(route) ? route : 'dashboard';
   const View = ROUTES[activeId];
 
   return html`
-    <${Layout} role=${role} route=${activeId} session=${session}>
+    <${Layout} role=${role} route=${activeId} session=${session} operatingMode=${operatingMode}>
       <${View} role=${role} caps=${caps} isSuperAdmin=${role === 'super_admin'} />
     <//>
-    <${CommandPalette} role=${role} />
+    <${CommandPalette} role=${role} operatingMode=${operatingMode} />
   `;
 }
 

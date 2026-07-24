@@ -12,6 +12,7 @@ export const NAV = [
   { id: 'documents',     label: 'Pièces KYC',    icon: '⎙', roles: ALL },
   { id: 'payments',      label: 'Paiements',     icon: '⛁', roles: ALL },
   { id: 'claims',        label: 'Sinistres',     icon: '⚠', roles: ALL },
+  { id: 'cabinets',      label: 'Cabinets',      icon: '🏢', roles: ['super_admin', 'admin', 'operations'] },
   { id: 'analytics',     label: 'Funnel',        icon: '▽', roles: ['super_admin'] },
   { id: 'users',         label: 'Utilisateurs',  icon: '⚑', roles: ['super_admin'] },
   { id: 'privileges',    label: 'Privilèges',    icon: '⚿', roles: ['super_admin'] },
@@ -36,8 +37,23 @@ export const SUPERADMIN_ONLY = [
   { id: 'privileges.manage', label: 'Gérer les privilèges' },
 ];
 
-export function navFor(role) {
-  return NAV.filter((n) => n.roles.includes(role));
+export const OPERATING_MODES = {
+  intermediaire: {
+    label: 'SURO-intermédiaire',
+    hint: 'Dossiers assignés aux cabinets partenaires (round-robin).',
+  },
+  courtier: {
+    label: 'SURO-courtier',
+    hint: 'Traitement interne par l’équipe Ops — pas de cabinet externe.',
+  },
+};
+
+export function navFor(role, operatingMode = 'intermediaire') {
+  const items = NAV.filter((n) => n.roles.includes(role));
+  if (operatingMode === 'courtier') {
+    return items.filter((n) => n.id !== 'cabinets');
+  }
+  return items;
 }
 
 // caps = tableau de capacités de l'utilisateur (renvoyé par suro_my_privileges).

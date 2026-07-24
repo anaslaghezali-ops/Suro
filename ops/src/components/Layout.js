@@ -14,9 +14,9 @@ function logout() {
 
 const MENU_SVG = html`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>`;
 
-export function Layout({ role, route, session, children }) {
+export function Layout({ role, route, session, operatingMode = 'intermediaire', children }) {
   const [navOpen, setNavOpen] = useState(false);
-  const nav = navFor(role);
+  const nav = navFor(role, operatingMode);
   const email = (session && session.email) || '';
 
   useEffect(() => {

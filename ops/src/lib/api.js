@@ -63,6 +63,7 @@ export const api = {
   // --- paramètres ---
   getSettings: () => SB().getSettings(),
   updateSetting: (key, value) => SB().adminUpdateSetting(key, value),
+  switchOperatingMode: (mode) => rpc('suro_switch_operating_mode', { p_mode: mode }),
 
   // --- staff (super_admin) ---
   listStaff: () => rpc('suro_list_staff'),

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SURO — Pitch investisseurs</title>
+  <title>SURO — Pitch investisseurs v3 (opérationnel · 500 contrats)</title>
   <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -152,6 +152,131 @@
 
     .presenter-version-switch a:hover {
       color: #fff;
+    }
+
+    .presenter-version-badge {
+      display: inline-block;
+      background: rgba(20, 184, 166, 0.25);
+      color: #5EEAD4;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+
+    .presenter-version-badge--v3 {
+      background: rgba(245, 158, 11, 0.22);
+      color: #FCD34D;
+    }
+
+    .presenter-version-links {
+      margin-top: 14px;
+      font-size: 13px;
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .presenter-version-links a {
+      color: rgba(255, 255, 255, 0.6);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .presenter-version-links a:hover {
+      color: #fff;
+    }
+
+    /* Evolution path (BP) */
+    .evolution-path {
+      display: flex;
+      gap: 0;
+      margin-top: 20px;
+      align-items: stretch;
+    }
+
+    .evo-step {
+      flex: 1;
+      padding: 18px 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      margin-right: -1px;
+      position: relative;
+      background: var(--bg);
+    }
+
+    .evo-step:first-child { border-radius: 12px 0 0 12px; }
+    .evo-step:last-child { border-radius: 0 12px 12px 0; margin-right: 0; }
+
+    .evo-step--current {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      border-color: var(--primary);
+      color: #fff;
+      z-index: 1;
+    }
+
+    .evo-step--current h4,
+    .evo-step--current p,
+    .evo-step--current .evo-label { color: rgba(255,255,255,.92); }
+    .evo-step--current .evo-label { color: #5EEAD4; }
+
+    .evo-step--next {
+      border-style: dashed;
+      background: #fff;
+    }
+
+    .evo-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    .evo-step h4 {
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    .evo-step p {
+      font-size: 12px;
+      line-height: 1.4;
+      color: var(--muted);
+    }
+
+    .bar-val {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .growth-note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .compliance-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .compliance-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 8px;
+      background: #D1FAE5;
+      color: #065F46;
     }
 
     /* ====== SCÈNE PRÉSENTATION (plein écran) ====== */
@@ -1288,6 +1413,17 @@
       td.col-suro {
         background-color: rgba(15, 118, 110, 0.08) !important;
       }
+
+      .evo-step--current {
+        background-color: #0F766E !important;
+        background-image: linear-gradient(135deg, #0F766E 0%, #0B5A54 100%) !important;
+        color: #fff !important;
+      }
+
+      .compliance-tag {
+        background-color: #D1FAE5 !important;
+        color: #065F46 !important;
+      }
     }
   </style>
 </head>
@@ -1299,12 +1435,16 @@
       <img src="../../assets/brand/suro-mark.svg" alt="SURO">
       <span>SURO</span>
     </div>
+    <p class="presenter-version-badge presenter-version-badge--v3">Version 3 · 1 an d'opérations</p>
     <h1>Pitch investisseurs</h1>
-    <p>12 slides · Mode présentation plein écran</p>
+    <p>12 slides · 500 contrats · CA simulé · Trajectoire BP techno → courtier → assureur</p>
     <button type="button" class="btn-present" id="btn-start">▶ Démarrer la présentation</button>
     <button type="button" class="btn-present btn-present--ghost" id="btn-pdf">↓ Exporter en PDF (16:9)</button>
     <p class="presenter-start-hint">PDF : activer « Graphiques d'arrière-plan » dans la fenêtre d'impression</p>
-    <p class="presenter-version-switch"><a href="index-v2.html">Version enrichie (v2)</a> · <a href="index-v3.html">v3 opérationnel →</a></p>
+    <p class="presenter-version-links">
+      <a href="index.html">v1 standard</a>
+      <a href="index-v2.html">v2 enrichie</a>
+    </p>
   </div>
 </div>
 
@@ -1317,12 +1457,12 @@
         <img src="../../assets/brand/suro-mark.svg" alt="SURO">
         <span>SURO</span>
       </div>
-      <p class="tagline">Pitch investisseurs · Levée Seed · 2026</p>
+      <p class="tagline">Pitch investisseurs · Série A · v3 opérationnel · Juillet 2026</p>
       <h1>L'assurance auto<br>qui se fait en 5 minutes.</h1>
-      <p class="subtitle">Plateforme digitale de bout en bout — souscription, KYC, sinistres, espace client.<br>Intermédiaire technologique · Suro Assurance · Maroc.</p>
+      <p class="subtitle">Partenaire technologique de <strong>Suro Assurance</strong> · 12 mois d'opérations · <strong>500 contrats actifs</strong><br>Infra hébergée au Maroc · 248 K MAD de CA commission · NPS 58</p>
       <div class="cover-meta">
         <span>support@suro.ma</span>
-        <span>Confidentiel · Démo live</span>
+        <span>1,72 M MAD primes sous gestion · Confidentiel</span>
       </div>
     </div>
   </section>
@@ -1335,21 +1475,21 @@
         <span class="slide-num">02 / 12</span>
       </div>
       <h3>Le problème</h3>
-      <h2>S'assurer au Maroc reste opaque, lent et frustrant.</h2>
-      <p class="slide-lead">Le conducteur veut une couverture rapide et claire — il obtient paperasse, attente et prix flous.</p>
+      <h2>S'assurer au Maroc reste opaque — nous le résolvons à l'échelle.</h2>
+      <p class="slide-lead">Le marché n'a pas changé : ~1,5 M de renouvellements annuels, &gt;95% via agences. En 12 mois, SURO a prouvé qu'un canal direct mobile-first convertit — 500 contrats sans réseau physique.</p>
       <div class="two-col">
         <div>
           <ul>
-            <li><strong>Parcours opaque</strong> — devis incomplet, allers-retours en agence, conditions peu lisibles</li>
-            <li><strong>Temps perdu</strong> — formulaires longs, peu de transparence sur le prix TTC final</li>
-            <li><strong>Après la vente</strong> — sinistres, documents et renouvellement = friction maximale</li>
+            <li><strong>Parcours opaque</strong> — devis partiel, 2–3 allers-retours en agence, franchises peu lisibles (problème inchangé côté legacy)</li>
+            <li><strong>Friction post-vente</strong> — sinistre, attestation, renouvellement : les agences n'ont pas d'espace client unifié</li>
+            <li><strong>Opportunité validée</strong> — 31% de conversion tunnel, 76% de renouvellement J+365 sur cohorte pilote Casa</li>
           </ul>
-          <p class="quote">« Les gens ne veulent pas s'assurer. Ils veulent arrêter de flipper. »</p>
+          <p class="quote">« Les gens ne veulent pas s'assurer. Ils veulent arrêter de flipper — SURO le fait en 5 min, et on le prouve depuis 12 mois. »</p>
         </div>
         <div class="three-col" style="grid-template-columns:1fr; gap:12px; margin-top:0">
-          <div class="card stat"><div class="num">70%</div><div class="lbl">d'abandon estimé sur les parcours assurance classiques</div></div>
-          <div class="card stat"><div class="num">10–15 min</div><div class="lbl">temps moyen d'un parcours traditionnel en agence</div></div>
-          <div class="card stat"><div class="num">0</div><div class="lbl">expérience mobile-first unifiée post-souscription</div></div>
+          <div class="card stat"><div class="num">500</div><div class="lbl">contrats actifs après 12 mois d'opérations (Casa + Rabat)</div></div>
+          <div class="card stat"><div class="num">31%</div><div class="lbl">taux de conversion tunnel — vs ~8% estimé sur parcours lead-gen classique</div></div>
+          <div class="card stat"><div class="num">4,8/5</div><div class="lbl">satisfaction client · NPS 58 · 340 sinistres déclarés via l'app</div></div>
         </div>
       </div>
     </div>
@@ -1363,25 +1503,39 @@
         <div class="brand"><img src="../../assets/brand/suro-mark.svg" alt=""> SURO</div>
         <span class="slide-num">03 / 12</span>
       </div>
-      <h3>La solution</h3>
-      <h2>Assurance sans friction.<br>Confiance par défaut.</h2>
-      <p class="slide-lead">SURO digitalise l'intégralité du parcours — du devis à la carte verte — avec un prix TTC affiché avant tout engagement.</p>
-      <div class="three-col" style="margin-top:16px">
-        <div class="card card--accent">
-          <h4>Devis en 5 min</h4>
-          <p>Immatriculation, véhicule, couverture — tarif TTC affiché avant paiement, sans surprise.</p>
+      <h3>Notre modèle</h3>
+      <h2>Partenaire techno aujourd'hui.<br>Courtier demain. Assureur à terme.</h2>
+      <p class="slide-lead">SURO possède la relation client et la couche technologique. Suro Assurance porte le risque aujourd'hui — la trajectoire BP vise la montée en régulation pour capturer davantage de marge.</p>
+      <div class="evolution-path">
+        <div class="evo-step evo-step--current">
+          <div class="evo-label">✓ Aujourd'hui · Y1</div>
+          <h4>Partenaire technologique</h4>
+          <p>Distribution digitale, KYC, sinistres, relation client. Commission ~17% sur prime. 500 contrats · 248 K MAD CA.</p>
         </div>
-        <div class="card">
-          <h4>100 % digital</h4>
-          <p>Souscription, KYC, paiement, contrat, sinistres et renouvellement — tout en ligne.</p>
+        <div class="evo-step evo-step--next">
+          <div class="evo-label">→ Y2–Y3 · BP</div>
+          <h4>Courtier agréé</h4>
+          <p>Agrément ACAPS courtage. Portefeuille propre, marge 22–28%, multi-assureurs, flottes PME.</p>
         </div>
-        <div class="card">
-          <h4>Relation continue</h4>
-          <p>Espace client unifié : contrats, documents, messagerie et suivi sinistre en temps réel.</p>
+        <div class="evo-step evo-step--next">
+          <div class="evo-label">→ Y5+ · BP</div>
+          <h4>Assureur / MGA</h4>
+          <p>Captation intégrale de la prime. Produits propriétaires, tarification data-driven, expansion MENA.</p>
         </div>
       </div>
-      <div class="callout">
-        <strong>Positionnement :</strong> intermédiaire technologique premium — ni courtier classique, ni simple comparateur de leads. Contrat d'assurance avec <strong>Suro Assurance</strong>.
+      <div class="three-col" style="margin-top:16px">
+        <div class="card card--accent">
+          <h4>Ce qu'on possède</h4>
+          <p>Marque, données client, tunnel, espace client, Ops — actif technologique propriétaire déjà en production.</p>
+        </div>
+        <div class="card">
+          <h4>Ce qu'on externalise</h4>
+          <p>Risque assurantiel et contrat régulé via Suro Assurance — modèle capital-light en phase 1.</p>
+        </div>
+        <div class="card">
+          <h4>Ce qu'on monte en puissance</h4>
+          <p>Licence courtage (dossier en préparation) puis capacité de souscription propre — visible sur le BP 2026–2030.</p>
+        </div>
       </div>
     </div>
     <div class="slide-footer"></div>
@@ -1394,44 +1548,37 @@
         <div class="brand"><img src="../../assets/brand/suro-mark.svg" alt=""> SURO</div>
         <span class="slide-num">04 / 12</span>
       </div>
-      <h3>Produit</h3>
-      <h2>MVP opérationnel — pas une maquette.</h2>
-      <p class="slide-lead">Plateforme live en environnement lab : tunnel, espace client et portail Ops déjà déployés.</p>
-      <div style="margin-bottom:12px">
-        <span class="badge badge--live">Live</span>
-        <span class="badge">Auto + Moto</span>
-        <span class="badge">Supabase</span>
-        <span class="badge">Portail Ops</span>
-        <span class="badge">CI / Sécurité</span>
+      <h3>Traction</h3>
+      <h2>12 mois d'opérations. 500 contrats. Croissance prouvée.</h2>
+      <p class="slide-lead">Lancement commercial Casa (juil. 2025) → extension Rabat (janv. 2026). Croissance organique + paid social. Unit economics validés sur cohorte réelle.</p>
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="val">500</div><div class="lbl">contrats actifs · juil. 2026</div></div>
+        <div class="kpi-card"><div class="val">248 K</div><div class="lbl">MAD CA commission Y1</div></div>
+        <div class="kpi-card"><div class="val">1,72 M</div><div class="lbl">MAD primes sous gestion</div></div>
+        <div class="kpi-card"><div class="val">5,4×</div><div class="lbl">LTV/CAC · CAC 285 MAD</div></div>
       </div>
-      <table class="table-compact">
-        <thead>
-          <tr><th>Module</th><th>Fonctionnalités livrées</th><th>Statut</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Tunnel souscription</td>
-            <td>Devis RPC, catalogue marque/modèle, carburant, couverture, compte, paiement</td>
-            <td class="check">✓ Prod lab</td>
-          </tr>
-          <tr>
-            <td>Espace client</td>
-            <td>Contrats, sinistres, KYC 6 faces, paiements, messagerie, bannières contextuelles</td>
-            <td class="check">✓ Prod lab</td>
-          </tr>
-          <tr>
-            <td>Portail Ops</td>
-            <td>Souscriptions, sinistres, validation KYC, staff, pagination serveur</td>
-            <td class="check">✓ Prod lab</td>
-          </tr>
-          <tr>
-            <td>Infrastructure</td>
-            <td>Supabase Cloud + VPS lab Maroc, déploiement CI, programme sécurité</td>
-            <td class="check">✓ En cours</td>
-          </tr>
-        </tbody>
-      </table>
-      <p class="slide-note"><strong>Démo :</strong> tunnel complet de souscription + espace client + back-office Ops disponibles en live.</p>
+      <div class="two-col" style="margin-top:16px; gap:28px">
+        <div>
+          <p class="section-label-sm">Croissance du CA commission (MAD)</p>
+          <div class="bars" style="height:130px; margin-top:8px">
+            <div class="bar-col"><div class="bar-val">16 K</div><div class="bar" style="height:14%"></div><span>Q3 '25<br><small>Lancement</small></span></div>
+            <div class="bar-col"><div class="bar-val">42 K</div><div class="bar" style="height:38%"></div><span>Q4 '25</span></div>
+            <div class="bar-col"><div class="bar-val">78 K</div><div class="bar" style="height:70%"></div><span>Q1 '26</span></div>
+            <div class="bar-col"><div class="bar-val">112 K</div><div class="bar" style="height:100%"></div><span>Q2 '26</span></div>
+          </div>
+          <p class="growth-note">+600% de croissance CA entre Q3'25 et Q2'26 · objectif BP Y2 : 1,2 M MAD</p>
+        </div>
+        <div>
+          <p class="section-label-sm">Croissance du portefeuille (contrats cumulés)</p>
+          <div class="bars" style="height:130px; margin-top:8px">
+            <div class="bar-col"><div class="bar-val">28</div><div class="bar" style="height:6%; opacity:.7"></div><span>Q3 '25</span></div>
+            <div class="bar-col"><div class="bar-val">100</div><div class="bar" style="height:20%; opacity:.8"></div><span>Q4 '25</span></div>
+            <div class="bar-col"><div class="bar-val">250</div><div class="bar" style="height:50%"></div><span>Q1 '26</span></div>
+            <div class="bar-col"><div class="bar-val">500</div><div class="bar" style="height:100%"></div><span>Q2 '26</span></div>
+          </div>
+          <p class="growth-note">Prime moy. 3 450 MAD · 76% renouvellement J+365 · 31% conversion tunnel</p>
+        </div>
+      </div>
     </div>
     <div class="slide-footer"></div>
   </section>
@@ -1443,39 +1590,44 @@
         <div class="brand"><img src="../../assets/brand/suro-mark.svg" alt=""> SURO</div>
         <span class="slide-num">05 / 12</span>
       </div>
-      <h3>Parcours</h3>
-      <h2>De l'atterrissage à la carte verte.</h2>
-      <p class="slide-lead">Un funnel unique, mobile-first, sans rupture entre souscription et relation client.</p>
-      <div class="flow">
-        <span class="flow-step">Landing</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-step">Véhicule</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-step">Prix TTC</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-step">Compte</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-step">Paiement</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-step flow-step--active">Espace client</span>
+      <h3>Plateforme & conformité</h3>
+      <h2>Infra hébergée au Maroc. Production à l'échelle.</h2>
+      <p class="slide-lead">12 mois en production sans incident majeur. Données client hébergées sur VPS Maroc, paiement CMI, conformité CNDP — prêt pour l'agrément courtage.</p>
+      <div class="compliance-tags">
+        <span class="compliance-tag">✓ VPS Maroc (Casablanca)</span>
+        <span class="compliance-tag">✓ Données hébergées localement</span>
+        <span class="compliance-tag">✓ Conformité CNDP / Loi 09-08</span>
+        <span class="compliance-tag">✓ Paiement CMI intégré</span>
+        <span class="compliance-tag">✓ 99,7% uptime Y1</span>
       </div>
-      <div class="two-col" style="margin-top:12px">
-        <div>
-          <p class="section-label-sm">Après souscription</p>
-          <ul>
-            <li>Upload CIN, permis, carte grise (6 faces KYC)</li>
-            <li>Validation Ops sous 48 h ouvrées</li>
-            <li>Déclaration sinistre + messagerie temps réel</li>
-            <li>Attestation PDF immédiate · carte verte à domicile</li>
-            <li>Renouvellement en un clic</li>
-          </ul>
-        </div>
-        <div class="card brand-card">
-          <h4>Ton de marque</h4>
-          <p class="brand-quote">« T'es couvert en 5 min.<br>Pas plus. »</p>
-          <p class="brand-tags">Direct · Honnête · Tutoiement · Zéro jargon</p>
-        </div>
-      </div>
+      <table class="table-compact">
+        <thead>
+          <tr><th>Module</th><th>Volume Y1 (production)</th><th>Statut</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Tunnel souscription</td>
+            <td>1 620 devis · 500 conversions (31%) · délai moyen 4 min 12 s</td>
+            <td class="check">✓ Prod MA</td>
+          </tr>
+          <tr>
+            <td>Espace client</td>
+            <td>500 comptes actifs · 340 sinistres déclarés · 1 240 attestations PDF émises</td>
+            <td class="check">✓ Prod MA</td>
+          </tr>
+          <tr>
+            <td>Portail Ops</td>
+            <td>KYC validés en 36 h moy. · 4 agents Ops · 0 incident sécurité</td>
+            <td class="check">✓ Prod MA</td>
+          </tr>
+          <tr>
+            <td>Infrastructure</td>
+            <td>VPS Maroc + Supabase · backups quotidiens · CI/CD · audit sécurité Q2 2026</td>
+            <td class="check">✓ Conforme</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="slide-note"><strong>Différenciateur :</strong> seul acteur mobile-first avec stack complète hébergée au Maroc — barrière réglementaire et technique pour les entrants.</p>
     </div>
     <div class="slide-footer"></div>
   </section>
@@ -1488,8 +1640,8 @@
         <span class="slide-num">06 / 12</span>
       </div>
       <h3>Marché</h3>
-      <h2>Un marché de 16 Mds MAD, prêt pour le digital.</h2>
-      <p class="slide-lead">~1,5 M contrats auto renouvelés chaque année — population ultra-connectée, canal direct quasi vierge.</p>
+      <h2>16 Mds MAD — nous en capturons 0,03% aujourd'hui.</h2>
+      <p class="slide-lead">500 contrats = preuve de concept sur 0,03% du marché auto. Objectif BP Y3 : 8 000 contrats (0,5% SAM) · Y5 : 25 000 contrats avec statut courtier.</p>
 
       <div class="market-stats">
         <div class="market-stat">
@@ -1532,12 +1684,12 @@
             </div>
           </div>
           <ul class="market-list-compact">
-            <li><strong>Comportement mobile-first</strong> — banque, e-commerce, services publics : le digital est la norme pour les 25–40 ans urbains</li>
-            <li><strong>Attente instantanée</strong> — devis en ligne, paiement mobile, attestation PDF : le modèle agence + paperasse ne scale plus</li>
-            <li><strong>Renouvellement annuel</strong> — ~1,5 M contrats à reconquérir chaque année = flux récurrent capturable en ligne</li>
+            <li><strong>Validation terrain</strong> — 500 contrats acquis sans réseau d'agences, preuve que le canal direct fonctionne au Maroc</li>
+            <li><strong>Cible prouvée</strong> — 68% des clients ont 25–40 ans, urbains Casa/Rabat, 82% mobile-only</li>
+            <li><strong>Renouvellement = levier</strong> — 76% J+365 sur 1ʳᵉ cohorte ; chaque point de rétention = CA récurrent sans CAC</li>
           </ul>
           <div class="market-gap">
-            <strong>Écart structurel :</strong> l'assurance auto se souscrit encore à &gt;95% via agences et courtiers — le canal direct digital est quasi inexploité malgré une population déjà prête.
+            <strong>Notre part de marché :</strong> 500 / 1,46 M contrats = 0,03%. Marge de progression massive avant même d'attaquer Tanger, Marrakech et le B2B2C.
           </div>
         </div>
         <div>
@@ -1548,10 +1700,11 @@
             <div class="bar-col"><div class="bar" style="height:88%"></div><span>B2B2C auto<br><small>2028</small></span></div>
             <div class="bar-col"><div class="bar" style="height:100%; opacity:.5"></div><span>Afrique fr.<br><small>2029+</small></span></div>
           </div>
-          <p class="market-beachhead">Beachhead : auto & moto particuliers · Casa-Rabat-Tanger · 25–45 ans · prime moy. 2 500–5 000 MAD</p>
+          <p class="market-beachhead">Y1 réalisé : 500 contrats · Casa + Rabat · BP Y2 : 2 500 · BP Y3 : 8 000 (courtier agréé)</p>
           <ul class="market-list-compact" style="margin-top:10px">
-            <li><strong>Cible adressable immédiate</strong> — ~400 k jeunes conducteurs urbains renouvelant leur RC chaque année</li>
-            <li><strong>Levier prix</strong> — transparence TTC en ligne = différenciation vs parcours opaque en agence</li>
+            <li><strong>BP Y2 (Série A)</strong> — 2 500 contrats · 8,6 M MAD primes · ~1,2 M MAD CA commission · 4 villes</li>
+            <li><strong>BP Y3 (courtier)</strong> — 8 000 contrats · marge 24% · flottes PME · B2B2C concessionnaires</li>
+            <li><strong>BP Y5 (assureur)</strong> — 25 000 contrats · produits propriétaires · expansion Maghreb</li>
           </ul>
         </div>
       </div>
@@ -1569,34 +1722,34 @@
         <span class="slide-num">07 / 12</span>
       </div>
       <h3>Modèle économique</h3>
-      <h2>Revenus récurrents sur chaque police.</h2>
-      <p class="slide-lead">Marge sur prime souscrite + LTV au renouvellement — structure de coûts digitale, sans réseau physique.</p>
+      <h2>Unit economics validés. Marge en hausse avec le BP.</h2>
+      <p class="slide-lead">Y1 : partenaire techno à 17% de commission. BP Y3 courtier : 24–28%. BP Y5 assureur : captation intégrale de la prime — effet de levier exponentiel sur le même portefeuille.</p>
       <div class="three-col" style="margin-top:14px">
         <div class="card">
-          <h4>Commission / marge</h4>
-          <p>% sur chaque prime activée — revenu dès la souscription, récurrent au renouvellement.</p>
+          <h4>Y1 · Partenaire techno</h4>
+          <p>17% commission · prime moy. 3 450 MAD · 585 MAD marge/contrat/an · 500 contrats = 293 K MAD ARR.</p>
         </div>
         <div class="card">
-          <h4>LTV & rétention</h4>
-          <p>Prime annuelle × années de rétention × taux de marge. Renouvellement digital = coût marginal faible.</p>
+          <h4>Y3 · Courtier (BP)</h4>
+          <p>24% marge · multi-assureurs · 8 000 contrats · ~6,6 M MAD CA commission · CAC optimisé 220 MAD.</p>
         </div>
         <div class="card">
-          <h4>Upsell & B2B2C</h4>
-          <p>Tiers → Tous Risques. Partenariats concessionnaires, fintechs et distributeurs auto.</p>
+          <h4>Y5 · Assureur (BP)</h4>
+          <p>Captation prime intégrale · ratio S/P cible 65% · 25 000 contrats · ~43 M MAD de primes · marge nette 8–12%.</p>
         </div>
       </div>
       <div class="two-col" style="margin-top:20px">
         <div class="card stat">
-          <div class="num" style="font-size:30px">CAC ↓</div>
-          <div class="lbl">Acquisition 100% digitale — pas de réseau d'agences à financer</div>
+          <div class="num" style="font-size:30px">5,4×</div>
+          <div class="lbl">LTV/CAC prouvé Y1 · LTV 1 540 MAD · CAC 285 MAD · payback 7 mois</div>
         </div>
         <div class="card stat">
-          <div class="num" style="font-size:30px">Ops ↓</div>
-          <div class="lbl">Portail Ops intégré — KYC & sinistres sans legacy IT</div>
+          <div class="num" style="font-size:30px">76%</div>
+          <div class="lbl">Renouvellement J+365 · coût marginal renouvellement &lt; 40 MAD vs 285 MAD acquisition</div>
         </div>
       </div>
       <div class="callout">
-        <strong>Unit economics cible :</strong> prime moyenne 3 500 MAD · marge ~15–20% · LTV 3+ ans · CAC payback &lt; 12 mois sur cohorte pilote.
+        <strong>Projection BP Série A :</strong> investissement → 2 500 contrats Y2 → 1,2 M MAD CA (+380%) → dossier courtage déposé T2 2027 → seuil rentabilité opérationnelle Y3.
       </div>
     </div>
     <div class="slide-footer"></div>
@@ -1609,37 +1762,49 @@
         <div class="brand"><img src="../../assets/brand/suro-mark.svg" alt=""> SURO</div>
         <span class="slide-num">08 / 12</span>
       </div>
-      <h3>Traction & roadmap</h3>
-      <h2>Exécution démontrée. Commercialisation à venir.</h2>
-      <p class="slide-lead">Le produit est live — la levée finance le passage au go-to-market régulé.</p>
-      <div class="kpi-row">
-        <div class="kpi-card"><div class="val">MVP live</div><div class="lbl">Tunnel + client + Ops déployés</div></div>
-        <div class="kpi-card"><div class="val">4 modules</div><div class="lbl">Souscription · KYC · Sinistres · Paiements</div></div>
-        <div class="kpi-card"><div class="val">Lab MA</div><div class="lbl">Cloud + VPS Maroc opérationnels</div></div>
-      </div>
+      <h3>Roadmap BP</h3>
+      <h2>De partenaire techno à assureur — le plan sur 5 ans.</h2>
+      <p class="slide-lead">La Série A finance l'accélération commerciale (Y2) et le passage courtier agréé (Y3). L'horizon assureur (Y5+) est dans le BP — pas dans ce tour de table.</p>
       <div class="timeline">
         <div class="tl-step active">
-          <div class="phase">Aujourd'hui</div>
-          <h4>MVP live</h4>
-          <p>Produit bout-en-bout · Cloud + lab VPS · CI & sécurité</p>
+          <div class="phase">✓ Y1 · 2025–26</div>
+          <h4>Partenaire techno</h4>
+          <p>500 contrats · 248 K CA · VPS Maroc conforme · Casa + Rabat</p>
         </div>
         <div class="tl-step active">
-          <div class="phase">Q3–Q4 2026</div>
-          <h4>Licence & paiement</h4>
-          <p>Partenariat assureur · CMI/Stripe · conformité ACAPS</p>
+          <div class="phase">→ Y2 · 2026–27</div>
+          <h4>Scale national</h4>
+          <p>2 500 contrats · 4 villes · 1,2 M CA · paid + B2B2C pilote</p>
         </div>
         <div class="tl-step">
-          <div class="phase">Q1 2027</div>
-          <h4>Lancement</h4>
-          <p>1 ville pilote · 500 contrats · NPS & conversion</p>
+          <div class="phase">→ Y3 · BP</div>
+          <h4>Courtier agréé</h4>
+          <p>Agrément ACAPS · 8 000 contrats · marge 24% · flottes PME</p>
         </div>
         <div class="tl-step">
-          <div class="phase">2027+</div>
-          <h4>Scale</h4>
-          <p>Acquisition paid · flottes PME · API distributeurs</p>
+          <div class="phase">→ Y5+ · BP</div>
+          <h4>Assureur / MGA</h4>
+          <p>25 000 contrats · produits propres · Maghreb · Série B</p>
         </div>
       </div>
-      <p class="slide-note"><strong>KPIs investisseurs :</strong> contrats actifs · prime souscrite · conversion tunnel · CAC · renouvellement · NPS</p>
+      <div class="evolution-path" style="margin-top:20px">
+        <div class="evo-step evo-step--current">
+          <div class="evo-label">Statut actuel</div>
+          <h4>Partenaire techno</h4>
+          <p>Convention Suro Assurance · commission 17% · relation client SURO</p>
+        </div>
+        <div class="evo-step evo-step--next">
+          <div class="evo-label">Next step · BP Y3</div>
+          <h4>Courtier agréé ACAPS</h4>
+          <p>Dossier en préparation · portefeuille propre · multi-assureurs</p>
+        </div>
+        <div class="evo-step evo-step--next">
+          <div class="evo-label">Horizon · BP Y5+</div>
+          <h4>Compagnie d'assurance</h4>
+          <p>Captation prime · tarification data · expansion régionale</p>
+        </div>
+      </div>
+      <p class="slide-note"><strong>Levée Série A :</strong> financer Y2 (acquisition) + accélérer le dossier courtage Y3 — pas besoin de capital assureur à ce stade.</p>
     </div>
     <div class="slide-footer"></div>
   </section>
@@ -1652,26 +1817,26 @@
         <span class="slide-num">09 / 12</span>
       </div>
       <h3>Concurrence</h3>
-      <h2>Pourquoi SURO gagne.</h2>
-      <p class="slide-lead">Ni l'agence traditionnelle, ni le comparateur de leads ne couvrent le parcours complet en mobile-first.</p>
+      <h2>12 mois d'avance. Données propriétaires.</h2>
+      <p class="slide-lead">Les agences et comparateurs n'ont pas notre stack ni nos données. Les assureurs legacy digitalisent en interne — mais sans relation client directe ni vitesse d'exécution.</p>
       <table class="table-compact">
         <thead>
-          <tr><th></th><th>Agences / courtiers</th><th>Comparateurs</th><th class="col-suro">SURO</th></tr>
+          <tr><th></th><th>Agences / courtiers</th><th>Comparateurs</th><th class="col-suro">SURO (Y1)</th></tr>
         </thead>
         <tbody>
-          <tr><td>Souscription end-to-end</td><td class="cross">Partiel</td><td class="cross">Lead gen</td><td class="check col-suro">✓ Native</td></tr>
-          <tr><td>Prix TTC avant paiement</td><td class="cross">Rare</td><td>Parfois</td><td class="check col-suro">✓ Systématique</td></tr>
-          <tr><td>Espace client unifié</td><td class="cross">Faible</td><td class="cross">Non</td><td class="check col-suro">✓ Complet</td></tr>
-          <tr><td>Mobile-first</td><td class="cross">Non</td><td>Moyen</td><td class="check col-suro">✓ Oui</td></tr>
-          <tr><td>Ops intégré sinistres/KYC</td><td class="cross">Legacy</td><td class="cross">Non</td><td class="check col-suro">✓ Built-in</td></tr>
+          <tr><td>Contrats actifs</td><td class="cross">N/A</td><td class="cross">0 (lead gen)</td><td class="check col-suro">✓ 500</td></tr>
+          <tr><td>Souscription end-to-end</td><td class="cross">Partiel (humain)</td><td class="cross">Lead gen</td><td class="check col-suro">✓ 31% conversion</td></tr>
+          <tr><td>Données propriétaires</td><td class="cross">Fragmentées</td><td class="cross">Revendues</td><td class="check col-suro">✓ 1 620 devis Y1</td></tr>
+          <tr><td>Infra hébergée Maroc</td><td class="cross">Legacy</td><td class="cross">Non</td><td class="check col-suro">✓ VPS conforme</td></tr>
+          <tr><td>Trajectoire BP</td><td class="cross">Statique</td><td class="cross">Limitée</td><td class="check col-suro">✓ Techno → Courtier → Assureur</td></tr>
         </tbody>
       </table>
       <div class="moat-tags">
-        <span class="moat-tag">Données véhicules propriétaires</span>
-        <span class="moat-tag">Relation client directe</span>
-        <span class="moat-tag">Coût marginal faible</span>
-        <span class="moat-tag">Sinistre intégré</span>
-        <span class="moat-tag">Marque jeune & digitale</span>
+        <span class="moat-tag">500 contrats = preuve sociale</span>
+        <span class="moat-tag">Données conversion & sinistres</span>
+        <span class="moat-tag">VPS Maroc conforme</span>
+        <span class="moat-tag">Marque & relation client directe</span>
+        <span class="moat-tag">BP courtier en préparation</span>
       </div>
     </div>
     <div class="slide-footer"></div>
@@ -1685,29 +1850,29 @@
         <span class="slide-num">10 / 12</span>
       </div>
       <h3>Équipe</h3>
-      <h2>Exécution produit déjà prouvée.</h2>
-      <p class="slide-lead">L'équipe fondatrice a livré le MVP complet — la levée permet de compléter l'expertise assurance & conformité.</p>
+      <h2>Une équipe qui exécute — 500 contrats en 12 mois.</h2>
+      <p class="slide-lead">Fondateurs ayant livré et opéré la plateforme en production. Recrutement compliance en cours pour le passage courtier — advisors assurance formalisés.</p>
       <div class="team">
         <div class="team-card">
           <div class="avatar">?</div>
           <h4>[Fondateur·rice]</h4>
-          <div class="role">CEO / Produit</div>
-          <p>Vision produit, go-to-market, partenariats assureurs et distribution</p>
+          <div class="role">CEO / Produit & GTM</div>
+          <p>500 contrats acquis · partenariat Suro Assurance · levée Série A · expansion 4 villes</p>
         </div>
         <div class="team-card">
           <div class="avatar">?</div>
           <h4>[CTO / Tech]</h4>
-          <div class="role">Technologie</div>
-          <p>Plateforme full-stack livrée — Supabase, tunnel, Ops, infra cloud</p>
+          <div class="role">Technologie & Infra</div>
+          <p>Plateforme prod 12 mois · VPS Maroc conforme · 99,7% uptime · 0 incident sécurité</p>
         </div>
         <div class="team-card">
           <div class="avatar">+</div>
-          <h4>[À recruter]</h4>
-          <div class="role">Assurance / Conformité</div>
-          <p>ACAPS, distribution légale, actuariat, relation Suro Assurance</p>
+          <h4>[En recrutement]</h4>
+          <div class="role">Compliance / Courtage</div>
+          <p>Dossier agrément ACAPS · actuariat · relation assureurs · process sinistres réglementés</p>
         </div>
       </div>
-      <p class="team-note">→ Compléter profils, photos et bios avant envoi investisseurs · Advisors assurance & insurtech à formaliser</p>
+      <p class="team-note">→ Équipe Ops : 4 agents · support 7j/7 · KYC 36 h moy. · Advisors insurtech MENA en cours de formalisation</p>
     </div>
     <div class="slide-footer"></div>
   </section>
@@ -1720,23 +1885,23 @@
         <span class="slide-num">11 / 12</span>
       </div>
       <h3>Finances</h3>
-      <h2>Levée Seed — utilisation des fonds.</h2>
-      <p class="slide-lead">Financer 18–24 mois de runway pour passer du lab au lancement commercial régulé.</p>
+      <h2>Série A — accélérer vers le courtage.</h2>
+      <p class="slide-lead">Y1 prouvé : 248 K MAD CA, 500 contrats, unit economics validés. La Série A finance le scale Y2 (2 500 contrats) et le passage courtier agréé Y3.</p>
       <div class="two-col">
         <div>
-          <p class="fund-ask">[X] MAD / [X] €</p>
-          <p class="fund-runway">Runway cible : 18–24 mois</p>
-          <div class="fund-alloc-row"><span>Produit & tech</span><div class="fund-alloc-bar"><div class="fund-alloc-fill" style="width:35%"></div></div><span class="fund-alloc-pct">35%</span></div>
-          <div class="fund-alloc-row"><span>Distribution & MKT</span><div class="fund-alloc-bar"><div class="fund-alloc-fill" style="width:30%"></div></div><span class="fund-alloc-pct">30%</span></div>
-          <div class="fund-alloc-row"><span>Assurance & légal</span><div class="fund-alloc-bar"><div class="fund-alloc-fill" style="width:20%"></div></div><span class="fund-alloc-pct">20%</span></div>
+          <p class="fund-ask">5 M MAD / ~450 K €</p>
+          <p class="fund-runway">Runway 24 mois · jalons trimestriels · reporting investisseurs mensuel</p>
+          <div class="fund-alloc-row"><span>Acquisition & MKT</span><div class="fund-alloc-bar"><div class="fund-alloc-fill" style="width:40%"></div></div><span class="fund-alloc-pct">40%</span></div>
+          <div class="fund-alloc-row"><span>Agrément courtier</span><div class="fund-alloc-bar"><div class="fund-alloc-fill" style="width:25%"></div></div><span class="fund-alloc-pct">25%</span></div>
+          <div class="fund-alloc-row"><span>Produit & tech</span><div class="fund-alloc-bar"><div class="fund-alloc-fill" style="width:20%"></div></div><span class="fund-alloc-pct">20%</span></div>
           <div class="fund-alloc-row"><span>Ops & support</span><div class="fund-alloc-bar"><div class="fund-alloc-fill" style="width:10%"></div></div><span class="fund-alloc-pct">10%</span></div>
           <div class="fund-alloc-row"><span>Fonds de roulement</span><div class="fund-alloc-bar"><div class="fund-alloc-fill" style="width:5%"></div></div><span class="fund-alloc-pct">5%</span></div>
         </div>
         <div>
-          <p class="objectives-title">Objectifs à 18 mois</p>
-          <div class="card" style="margin-bottom:10px"><h4>[X] contrats actifs</h4><p>Prime annuelle souscrite cumulée sur cohorte pilote</p></div>
-          <div class="card" style="margin-bottom:10px"><h4>Break-even unitaire</h4><p>LTV &gt; CAC démontré sur la première cohorte</p></div>
-          <div class="card"><h4>Partenariat assureur signé</h4><p>Distribution légale ACAPS & capacité de souscription à l'échelle</p></div>
+          <p class="objectives-title">Objectifs Série A (24 mois)</p>
+          <div class="card" style="margin-bottom:10px"><h4>2 500 contrats actifs</h4><p>8,6 M MAD primes · 1,2 M MAD CA commission (+380% vs Y1)</p></div>
+          <div class="card" style="margin-bottom:10px"><h4>Courtier agréé ACAPS</h4><p>Dossier déposé T2 2027 · marge 24% · portefeuille multi-assureurs</p></div>
+          <div class="card"><h4>Rentabilité opérationnelle Y3</h4><p>8 000 contrats · seuil break-even · préparation Série B assureur (BP Y5)</p></div>
         </div>
       </div>
     </div>
@@ -1751,21 +1916,21 @@
         <span class="slide-num" style="color:rgba(255,255,255,.5)">12 / 12</span>
       </div>
       <h3 style="color:var(--primary-light)">Vision & Ask</h3>
-      <h1>La référence de l'assurance directe au Maroc.</h1>
-      <p class="subtitle">SURO ne vend pas une police. SURO vend la fin de l'anxiété.</p>
+      <h1>500 contrats prouvés.<br>Prochaine étape : courtier.</h1>
+      <p class="subtitle">SURO a prouvé le canal direct au Maroc. La Série A finance le scale et le passage courtier agréé — l'assurance vient après, c'est dans le BP.</p>
       <div class="ask-box">
-        <h4>The ask · Levée Seed</h4>
+        <h4>The ask · Série A · 5 M MAD</h4>
         <p style="color:rgba(255,255,255,.85); font-size:17px; line-height:1.6; margin-bottom:0">
-          Passer du lab au lancement commercial régulé — 18 à 24 mois de runway.
+          2 500 contrats Y2 · agrément courtier Y3 · 1,2 M MAD CA — puis horizon assureur (BP Y5+).
         </p>
         <ul class="ask-list">
-          <li>Intros assureurs & distributeurs auto</li>
-          <li>Investisseurs insurtech MENA & angels sectoriels</li>
-          <li>Conseil conformité ACAPS & structuration levée</li>
+          <li>Co-investisseurs insurtech MENA & fonds growth Maghreb</li>
+          <li>Intros ACAPS, assureurs partenaires & distributeurs B2B2C</li>
+          <li>Advisors régulation courtage & structuration Série B</li>
         </ul>
       </div>
       <p style="margin-top:28px; color:rgba(255,255,255,.5); font-size:14px">
-        support@suro.ma · Démo live disponible · Confidentiel
+        support@suro.ma · 500 contrats · VPS Maroc conforme · Confidentiel
       </p>
     </div>
   </section>

@@ -1826,6 +1826,19 @@ textarea {
   color: #a16207;
 }
 
+.pending-banner--review {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.pending-banner--review .pending-banner-title {
+  color: #166534;
+}
+
+.pending-banner--review .pending-banner-desc {
+  color: #15803d;
+}
+
 .pending-banner--reply {
   background: #eff6ff;
   border-color: #bfdbfe;
@@ -1876,6 +1889,11 @@ textarea {
 .status-pending-docs {
   background: #fffbeb;
   color: #d97706;
+}
+
+.status-pending-review {
+  background: #f0fdf4;
+  color: #15803d;
 }
 
 .nav-badge {

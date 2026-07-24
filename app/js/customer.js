@@ -1321,20 +1321,30 @@ class CustomerDashboard {
   getPoliciesAwaitingDocs(policies, allDocs) {
     return (policies || []).filter((p) => {
       if (!this.policyRequiresKyc(p)) return false;
-      return !this.summarizeKycForPolicy(p.id, allDocs).complete;
+      return this.summarizeKycForPolicy(p.id, allDocs).needsUpload;
+    });
+  }
+
+  getPoliciesPendingReview(policies, allDocs) {
+    return (policies || []).filter((p) => {
+      if (!this.policyRequiresKyc(p)) return false;
+      return this.summarizeKycForPolicy(p.id, allDocs).pendingReview;
     });
   }
 
   getPolicyStatusLabel(p, kycSummary) {
-    if (p.status === 'active' && kycSummary && !kycSummary.complete) {
-      return 'En attente de pièces';
+    if (p.status === 'active' && kycSummary) {
+      if (kycSummary.complete) return this.formatStatus(p.status);
+      if (kycSummary.pendingReview) return 'En validation';
+      if (kycSummary.needsUpload) return 'En attente de pièces';
     }
     return this.formatStatus(p.status);
   }
 
   getPolicyStatusClass(p, kycSummary) {
-    if (p.status === 'active' && kycSummary && !kycSummary.complete) {
-      return 'pending-docs';
+    if (p.status === 'active' && kycSummary) {
+      if (kycSummary.pendingReview) return 'pending-review';
+      if (kycSummary.needsUpload) return 'pending-docs';
     }
     return p.status;
   }
@@ -1367,11 +1377,17 @@ class CustomerDashboard {
   renderPendingDocsBanner(policies, allDocs, elId = 'pending-docs-banner-dashboard') {
     const el = document.getElementById(elId);
     if (!el) return;
-    const awaiting = this.getPoliciesAwaitingDocs(policies, allDocs);
-    if (!awaiting.length) { el.innerHTML = ''; return; }
 
-    if (awaiting.length === 1) {
-      const p = awaiting[0];
+    const awaitingUpload = this.getPoliciesAwaitingDocs(policies, allDocs);
+    const pendingReview = this.getPoliciesPendingReview(policies, allDocs);
+
+    if (!awaitingUpload.length && !pendingReview.length) {
+      el.innerHTML = '';
+      return;
+    }
+
+    if (awaitingUpload.length === 1 && !pendingReview.length) {
+      const p = awaitingUpload[0];
       const kyc = this.summarizeKycForPolicy(p.id, allDocs);
       el.innerHTML = `
         <div class="pending-banner pending-banner--docs" role="status">
@@ -1381,16 +1397,43 @@ class CustomerDashboard {
           </div>
           <button type="button" class="btn btn-primary btn-sm" onclick="dashboard.openDocumentsForPolicy('${p.id}')">Compléter mon dossier</button>
         </div>`;
-    } else {
+      return;
+    }
+
+    if (pendingReview.length === 1 && !awaitingUpload.length) {
+      const p = pendingReview[0];
+      const kyc = this.summarizeKycForPolicy(p.id, allDocs);
+      el.innerHTML = `
+        <div class="pending-banner pending-banner--review" role="status">
+          <div class="pending-banner-copy">
+            <div class="pending-banner-title">Dossier envoyé — validation en cours</div>
+            <p class="pending-banner-desc">CIN, permis et carte grise pour ${this.escape(this.vehicleLabel(p))}. ${kyc.received}/${kyc.totalSlots} faces reçues. Notre équipe vérifie tes pièces sous 48 h ouvrées.</p>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="dashboard.openDocumentsForPolicy('${p.id}')">Voir mon dossier</button>
+        </div>`;
+      return;
+    }
+
+    if (awaitingUpload.length) {
       el.innerHTML = `
         <div class="pending-banner pending-banner--docs" role="status">
           <div class="pending-banner-copy">
-            <div class="pending-banner-title">${awaiting.length} dossiers à compléter</div>
+            <div class="pending-banner-title">${awaitingUpload.length} dossier${awaitingUpload.length > 1 ? 's' : ''} à compléter</div>
             <p class="pending-banner-desc">Envoie ta CIN, ton permis et ta carte grise pour chaque contrat payé.</p>
           </div>
           <button type="button" class="btn btn-primary btn-sm" onclick="dashboard.navigateTo('documents')">Voir mes documents</button>
         </div>`;
+      return;
     }
+
+    el.innerHTML = `
+      <div class="pending-banner pending-banner--review" role="status">
+        <div class="pending-banner-copy">
+          <div class="pending-banner-title">${pendingReview.length} dossier${pendingReview.length > 1 ? 's' : ''} en validation</div>
+          <p class="pending-banner-desc">Tes pièces ont bien été reçues. Notre équipe les vérifie — tu seras notifié une fois validé.</p>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="dashboard.navigateTo('documents')">Voir mes documents</button>
+      </div>`;
   }
 
   updateDocumentsNavBadge(policies, allDocs) {
@@ -1433,7 +1476,9 @@ class CustomerDashboard {
 
       let policyId = this._documentsPolicyId;
       if (!policyId || !eligible.some((p) => p.id === policyId)) {
-        policyId = eligible.find((p) => !this.summarizeKycForPolicy(p.id, allDocs).complete)?.id || eligible[0].id;
+        policyId = eligible.find((p) => this.summarizeKycForPolicy(p.id, allDocs).needsUpload)?.id
+          || eligible.find((p) => this.summarizeKycForPolicy(p.id, allDocs).pendingReview)?.id
+          || eligible[0].id;
       }
       this._documentsPolicyId = policyId;
       const policy = eligible.find((p) => p.id === policyId);
@@ -1454,13 +1499,17 @@ class CustomerDashboard {
       );
       const bannerTitle = kyc.complete
         ? 'Dossier complet'
-        : missingTypes.length === 1
-          ? `${Kyc().KYC_DOC_TYPES.find((d) => d.id === missingTypes[0])?.label || 'Pièce'} incomplète`
-          : 'Dernière étape avant activation';
+        : kyc.pendingReview
+          ? 'Validation en cours'
+          : missingTypes.length === 1
+            ? `${Kyc().KYC_DOC_TYPES.find((d) => d.id === missingTypes[0])?.label || 'Pièce'} incomplète`
+            : 'Dernière étape avant activation';
 
       const bannerDesc = kyc.complete
         ? 'Tes 3 pièces (recto + verso) sont validées. Ton contrat est activé.'
-        : 'Paiement reçu ✓ — Envoie le recto et le verso de chaque pièce. Validation sous 48 h ouvrées.';
+        : kyc.pendingReview
+          ? 'Tes 6 faces ont bien été reçues. Notre équipe vérifie tes pièces — tu seras notifié une fois le dossier validé (sous 48 h ouvrées).'
+          : 'Paiement reçu ✓ — Envoie le recto et le verso de chaque pièce. Validation sous 48 h ouvrées.';
 
       const chips = Kyc().KYC_DOC_TYPES.map((def) => {
         const agg = Kyc().typeAggregateStatus(kyc.byType[def.id]);

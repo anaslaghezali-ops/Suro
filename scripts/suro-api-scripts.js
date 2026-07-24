@@ -17,6 +17,7 @@ function suroApiScripts(prefix) {
     'customer-portal.js',
     'admin.js',
     'api-notifications.js',
+    'vehicles.js',
     'api.js',
   ];
   return files.map((f) => `<script src="${base}${f}?v=${v}"></script>`).join('\n  ');

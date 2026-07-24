@@ -2,7 +2,7 @@
  *
  * Chargement (dans l'ordre) :
  *   config → session → http → analytics → onboarding → auth →
- *   customer-portal → admin → notifications → api.js (ce fichier)
+ *   customer-portal → admin → notifications → vehicles → api.js (ce fichier)
  *
  * Le site est statique (GitHub Pages) ; Supabase REST + Auth + RLS.
  */
@@ -17,7 +17,8 @@ Object.assign(
   window.SURO_AUTH,
   window.SURO_CUSTOMER,
   window.SURO_ADMIN,
-  window.SURO_API_NOTIFICATIONS
+  window.SURO_API_NOTIFICATIONS,
+  window.SURO_VEHICLES
 );
 
 if (typeof window !== 'undefined') {

@@ -793,3 +793,50 @@ body.tunnel-focus .tunnel-close {
   .tunnel-spinner,
   .progress-fill { animation: none !important; transition: none !important; }
 }
+
+/* Combobox marque / modèle */
+.form-combobox {
+  position: relative;
+}
+
+.form-combobox-input[aria-expanded="true"] {
+  border-color: var(--color-primary-500, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.form-combobox-list {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid var(--color-neutral-200, #e5e7eb);
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.form-combobox-option {
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--color-neutral-800, #1f2937);
+  cursor: pointer;
+}
+
+.form-combobox-option:hover,
+.form-combobox-option.active {
+  background: var(--color-primary-50, #eff6ff);
+  color: var(--color-primary-700, #1d4ed8);
+}
+
+.form-combobox-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--color-neutral-500, #6b7280);
+  line-height: 1.4;
+}

@@ -29,8 +29,14 @@ run_sql() {
 }
 
 # 1. Schéma de base (pré-requis : tables insurance_*, suro_admins, etc.)
-if [[ -f "$ROOT/staging/sql/00_base_schema_pre_cabinet.sql" ]]; then
-  run_sql "$ROOT/staging/sql/00_base_schema_pre_cabinet.sql"
+BASE_SCHEMA="${BASE_SCHEMA:-}"
+if [[ -z "$BASE_SCHEMA" && "${USE_TEST_HARNESS:-}" == "1" ]]; then
+  BASE_SCHEMA="$ROOT/staging/sql/test_harness_minimal.sql"
+elif [[ -z "$BASE_SCHEMA" && -f "$ROOT/staging/sql/00_base_schema_pre_cabinet.sql" ]]; then
+  BASE_SCHEMA="$ROOT/staging/sql/00_base_schema_pre_cabinet.sql"
+fi
+if [[ -n "$BASE_SCHEMA" && -f "$BASE_SCHEMA" ]]; then
+  run_sql "$BASE_SCHEMA"
 fi
 
 # 2. Migrations incrémentales (tri alphabétique = ordre chronologique)

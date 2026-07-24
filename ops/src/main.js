@@ -1,11 +1,11 @@
 import { html, render } from 'htm/preact';
 import { useState, useEffect } from 'preact/hooks';
-import { api } from './lib/api.js';
-import { useRoute, ROUTES } from './router.js';
-import { Layout } from './components/Layout.js';
-import { CommandPalette } from './components/CommandPalette.js';
-import { FullSpinner, registerToast } from './components/ui.js';
-import { navFor } from './lib/permissions.js';
+import { api } from './lib/api.js?v=24';
+import { useRoute, ROUTES } from './router.js?v=24';
+import { Layout } from './components/Layout.js?v=24';
+import { CommandPalette } from './components/CommandPalette.js?v=24';
+import { FullSpinner, registerToast } from './components/ui.js?v=24';
+import { navFor } from './lib/permissions.js?v=24';
 
 const LOGIN = '../admin-login.html';
 

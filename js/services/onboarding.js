@@ -45,6 +45,7 @@
           immatriculation: data.immatriculation || null,
           marque: data.marque || null,
           modele: data.modele || null,
+          fuel_type: data.fuel_type || null,
           annee: parseInt(data.annee, 10) || null,
           puissance: parseInt(data.puissance, 10) || null,
           address: data.address || null,

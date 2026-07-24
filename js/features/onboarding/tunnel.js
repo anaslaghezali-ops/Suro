@@ -149,6 +149,28 @@ class OnboardingForm {
             },
           },
           {
+            id: 'fuel_type',
+            label: 'Carburant',
+            type: 'select',
+            placeholder: 'Choisir le carburant',
+            options: isMoto
+              ? [
+                  { value: 'essence', label: 'Essence' },
+                  { value: 'electrique', label: 'Électrique' },
+                ]
+              : [
+                  { value: 'essence', label: 'Essence' },
+                  { value: 'diesel', label: 'Diesel' },
+                  { value: 'hybride', label: 'Hybride' },
+                  { value: 'electrique', label: 'Électrique' },
+                  { value: 'gpl', label: 'GPL / Gaz' },
+                ],
+            validate: (value) => {
+              if (!value) return 'Le type de carburant est nécessaire';
+              return true;
+            },
+          },
+          {
             id: 'annee',
             label: 'Année de mise en circulation',
             type: 'number',
@@ -651,6 +673,17 @@ class OnboardingForm {
         let inputHTML;
         if (sub.type === 'combobox') {
           inputHTML = this.renderComboboxHTML(sub, subValue);
+        } else if (sub.type === 'select') {
+          const options = (sub.options || []).map((o) => {
+            const val = o.value ?? o;
+            const label = o.label ?? o;
+            const selected = subValue === val ? ' selected' : '';
+            return `<option value="${this.escapeAttr(val)}"${selected}>${label}</option>`;
+          }).join('');
+          inputHTML = `<select id="field-${sub.id}" class="form-input form-select">
+            <option value="" disabled${subValue ? '' : ' selected'}>${this.escapeAttr(sub.placeholder || 'Choisir…')}</option>
+            ${options}
+          </select>`;
         } else if (sub.inputType === 'textarea') {
           inputHTML = `<textarea id="field-${sub.id}" class="form-textarea" placeholder="${sub.placeholder}" autocomplete="${sub.autocomplete || 'off'}">${subValue}</textarea>`;
         } else {
@@ -1136,6 +1169,7 @@ class OnboardingForm {
         immatriculation: data.immatriculation,
         marque: data.marque,
         modele: data.modele,
+        fuel_type: data.fuel_type || null,
         annee: data.annee,
         puissance: data.puissance,
         coverage: data.coverage,

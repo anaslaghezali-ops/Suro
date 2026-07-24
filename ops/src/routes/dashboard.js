@@ -4,6 +4,7 @@ import { useAsync } from '../lib/useAsync.js';
 import { Spinner, Empty, Badge } from '../components/ui.js';
 import { fmtMoney, timeAgo, subStatus, vehicleLabel } from '../lib/format.js';
 import { navigate } from '../router.js';
+import { openClaimsNeedingReplyView } from './claims.js';
 
 function isToday(d) { const t = new Date(); const x = new Date(d); return x.toDateString() === t.toDateString(); }
 function isThisMonth(d) { const t = new Date(); const x = new Date(d); return x.getMonth() === t.getMonth() && x.getFullYear() === t.getFullYear(); }
@@ -19,20 +20,24 @@ function Kpi({ label, value, sub, attn }) {
 
 export function Dashboard({ caps }) {
   const { data, loading, error } = useAsync(async () => {
-    const [apps, payments, claims, docs, audit] = await Promise.all([
+    const [apps, payments, claims, docs, audit, needingReply] = await Promise.all([
       api.applications().catch(() => []),
       api.payments().catch(() => []),
       api.claims().catch(() => []),
       api.documents().catch(() => []),
       api.auditRecent(8).catch(() => []),
+      api.claimsNeedingReply().catch(() => []),
     ]);
-    return { apps: apps || [], payments: payments || [], claims: claims || [], docs: docs || [], audit: audit || [] };
+    return {
+      apps: apps || [], payments: payments || [], claims: claims || [],
+      docs: docs || [], audit: audit || [], needingReply: needingReply || [],
+    };
   }, []);
 
   if (loading) return html`<div style="padding:40px"><${Spinner}/></div>`;
   if (error) return html`<${Empty}>Erreur de chargement : ${error.message}<//>`;
 
-  const { apps, payments, claims, docs, audit } = data;
+  const { apps, payments, claims, docs, audit, needingReply } = data;
   const subsToday = apps.filter((a) => isToday(a.created_at)).length;
   const subsMonth = apps.filter((a) => isThisMonth(a.created_at)).length;
   const active = apps.filter((a) => a.status === 'active').length;
@@ -41,9 +46,19 @@ export function Dashboard({ caps }) {
   const pendingPay = payments.filter((p) => p.status === 'pending').length;
   const docsToCheck = docs.filter((d) => (d.status || 'pending') === 'pending').length;
   const openClaims = claims.filter((c) => c.status === 'pending').length;
+  const claimsNeedingReply = needingReply.length;
 
   // File « à traiter »
   const queue = [];
+  needingReply.forEach((row) => {
+    const c = claims.find((x) => x.id === row.claim_id);
+    queue.push({
+      type: 'Message sinistre',
+      label: c?.claim_type || 'Sinistre',
+      meta: timeAgo(row.last_at),
+      go: () => { openClaimsNeedingReplyView(); navigate('claims'); },
+    });
+  });
   docs.filter((d) => (d.status || 'pending') === 'pending').forEach((d) => {
     const label = window.SuroKyc?.isKycDocument(d)
       ? window.SuroKyc.kycDocShortLabel(d.document_type, d.document_side)
@@ -69,6 +84,7 @@ export function Dashboard({ caps }) {
       <${Kpi} label="Paiements en attente" value=${pendingPay} attn=${pendingPay > 0} />
       <${Kpi} label="Documents à vérifier" value=${docsToCheck} attn=${docsToCheck > 0} />
       <${Kpi} label="Sinistres ouverts" value=${openClaims} attn=${openClaims > 0} />
+      <${Kpi} label="Messages sans réponse" value=${claimsNeedingReply} attn=${claimsNeedingReply > 0} />
     </div>
 
     <div class="card">
@@ -78,7 +94,7 @@ export function Dashboard({ caps }) {
           <thead><tr><th>Type</th><th>Élément</th><th>Client / Réf.</th><th></th></tr></thead>
           <tbody>
             ${queue.slice(0, 12).map((q) => html`
-              <tr class="clickable" onClick=${() => navigate(q.go)}>
+              <tr class="clickable" onClick=${() => (typeof q.go === 'function' ? q.go() : navigate(q.go))}>
                 <td><${Badge} tone="amber">${q.type}<//></td>
                 <td>${q.label}</td>
                 <td class="muted">${q.meta || '—'}</td>

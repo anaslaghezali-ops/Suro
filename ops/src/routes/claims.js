@@ -1,5 +1,5 @@
 import { html } from 'htm/preact';
-import { useState } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
 import { DataTable } from '../components/DataTable.js';
@@ -9,13 +9,19 @@ import { can } from '../lib/permissions.js';
 import { fmtDate, fmtDateTime } from '../lib/format.js';
 
 const STATUSES = ['pending', 'approved', 'rejected', 'paid'];
-const CLAIM_VIEWS = [
-  { id: '',         label: 'Tous',       match: () => true },
-  { id: 'pending',  label: 'En attente', attn: true, match: (c) => c.status === 'pending' },
-  { id: 'approved', label: 'Approuvés',  match: (c) => c.status === 'approved' },
-  { id: 'rejected', label: 'Rejetés',    match: (c) => c.status === 'rejected' },
-  { id: 'paid',     label: 'Payés',      match: (c) => c.status === 'paid' },
+const NIL_UUID = '00000000-0000-0000-0000-000000000000';
+const CLAIMS_VIEW_KEY = 'opsClaimsView';
+
+const VIEW_DEFS = [
+  { id: '', label: 'Tous', clauses: () => [] },
+  { id: 'needing_reply', label: 'Sans réponse', attn: true,
+    clauses: (ctx) => [`id=in.(${ctx.needingReplyIds.length ? ctx.needingReplyIds.join(',') : NIL_UUID})`] },
+  { id: 'pending', label: 'En attente', attn: true, clauses: () => ['status=eq.pending'] },
+  { id: 'approved', label: 'Approuvés', clauses: () => ['status=eq.approved'] },
+  { id: 'rejected', label: 'Rejetés', clauses: () => ['status=eq.rejected'] },
+  { id: 'paid', label: 'Payés', clauses: () => ['status=eq.paid'] },
 ];
+
 const statusMeta = (s) => ({
   pending:  { label: 'En attente', tone: 'amber' },
   approved: { label: 'Approuvé',   tone: 'green' },
@@ -37,14 +43,20 @@ function Timeline({ status }) {
   </div>`;
 }
 
-function Detail({ claim, caps, onClose, onChanged }) {
-  const [tab, setTab] = useState('suivi');
+function Detail({ claim, caps, onClose, onChanged, initialTab = 'suivi' }) {
+  const [tab, setTab] = useState(initialTab);
   const [status, setStatus] = useState(claim.status);
   const files = useAsync(() => api.claimFiles(claim.id).catch(() => []), [claim.id]);
   const msgs = useAsync(() => api.claimMessages(claim.id).catch(() => []), [claim.id]);
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
   const canHandle = can(caps, 'claim.handle');
+
+  useEffect(() => {
+    setTab(initialTab);
+    setStatus(claim.status);
+    setReply('');
+  }, [claim.id, initialTab]);
 
   const applyStatus = async () => {
     try { await api.updateClaimStatus(claim.id, status); toast('Statut mis à jour', 'ok'); onChanged(); }
@@ -54,7 +66,12 @@ function Detail({ claim, caps, onClose, onChanged }) {
   const send = async () => {
     if (!reply.trim()) return;
     setSending(true);
-    try { await api.sendClaimMessage(claim.id, reply.trim()); setReply(''); msgs.reload(); }
+    try {
+      await api.sendClaimMessage(claim.id, reply.trim());
+      setReply('');
+      msgs.reload();
+      onChanged();
+    }
     catch (e) { toast('Message non envoyé', 'err'); }
     finally { setSending(false); }
   };
@@ -124,40 +141,80 @@ function Detail({ claim, caps, onClose, onChanged }) {
 export function Claims({ caps }) {
   const [activeView, setActiveView] = useState('');
   const [selected, setSelected] = useState(null);
+  const [detailTab, setDetailTab] = useState('suivi');
   const [reloadKey, setReloadKey] = useState(0);
 
-  // Compteurs par vue (bornés côté serveur) ; rechargés après un changement de statut.
-  const counts = useAsync(() => api.claimsCounts().catch(() => null), [reloadKey]);
-  const views = CLAIM_VIEWS.map((v) => ({
+  useEffect(() => {
+    const preset = sessionStorage.getItem(CLAIMS_VIEW_KEY);
+    if (preset && VIEW_DEFS.some((v) => v.id === preset)) {
+      setActiveView(preset);
+      sessionStorage.removeItem(CLAIMS_VIEW_KEY);
+    }
+  }, []);
+
+  const needingReply = useAsync(() => api.claimsNeedingReply().catch(() => []), [reloadKey]);
+  const needingReplyRows = needingReply.data || [];
+  const needingReplyIds = needingReplyRows.map((r) => r.claim_id);
+  const lastAtByClaim = Object.fromEntries(needingReplyRows.map((r) => [r.claim_id, r.last_at]));
+  const ctx = { needingReplyIds };
+
+  const counts = useAsync(async () => {
+    const statusCounts = await api.claimsCounts().catch(() => null);
+    return {
+      '': statusCounts?.all ?? null,
+      pending: statusCounts?.pending ?? null,
+      approved: statusCounts?.approved ?? null,
+      rejected: statusCounts?.rejected ?? null,
+      paid: statusCounts?.paid ?? null,
+      needing_reply: needingReplyIds.length,
+    };
+  }, [reloadKey, needingReplyIds.length]);
+
+  const views = VIEW_DEFS.map((v) => ({
     id: v.id, label: v.label, attn: v.attn,
-    count: counts.data ? (counts.data[v.id || 'all'] ?? null) : null,
+    count: counts.data ? (counts.data[v.id] ?? null) : null,
   }));
 
-  // Liste paginée serveur : la vue active devient un filtre `status`.
+  const activeDef = VIEW_DEFS.find((v) => v.id === activeView) || VIEW_DEFS[0];
+
   const fetchPage = ({ search, sortKey, sortDir, offset, limit }) =>
-    api.claimsPage({ status: activeView || undefined, search, sortKey, sortDir, offset, limit });
+    api.claimsPage({ clauses: activeDef.clauses(ctx), search, sortKey, sortDir, offset, limit });
 
   const columns = [
     { key: 'id', label: 'Réf.', render: (c) => html`<span class="muted">${c.id.slice(0, 8)}…</span>` },
     { key: 'application_id', label: 'Contrat', render: (c) => html`<span class="muted">${(c.application_id || '').slice(0, 8)}…</span>` },
     { key: 'claim_type', label: 'Type', sortable: true },
     { key: 'status', label: 'Statut', sortable: true, render: (c) => { const m = statusMeta(c.status); return html`<${Badge} tone=${m.tone}>${m.label}<//>`; } },
+    ...(activeView === 'needing_reply' ? [{
+      key: 'last_at',
+      label: 'Dernier message client',
+      render: (c) => fmtDateTime(lastAtByClaim[c.id]),
+    }] : []),
     { key: 'created_at', label: 'Déclaré le', sortable: true, render: (c) => fmtDate(c.created_at) },
   ];
+
+  const openClaim = (claim) => {
+    setSelected(claim);
+    setDetailTab(activeView === 'needing_reply' ? 'messages' : 'suivi');
+  };
 
   return html`
     <div class="page-head">
       <h1>Sinistres</h1>
-      <p>Réclamations clients. Cliquez pour traiter : suivi, pièces jointes et messagerie.</p>
+      <p>Réclamations clients. La vue « Sans réponse » liste les sinistres dont le dernier message vient du client.</p>
     </div>
     <div class="card">
       <${SavedViews} views=${views} active=${activeView} onChange=${setActiveView} />
-      <${DataTable} columns=${columns} server=${fetchPage} serverKey=${`${activeView}|${reloadKey}`}
+      <${DataTable} columns=${columns} server=${fetchPage} serverKey=${`${activeView}|${needingReplyIds.length}|${reloadKey}`}
         searchPlaceholder="Rechercher (type, description)…"
-        onRowClick=${(c) => setSelected(c)} />
+        onRowClick=${openClaim} />
     </div>
-    ${selected ? html`<${Detail} claim=${selected} caps=${caps}
+    ${selected ? html`<${Detail} claim=${selected} caps=${caps} initialTab=${detailTab}
       onClose=${() => setSelected(null)}
-      onChanged=${() => { setSelected(null); setReloadKey((k) => k + 1); }} />` : null}
+      onChanged=${() => { setReloadKey((k) => k + 1); }} />` : null}
   `;
+}
+
+export function openClaimsNeedingReplyView() {
+  sessionStorage.setItem(CLAIMS_VIEW_KEY, 'needing_reply');
 }

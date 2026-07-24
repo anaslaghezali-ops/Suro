@@ -125,13 +125,14 @@
     },
 
     // Sinistres paginés côté serveur → { rows, total }.
-    adminListClaims({ limit = 12, offset = 0, status, search, sortKey, sortDir } = {}) {
+    adminListClaims({ limit = 12, offset = 0, status, clauses, search, sortKey, sortDir } = {}) {
       const parts = [
         'select=*',
         `order=${orderClause(sortKey, sortDir, 'created_at.desc')}`,
         `limit=${limit}`, `offset=${offset}`,
       ];
       if (status) parts.push(`status=eq.${encodeURIComponent(status)}`);
+      if (clauses && clauses.length) parts.push(...clauses);
       if (search) parts.push(searchOr(['claim_type', 'description'], search));
       return this.sbList(`/rest/v1/insurance_claims?${parts.join('&')}`, { asUser: true });
     },

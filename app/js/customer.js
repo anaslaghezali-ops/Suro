@@ -546,14 +546,13 @@ class CustomerDashboard {
       this.renderPendingPaymentBanner(policies, 'pending-payment-banner-dashboard');
       this.renderPendingDocsBanner(policies, allDocs, 'pending-docs-banner-dashboard');
       this.updateDocumentsNavBadge(policies, allDocs);
-      const claims = await this.api.getMyClaims() || [];
-      // Nombre réel de paiements (initial + renouvellements), pas de contrats
-      const payments = await this.api.getMyPayments().catch(() => []);
+      const claims = await this.fetchClaims(true);
+      const payments = await this.fetchPayments(true);
 
       document.getElementById('stat-active-policies').textContent =
         policies.filter(p => p.status === 'active').length;
       document.getElementById('stat-claims').textContent = claims.length;
-      document.getElementById('stat-payments').textContent = (payments || []).length;
+      document.getElementById('stat-payments').textContent = payments.length;
 
       // Prochaine échéance = la plus proche parmi les contrats actifs
       const expiries = policies
@@ -616,8 +615,7 @@ class CustomerDashboard {
   async loadClaims() {
     this.setTableSkeleton('claims-tbody', 5, 3);
     try {
-      const claims = await this.api.getMyClaims() || [];
-      this.claims = claims;
+      const claims = await this.fetchClaims(true);
       const statusFilter = document.getElementById('filter-claim-status')?.value || '';
       const filtered = statusFilter ? claims.filter(c => c.status === statusFilter) : claims;
       const tbody = document.getElementById('claims-tbody');
@@ -672,9 +670,20 @@ class CustomerDashboard {
 
   async fetchPayments(force = false) {
     if (!this.payments || force) {
-      this.payments = await this.api.getMyPayments().catch(() => []);
+      const rows = await this.api.getMyPayments().catch(() => []);
+      this.payments = this.filterOwnCustomerRows(rows);
     }
     return this.payments;
+  }
+
+  async fetchClaims(force = false) {
+    if (!this.claims || force) {
+      const rows = await this.api.getMyClaims() || [];
+      const policies = await this.fetchPolicies();
+      const ownPolicyIds = new Set((policies || []).map((p) => p.id));
+      this.claims = (rows || []).filter((c) => ownPolicyIds.has(c.application_id));
+    }
+    return this.claims;
   }
 
   setPaymentsLoading(loading) {
@@ -1055,10 +1064,10 @@ class CustomerDashboard {
     try {
       const [policies, payments] = await Promise.all([
         this.fetchPolicies(),
-        this.api.getMyPayments().catch(() => []),
+        this.fetchPayments(),
       ]);
       const activeCount = (policies || []).filter((p) => p.status === 'active').length;
-      const paymentCount = (payments || []).length;
+      const paymentCount = payments.length;
       const policiesEl = document.getElementById('profile-stat-policies');
       const paymentsEl = document.getElementById('profile-stat-payments');
       if (policiesEl) policiesEl.textContent = activeCount;

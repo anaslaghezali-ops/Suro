@@ -52,24 +52,64 @@ Le cabinet **traite** les dossiers qui lui sont **assignés** ; il ne possède p
 
 ---
 
-## 2. Chaîne assurantielle
+## 2. Chaîne assurantielle et conformité ACAPS
+
+### « Suro Assurance » est-elle agréée ACAPS ?
+
+**Non — pas dans le périmètre actuel du module.**
+
+| Entité | Statut réglementaire (v1) | Rôle |
+|--------|---------------------------|------|
+| **SURO** (plateforme / marque client) | **Intermédiaire technologique** — pas d’agrément courtage ni assurance | UX, relation client, orchestration des workflows |
+| **Cabinet partenaire** (AGMA, Atlas…) | **Courtier / intermédiaire** — agrément ACAPS **à confirmer par convention** (chaque cabinet est responsable de son statut) | Traitement opérationnel des dossiers assignés |
+| **Assureur agréé ACAPS** (tiers conventionné) | **Seul porteur de risque habilité** | Émission de l’attestation / police, souscription, encaissement de la prime |
+
+**« Suro Assurance »** est la **marque commerciale** visible par le client. Ce n’est **pas** le nom d’une entreprise d’assurance agréée ACAPS tant qu’un agrément distinct n’est pas obtenu et documenté.
+
+**Assureur porteur de risque (v1)** : compagnie d’assurance **agréée ACAPS** partenaire de distribution, désignée dans la convention tripartite (assureur ↔ cabinet/SURO ↔ client). Le nom exact de l’assureur agréé doit figurer sur l’attestation émise et dans les CGV — **à renseigner contractuellement** (placeholder doc : *« Assureur agréé ACAPS — voir convention de distribution »*).
+
+### Qui émet l’attestation et qui encaisse la prime ?
+
+| Acteur | Émission attestation / police | Encaissement prime |
+|--------|------------------------------|-------------------|
+| SURO (tech) | **Non** | **Non** — commission de distribution uniquement |
+| Cabinet partenaire | **Non** — saisit le `policy_number` et le PDF **déjà émis par l’assureur** via RPC `emettre_police` | **Non** |
+| **Assureur agréé ACAPS** | **Oui** — seul émetteur légal de la police / attestation | **Oui** — via circuit CMI / compte assureur |
+
+Le RPC `suro_cabinet_task_action('emettre_police')` **enregistre** une police déjà émise par l’assureur agréé (numéro + document). Il ne constitue **pas** une émission d’assurance par SURO ni par le cabinet.
+
+### Schéma réglementaire cible
 
 ```
-Client ──► SURO (marque, UX, relation) ──► Cabinet partenaire (traitement)
-                                              │
-                                              ▼
-                                    Assureur agréé (Suro Assurance)
-                                    • Porte le risque
-                                    • Émet l'attestation / police
-                                    • Encaisse la prime (aujourd'hui)
+Client
+  │
+  ▼
+SURO (marque, UX, relation client)          ← intermédiaire technologique
+  │
+  ▼
+Cabinet partenaire (traitement dossier)     ← courtier / mandataire (si agréé)
+  │
+  ▼
+Assureur agréé ACAPS                        ← porte le risque, émet, encaisse
 ```
 
 | Question | Réponse |
 |----------|---------|
 | Le cabinet est mandaté par qui ? | **SURO** (convention de distribution / partenariat technologique) |
-| Qui porte le risque ? | **L'assureur agréé** (Suro Assurance) — pas SURO tech, pas le cabinet en phase 1 |
-| Qui émet l'attestation ? | **L'assureur** ; le cabinet saisit `policy_number` + PDF via RPC `suro_cabinet_task_action('emettre_police')` |
-| Qui encaisse la prime ? | **L'assureur / circuit CMI** au paiement client ; SURO perçoit une **commission** (partenaire techno) |
+| Qui porte le risque ? | **L’assureur agréé ACAPS** — jamais SURO tech, jamais le cabinet seul |
+| Qui émet l’attestation ? | **L’assureur agréé** ; le cabinet **enregistre** `policy_number` + PDF via RPC |
+| Qui encaisse la prime ? | **L’assureur agréé** (circuit CMI → compte assureur) ; SURO = commission |
+| Le client contacte le cabinet ? | **Non** — relation exclusivement via la marque **SURO** |
+
+### Évolution selon agrément ACAPS (roadmap)
+
+| Phase | SURO | Cabinet | Assureur agréé |
+|-------|------|---------|----------------|
+| **v1 (module actuel)** | Tech + marque | Traitement mandaté | Porteur de risque + émission + encaissement |
+| **BP Y3** | + courtier agréé possible | Courtier détenteur portefeuille | Partenaire ou co-émission selon structure |
+| **BP Y5+** | Assureur / MGA si agrément obtenu | Distribution | Émission directe possible |
+
+Le flag `operating_mode` (`intermediaire` / `courtier`) permet de basculer le **canal de traitement** sans changer la règle : **l’émission et l’encaissement restent rattachés à l’assureur agréé** tant que SURO n’est pas lui-même agréé assureur.
 
 Le client ne contacte **jamais** le cabinet directement. Tous les messages passent par la marque **SURO**.
 
@@ -147,20 +187,35 @@ Trigger `suro_trg_kyc_task` sur `insurance_documents` INSERT :
 
 Tables **hors périmètre tenant** (partagées plateforme) : `insurance_applications`, `insurance_claims`, `insurance_documents`, `suro_admins`, `suro_notifications` (client).
 
-### 5.2 Résolution `suro_cabinet_context()`
+### 5.2 Résolution `suro_cabinet_context()` — décision multi-cabinet
+
+**Décision v1 : un seul cabinet actif par utilisateur** (contrainte d’unicité partielle).
+
+```sql
+CREATE UNIQUE INDEX suro_cabinet_users_one_active_per_user_idx
+  ON suro_cabinet_users (user_id) WHERE is_active = true;
+```
+
+| Option évaluée | Choix | Motif |
+|----------------|-------|-------|
+| Paramètre `p_cabinet_id` dans `suro_cabinet_context()` | **Non retenu** | Complexifie le front, risque de sélection cross-tenant |
+| **1 cabinet actif / user** (index unique partiel) | **Retenu** | Aligné RLS, pas d’ambiguïté tenant, suffisant v1 |
 
 ```sql
 SELECT cu.cabinet_id, cu.role, c.name
 FROM suro_cabinet_users cu
 JOIN suro_cabinets c ON c.id = cu.cabinet_id
-WHERE cu.user_id = auth.uid()   -- JWT Supabase Auth, PAS user_metadata
+WHERE cu.user_id = (select auth.uid())   -- JWT Supabase Auth, PAS user_metadata
   AND cu.is_active AND c.is_active
 LIMIT 1;
 ```
 
-- **Source d'identité** : `auth.uid()` du JWT
-- **Mapping** : table `suro_cabinet_users` (jamais `user_metadata` — interdit pour autorisation)
-- **Limite actuelle** : 1 cabinet actif par user (LIMIT 1) — suffisant pour v1
+- **Source d'identité** : `(select auth.uid())` du JWT
+- **Mapping** : table `suro_cabinet_users` (jamais `user_metadata`)
+- **Changement de cabinet** : `suro_cabinet_add_user` désactive les autres affiliations actives avant d’activer la nouvelle
+- **Helper RLS** : `user_cabinet_ids()` — `SECURITY DEFINER`, retourne les `cabinet_id` actifs de l’appelant (v1 : 0 ou 1)
+
+Migration : `20260726_cabinet_rls_perf.sql`
 
 ### 5.3 Policies RLS par table
 
@@ -168,19 +223,21 @@ Principe : **RLS activé + deny-by-default** ; SELECT uniquement via policies ex
 
 | Table | SELECT | INSERT | UPDATE | DELETE |
 |-------|--------|--------|--------|--------|
-| `suro_cabinets` | Staff OU membre du cabinet (`id IN (...)`) | ✗ | ✗ | ✗ |
-| `suro_cabinet_users` | Staff OU même `cabinet_id` OU `user_id = self` | ✗ | ✗ | ✗ |
-| `suro_broker_tasks` | Staff OU `cabinet_id` = cabinet appelant | ✗ | ✗ | ✗ |
-| `suro_task_events` | Staff OU tâche appartient au cabinet appelant | ✗ | ✗ | ✗ |
-| `suro_claim_cabinet` | Staff OU `cabinet_id` = cabinet appelant | ✗ | ✗ | ✗ |
-| `suro_claim_status_events` | Staff OU sinistre du cabinet appelant | ✗ | ✗ | ✗ |
-| `suro_cabinet_notifications` | `user_id = auth.uid()` OU staff | ✗ | ✗ | ✗ |
+| `suro_cabinets` | Staff OU `id IN (SELECT user_cabinet_ids())` | ✗ | ✗ | ✗ |
+| `suro_cabinet_users` | Staff OU `cabinet_id IN user_cabinet_ids()` OU `user_id = self` | ✗ | ✗ | ✗ |
+| `suro_broker_tasks` | Staff OU `cabinet_id IN user_cabinet_ids()` | ✗ | ✗ | ✗ |
+| `suro_task_events` | Staff OU tâche `cabinet_id IN user_cabinet_ids()` | ✗ | ✗ | ✗ |
+| `suro_claim_cabinet` | Staff OU `cabinet_id IN user_cabinet_ids()` | ✗ | ✗ | ✗ |
+| `suro_claim_status_events` | Staff OU sinistre du cabinet via `user_cabinet_ids()` | ✗ | ✗ | ✗ |
+| `suro_cabinet_notifications` | `user_id = (select auth.uid())` OU staff | ✗ | ✗ | ✗ |
 
-Fichiers : `20260725_cabinet_module.sql` + `20260725_cabinet_rls_hardening.sql`
+Fichiers : `20260725_cabinet_module.sql` + `20260725_cabinet_rls_hardening.sql` + `20260726_cabinet_rls_perf.sql`
+
+**Perf RLS** : toutes les policies cabinet utilisent `(select auth.uid())` et `user_cabinet_ids()` au lieu de sous-selects inline sur `suro_cabinet_users`.
 
 ### 5.4 Comptes test inter-tenant
 
-Créés par `staging/scripts/seed-cabinets.sh` :
+Créés par `staging/scripts/seed-cabinets.sh` — détails et mots de passe : `staging/STAGING_TEST_ACCOUNTS.md`
 
 | Email | Cabinet | Test |
 |-------|---------|------|
@@ -204,8 +261,16 @@ Créés par `staging/scripts/seed-cabinets.sh` :
 | `docs/migrations/20260725_cabinet_module_down.sql` | **Rollback complet** |
 | `docs/migrations/20260726_operating_mode.sql` | Flag intermediaire / courtier + trigger branché |
 | `docs/migrations/20260726_operating_mode_down.sql` | Rollback mode d'exploitation |
+| `docs/migrations/20260726_cabinet_rls_perf.sql` | RLS perf + `user_cabinet_ids()` + unicité 1 cabinet/user |
+| `docs/migrations/20260726_cabinet_rls_perf_down.sql` | Rollback RLS perf |
 
 Ordre d'application : voir `staging/scripts/apply-migrations.sh`
+
+Ordre de rollback (staging) :
+
+1. `20260726_operating_mode_down.sql`
+2. `20260726_cabinet_rls_perf_down.sql`
+3. `20260725_cabinet_module_down.sql`
 
 ---
 
@@ -271,7 +336,15 @@ Résultat attendu : **0 ligne** (tables `suro_cabinets`, `suro_broker_tasks`, `s
 
 ---
 
-## 8. Références
+## 9. Périmètre de la branche
+
+Le diff `cursor/cabinet-portal-module-adca` vs `Cursor` ne contient **que** le module cabinet (SQL, portail `/cabinet/`, supervision Ops, staging, config).
+
+**Hors périmètre** (présents sur `Cursor` mais non modifiés par cette branche) : pitch-deck, `vehicle_brands`, mockups, changements tunnel client.
+
+---
+
+## 10. Références
 
 - Setup staging cloud : `staging/STAGING_CLOUD_SETUP.md`
 - Rebuild Docker : `cd staging && ./scripts/init-docker.sh && ./scripts/bootstrap.sh`

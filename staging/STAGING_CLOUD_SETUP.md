@@ -108,3 +108,5 @@ psql "$STAGING_DATABASE_URL" -f docs/migrations/20260725_cabinet_module_down.sql
 ---
 
 **PROJECT REF staging** : à renseigner ici après création → `________________`
+
+Voir aussi **`staging/STAGING_TEST_ACCOUNTS.md`** pour les comptes AGMA / Atlas et la procédure test isolation.

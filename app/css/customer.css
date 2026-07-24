@@ -353,8 +353,20 @@ textarea {
   box-shadow: var(--shadow-sm);
 }
 
+.stat-card--link {
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+}
+
+.stat-card--link:hover,
 .stat-card:hover {
   border-color: var(--color-neutral-300);
+}
+
+.stat-card--link h3 {
+  pointer-events: none;
 }
 
 .stat-card-head {

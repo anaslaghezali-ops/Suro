@@ -60,12 +60,21 @@
       (type) => typeAggregateStatus(byType[type]) === 'approved'
     ).length;
 
+    const needsUpload = KYC_DOC_TYPE_IDS.some((type) => {
+      const agg = typeAggregateStatus(byType[type]);
+      return agg === 'missing' || agg === 'rejected' || agg === 'partial';
+    });
+
+    const pendingReview = !needsUpload && received === KYC_SLOT_COUNT && approved < KYC_SLOT_COUNT;
+
     return {
       byType,
       received,
       approved,
       piecesComplete,
       complete: approved === KYC_SLOT_COUNT,
+      needsUpload,
+      pendingReview,
       totalSlots: KYC_SLOT_COUNT,
       totalPieces: KYC_DOC_TYPE_IDS.length,
     };

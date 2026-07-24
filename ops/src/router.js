@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'preact/hooks';
-import { Dashboard } from './routes/dashboard.js?v=24';
-import { Subscriptions } from './routes/subscriptions.js?v=24';
-import { Contracts, Payments, Audit } from './routes/modules.js?v=24';
-import { Clients } from './routes/clients.js?v=24';
-import { Claims } from './routes/claims.js?v=24';
-import { Documents } from './routes/documents.js?v=24';
-import { Users } from './routes/users.js?v=24';
-import { Settings } from './routes/settings.js?v=24';
-import { Privileges } from './routes/privileges.js?v=24';
-import { Analytics } from './routes/analytics.js?v=24';
+import { Dashboard } from './routes/dashboard.js?v=25';
+import { Subscriptions } from './routes/subscriptions.js?v=25';
+import { Contracts, Payments, Audit } from './routes/modules.js?v=25';
+import { Clients } from './routes/clients.js?v=25';
+import { Claims } from './routes/claims.js?v=25';
+import { Documents } from './routes/documents.js?v=25';
+import { Users } from './routes/users.js?v=25';
+import { Settings } from './routes/settings.js?v=25';
+import { Privileges } from './routes/privileges.js?v=25';
+import { Analytics } from './routes/analytics.js?v=25';
 
 export const ROUTES = {
   dashboard: Dashboard,

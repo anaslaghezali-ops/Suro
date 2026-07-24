@@ -4,7 +4,7 @@ import { useAsync } from '../lib/useAsync.js';
 import { Spinner, Empty, Badge } from '../components/ui.js';
 import { fmtMoney, timeAgo, subStatus, vehicleLabel } from '../lib/format.js';
 import { navigate } from '../router.js';
-import { openClaimsNeedingReplyView } from './claims.js?v=24';
+import { openClaimsNeedingReplyView } from './claims.js?v=25';
 
 function isToday(d) { const t = new Date(); const x = new Date(d); return x.toDateString() === t.toDateString(); }
 function isThisMonth(d) { const t = new Date(); const x = new Date(d); return x.getMonth() === t.getMonth() && x.getFullYear() === t.getFullYear(); }

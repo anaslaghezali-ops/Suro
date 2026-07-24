@@ -47,7 +47,12 @@ export function DataTable({
     return () => clearTimeout(t);
   }, [q, isServer]);
 
-  // Toute page/tri/recherche/filtre parent qui change → on recharge la page courante.
+  // Toute page/tri/recherche/filtre parent qui change → on recharge (page 0).
+  useEffect(() => {
+    if (!isServer) return undefined;
+    setPage(0);
+  }, [isServer, serverKey]);
+
   useEffect(() => {
     if (!isServer) return undefined;
     let alive = true;

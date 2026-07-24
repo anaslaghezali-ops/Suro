@@ -1,12 +1,12 @@
 import { html } from 'htm/preact';
 import { useState, useEffect } from 'preact/hooks';
-import { api } from '../lib/api.js';
-import { useAsync } from '../lib/useAsync.js';
-import { DataTable } from '../components/DataTable.js';
-import { SavedViews } from '../components/SavedViews.js';
-import { SlideOver, Badge, Spinner, Empty, toast } from '../components/ui.js';
-import { can } from '../lib/permissions.js';
-import { fmtDate, fmtDateTime } from '../lib/format.js';
+import { api } from '../lib/api.js?v=25';
+import { useAsync } from '../lib/useAsync.js?v=25';
+import { DataTable } from '../components/DataTable.js?v=25';
+import { SavedViews } from '../components/SavedViews.js?v=25';
+import { SlideOver, Badge, Spinner, Empty, toast } from '../components/ui.js?v=25';
+import { can } from '../lib/permissions.js?v=25';
+import { fmtDate, fmtDateTime } from '../lib/format.js?v=25';
 
 const STATUSES = ['pending', 'approved', 'rejected', 'paid'];
 const NIL_UUID = '00000000-0000-0000-0000-000000000000';
@@ -177,8 +177,23 @@ export function Claims({ caps }) {
 
   const activeDef = VIEW_DEFS.find((v) => v.id === activeView) || VIEW_DEFS[0];
 
+  const changeView = (id) => {
+    setActiveView(id);
+    setSelected(null);
+  };
+
+  const statusFilter = ['pending', 'approved', 'rejected', 'paid'].includes(activeView) ? activeView : undefined;
+
   const fetchPage = ({ search, sortKey, sortDir, offset, limit }) =>
-    api.claimsPage({ clauses: activeDef.clauses(ctx), search, sortKey, sortDir, offset, limit });
+    api.claimsPage({
+      status: statusFilter,
+      clauses: activeDef.clauses(ctx),
+      search,
+      sortKey,
+      sortDir,
+      offset,
+      limit,
+    });
 
   const columns = [
     { key: 'id', label: 'Réf.', render: (c) => html`<span class="muted">${c.id.slice(0, 8)}…</span>` },
@@ -204,7 +219,7 @@ export function Claims({ caps }) {
       <p>Réclamations clients. La vue « Sans réponse » liste les sinistres dont le dernier message vient du client.</p>
     </div>
     <div class="card">
-      <${SavedViews} views=${views} active=${activeView} onChange=${setActiveView} />
+      <${SavedViews} views=${views} active=${activeView} onChange=${changeView} />
       <${DataTable} columns=${columns} server=${fetchPage} serverKey=${`${activeView}|${needingReplyIds.length}|${reloadKey}`}
         searchPlaceholder="Rechercher (type, description)…"
         onRowClick=${openClaim} />

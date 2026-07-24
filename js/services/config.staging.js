@@ -1,9 +1,9 @@
-/* Configuration Supabase STAGING — VPS self-hosted (isolé de la prod cloud).
- * URL : http://185.98.136.100 — projet Supabase Docker sur le VPS lab.
- * Activer : ?env=staging sur cabinet/ ou localStorage.suro_env = 'staging' */
-window.SURO_CONFIG_STAGING = {
-  SUPABASE_URL: 'http://185.98.136.100',
-  SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE',
-  API_VERSION: 1,
-  ENV: 'staging',
-};
+/* Configuration Supabase STAGING — sans secrets en dur.
+ * Charger AVANT config-env.js :
+ *   1. config.staging.local.js (gitignored, dev local)
+ *   2. ou config.staging.example.js (placeholder)
+ * Les clés réelles restent dans le dashboard Supabase / staging/.env */
+(function () {
+  if (window.SURO_CONFIG_STAGING) return;
+  console.warn('[SURO] Staging : définir window.SURO_CONFIG_STAGING via config.staging.local.js');
+})();

@@ -33,6 +33,17 @@ export function vehicleTypeLabel(t) {
   return t === 'moto' ? 'Moto' : 'Voiture';
 }
 
+export function fuelTypeLabel(value) {
+  const labels = {
+    essence: 'Essence',
+    diesel: 'Diesel',
+    hybride: 'Hybride',
+    electrique: 'Électrique',
+    gpl: 'GPL / Gaz',
+  };
+  return labels[value] || value || '—';
+}
+
 // Unité de tarification selon le type : CV (voiture) ou cm³ (moto)
 export function ratingLabel(a) {
   if (a.puissance == null || a.puissance === '') return '—';

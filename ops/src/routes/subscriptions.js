@@ -79,6 +79,8 @@ function Detail({ app, caps, onClose, onSaved }) {
         if (type === 'number') v = v === '' || v == null ? null : Number(v);
         fields[k] = v;
       });
+      fields.coverage_type = form.coverage_type || null;
+      fields.fuel_type = form.fuel_type || null;
       await api.updateApplication(app.id, fields);
       await api.logAction('update', 'application', app.id, fields).catch(() => {});
       toast('Dossier mis à jour', 'ok');
@@ -127,6 +129,17 @@ function Detail({ app, caps, onClose, onSaved }) {
               onChange=${(e) => set('coverage_type', e.target.value)}>
               <option value="minimal">Minimale (RC)</option>
               <option value="complete">Complète</option>
+            </select>
+          </label>
+          <label>Carburant
+            <select class="ops-input" disabled=${!editable} value=${form.fuel_type || ''}
+              onChange=${(e) => set('fuel_type', e.target.value)}>
+              <option value="">—</option>
+              <option value="essence">Essence</option>
+              <option value="diesel">Diesel</option>
+              <option value="hybride">Hybride</option>
+              <option value="electrique">Électrique</option>
+              <option value="gpl">GPL / Gaz</option>
             </select>
           </label>
         </div>

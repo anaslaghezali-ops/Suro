@@ -193,6 +193,17 @@ class CustomerDashboard {
     return parts || (p.coverage_type ? this.coverageShortLabel(p.coverage_type) : 'Contrat auto');
   }
 
+  fuelTypeLabel(type) {
+    const labels = {
+      essence: 'Essence',
+      diesel: 'Diesel',
+      hybride: 'Hybride',
+      electrique: 'Électrique',
+      gpl: 'GPL / Gaz',
+    };
+    return labels[type] || type || '—';
+  }
+
   coverageShortLabel(type) {
     if (type === 'complete') return 'Complète';
     if (type === 'minimal') return 'Minimale';
@@ -288,6 +299,10 @@ class CustomerDashboard {
           <div class="policy-detail-row">
             <dt>${powerLabel}</dt>
             <dd>${p.puissance ? `${p.puissance} ${powerUnit}` : '—'}</dd>
+          </div>
+          <div class="policy-detail-row">
+            <dt>Carburant</dt>
+            <dd>${this.escape(this.fuelTypeLabel(p.fuel_type))}</dd>
           </div>
           <div class="policy-detail-row">
             <dt>Couverture</dt>

@@ -717,6 +717,151 @@
 
     .badge--live { background: #D1FAE5; color: #065F46; }
 
+    /* Market slide */
+    .market-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin: 18px 0 20px;
+    }
+
+    .market-stat {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+
+    .market-stat-num {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .market-stat-lbl {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.35;
+      font-weight: 500;
+    }
+
+    .market-stat-lbl small {
+      font-size: 11px;
+      color: #9CA3AF;
+    }
+
+    .market-split {
+      margin-top: 4px;
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    .market-block-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .market-list-compact {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .market-list-compact li {
+      font-size: 14px;
+      line-height: 1.45;
+      margin-bottom: 8px;
+      padding-left: 0;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .market-list-compact li::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      margin-top: 0.45em;
+      border-radius: 50%;
+      background: var(--primary);
+      flex-shrink: 0;
+    }
+
+    .market-list-compact strong {
+      color: var(--ink);
+    }
+
+    .market-digital-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .market-digital-item {
+      background: rgba(15, 118, 110, 0.06);
+      border: 1px solid rgba(15, 118, 110, 0.15);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .market-digital-item .val {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .market-digital-item .lbl {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.3;
+    }
+
+    .market-gap {
+      padding: 12px 14px;
+      background: #FEF3C7;
+      border: 1px solid #FDE68A;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #92400E;
+      margin-top: 10px;
+    }
+
+    .market-gap strong {
+      color: #78350F;
+    }
+
+    .market-beachhead {
+      margin-top: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .market-sources {
+      margin-top: auto;
+      padding-top: 10px;
+      font-size: 10px;
+      color: #9CA3AF;
+      line-height: 1.4;
+    }
+
+    .market-split .bars {
+      height: 120px;
+      margin-top: 8px;
+    }
+
     @media print {
       /* Format 16:9 widescreen (identique PowerPoint) */
       @page {
@@ -1055,26 +1200,74 @@
         <span class="slide-num">06 / 12</span>
       </div>
       <h3>Marché</h3>
-      <h2>Maroc — assurance non-vie en phase digitale.</h2>
-      <div class="two-col">
-        <div>
-          <ul>
-            <li><strong>Parc auto</strong> en croissance — urbain, classe moyenne, moto</li>
-            <li><strong>Sous-pénétration</strong> de l'assurance directe vs réseau agences</li>
-            <li><strong>Attente mobile-first</strong> — Revolut, Alan, pas formulaire PDF</li>
-          </ul>
-          <p style="margin-top:20px; font-weight:600; color:var(--primary)">Beachhead : auto & moto particuliers · grandes villes · 25–45 ans</p>
+      <h2>1,5 M de contrats auto — une génération 100 % mobile, un canal digital quasi vierge.</h2>
+
+      <div class="market-stats">
+        <div class="market-stat">
+          <div class="market-stat-num">~1,46 M</div>
+          <div class="market-stat-lbl">véhicules assurés<br><small>+4,2% sur 1 an (Q2 2026)</small></div>
         </div>
-        <div>
-          <h4 style="font-size:14px; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:.06em">Expansion TAM</h4>
-          <div class="bars">
-            <div class="bar-col"><div class="bar" style="height:55%"></div><span>Auto/Moto<br><small>2026</small></span></div>
-            <div class="bar-col"><div class="bar" style="height:75%"></div><span>Flottes PME<br><small>2027</small></span></div>
-            <div class="bar-col"><div class="bar" style="height:90%"></div><span>B2B2C<br><small>2028</small></span></div>
-            <div class="bar-col"><div class="bar" style="height:100%; opacity:.5"></div><span>Afrique fr.<br><small>2029+</small></span></div>
-          </div>
+        <div class="market-stat">
+          <div class="market-stat-num">16,2 Mds</div>
+          <div class="market-stat-lbl">MAD primes auto 2025<br><small>~47% du non-vie · +6,6%</small></div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-num">&gt;4 M</div>
+          <div class="market-stat-lbl">parc roulant total<br><small>véhicules + motos</small></div>
+        </div>
+        <div class="market-stat">
+          <div class="market-stat-num">17%</div>
+          <div class="market-stat-lbl">part Tous Risques<br><small>vs 14% en 2024 — upsell</small></div>
         </div>
       </div>
+
+      <div class="two-col market-split">
+        <div>
+          <div class="market-block-title">Nouvelle génération ultra-digitalisée</div>
+          <div class="market-digital-grid">
+            <div class="market-digital-item">
+              <div class="val">92%</div>
+              <div class="lbl">pénétration internet<br>35,5 M utilisateurs</div>
+            </div>
+            <div class="market-digital-item">
+              <div class="val">77%</div>
+              <div class="lbl">15–34 ans connectés<br>vs 40% en rural</div>
+            </div>
+            <div class="market-digital-item">
+              <div class="val">88%</div>
+              <div class="lbl">mobile en 4G/5G<br>43 M+ abonnés data</div>
+            </div>
+            <div class="market-digital-item">
+              <div class="val">~100%</div>
+              <div class="lbl">foyers urbains<br>équipés smartphone</div>
+            </div>
+          </div>
+          <ul class="market-list-compact">
+            <li><strong>Comportement mobile-first</strong> — banque, e-commerce, services publics : le digital est la norme pour les 25–40 ans urbains</li>
+            <li><strong>Attente instantanée</strong> — devis en ligne, paiement mobile, attestation PDF : le modèle agence + paperasse ne scale plus</li>
+            <li><strong>Renouvellement annuel</strong> — ~1,5 M contrats à reconquérir chaque année = flux récurrent capturable en ligne</li>
+          </ul>
+          <div class="market-gap">
+            <strong>Écart structurel :</strong> l'assurance auto se souscrit encore à &gt;95% via agences et courtiers — le canal direct digital est quasi inexploité malgré une population déjà prête.
+          </div>
+        </div>
+        <div>
+          <div class="market-block-title">Opportunité SURO · expansion TAM</div>
+          <div class="bars">
+            <div class="bar-col"><div class="bar" style="height:55%"></div><span>Auto/Moto<br><small>2026 · 16 Mds MAD</small></span></div>
+            <div class="bar-col"><div class="bar" style="height:72%"></div><span>Flottes PME<br><small>2027</small></span></div>
+            <div class="bar-col"><div class="bar" style="height:88%"></div><span>B2B2C auto<br><small>2028</small></span></div>
+            <div class="bar-col"><div class="bar" style="height:100%; opacity:.5"></div><span>Afrique fr.<br><small>2029+</small></span></div>
+          </div>
+          <p class="market-beachhead">Beachhead : auto & moto particuliers · Casa-Rabat-Tanger · 25–45 ans · prime moy. 2 500–5 000 MAD</p>
+          <ul class="market-list-compact" style="margin-top:10px">
+            <li><strong>Cible adressable immédiate</strong> — ~400 k jeunes conducteurs urbains renouvelant leur RC chaque année</li>
+            <li><strong>Levier prix</strong> — transparence TTC en ligne = différenciation vs parcours opaque en agence</li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="market-sources">Sources : FMA Chiffres clés 2025 · ACAPS Rapport secteur 2024 · DataReportal Digital Morocco 2026 · ANRT · Wafir Observatoire assurance auto Q2 2026</p>
     </div>
     <div class="slide-footer"></div>
   </section>

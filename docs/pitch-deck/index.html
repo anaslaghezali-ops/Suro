@@ -27,37 +27,150 @@
     html, body {
       height: 100%;
       font-family: 'Inter', system-ui, sans-serif;
-      background: #0a0f14;
+      background: #000;
       color: var(--ink);
       overflow: hidden;
     }
 
-    .deck {
-      width: 100vw;
-      height: 100vh;
+    body.presentation-mode {
+      cursor: none;
+    }
+
+    body.presentation-mode.show-ui {
+      cursor: default;
+    }
+
+    /* ====== ÉCRAN D'ACCUEIL PRÉSENTATION ====== */
+    .presenter-start {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
+      background: linear-gradient(145deg, #0B5A54 0%, #0F766E 45%, #0D9488 100%);
+      color: #fff;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    .presenter-start.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .presenter-start-inner {
+      text-align: center;
+      max-width: 520px;
+      padding: 40px 24px;
+    }
+
+    .presenter-start-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .presenter-start-logo img {
+      width: 56px;
+      height: 56px;
+      filter: brightness(0) invert(1);
+    }
+
+    .presenter-start-logo span {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+    }
+
+    .presenter-start h1 {
+      color: #fff;
+      font-size: clamp(1.75rem, 4vw, 2.25rem);
+      margin-bottom: 10px;
+    }
+
+    .presenter-start p {
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 16px;
+      margin-bottom: 28px;
+    }
+
+    .btn-present {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 32px;
+      background: #fff;
+      color: #0B5A54;
+      border: none;
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn-present:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.32);
+    }
+
+    .presenter-start-hint {
+      margin-top: 20px !important;
+      font-size: 13px !important;
+      color: rgba(255, 255, 255, 0.5) !important;
+      margin-bottom: 0 !important;
+    }
+
+    /* ====== SCÈNE PRÉSENTATION (plein écran) ====== */
+    .deck {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      overflow: hidden;
     }
 
     .slide {
-      display: none;
-      width: min(96vw, var(--slide-w));
-      height: min(90vh, var(--slide-h));
+      display: flex;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
       background: var(--white);
-      border-radius: 16px;
-      box-shadow: 0 40px 120px rgba(0,0,0,.45);
+      border-radius: 0;
+      box-shadow: none;
       overflow: hidden;
-      position: relative;
       flex-direction: column;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(24px);
+      transition: opacity 0.35s ease, transform 0.35s ease, visibility 0.35s ease;
+      z-index: 0;
     }
 
-    .slide.active { display: flex; }
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(0);
+      z-index: 1;
+    }
+
+    .slide.slide--prev {
+      transform: translateX(-24px);
+    }
 
     .slide-inner {
       flex: 1;
-      padding: 56px 64px 48px;
+      width: 100%;
+      max-width: var(--slide-w);
+      margin: 0 auto;
+      padding: clamp(32px, 5vh, 56px) clamp(40px, 6vw, 64px) clamp(28px, 4vh, 48px);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -326,9 +439,9 @@
 
     .cover-meta {
       position: absolute;
-      bottom: 48px;
-      left: 64px;
-      right: 64px;
+      bottom: clamp(24px, 4vh, 48px);
+      left: clamp(40px, 6vw, 64px);
+      right: clamp(40px, 6vw, 64px);
       display: flex;
       justify-content: space-between;
       font-size: 14px;
@@ -462,55 +575,115 @@
       background: linear-gradient(90deg, var(--primary), var(--primary-light));
     }
 
-    /* Nav */
-    .nav {
+    /* Barre de progression (style PowerPoint) */
+    .presenter-progress {
       position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      background: rgba(255,255,255,.1);
-      backdrop-filter: blur(12px);
-      padding: 10px 20px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.15);
-      z-index: 100;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.12);
+      z-index: 120;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      pointer-events: none;
     }
 
-    .nav button {
-      background: rgba(255,255,255,.15);
-      border: none;
-      color: white;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 18px;
+    body.presentation-mode .presenter-progress {
+      opacity: 1;
+    }
+
+    .presenter-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      transition: width 0.35s ease;
+    }
+
+    /* Contrôles présentateur */
+    .presenter-ui {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background .15s;
+      gap: 12px;
+      z-index: 130;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      pointer-events: none;
     }
 
-    .nav button:hover { background: rgba(255,255,255,.28); }
+    body.presentation-mode.show-ui .presenter-ui {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
 
-    .nav .counter {
-      color: rgba(255,255,255,.8);
+    .presenter-ui button {
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+
+    .presenter-ui button:hover {
+      background: rgba(0, 0, 0, 0.72);
+    }
+
+    .presenter-counter {
+      min-width: 72px;
+      text-align: center;
+      padding: 8px 14px;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      color: rgba(255, 255, 255, 0.9);
       font-size: 13px;
       font-weight: 600;
-      min-width: 48px;
-      text-align: center;
     }
 
-    .hint {
+    .presenter-exit {
       position: fixed;
       top: 16px;
-      right: 20px;
+      right: 16px;
+      z-index: 130;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      pointer-events: none;
+    }
+
+    body.presentation-mode.show-ui .presenter-exit {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .presenter-exit button {
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.85);
+      padding: 8px 14px;
+      border-radius: 8px;
       font-size: 12px;
-      color: rgba(255,255,255,.4);
-      z-index: 100;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .presenter-exit button:hover {
+      background: rgba(0, 0, 0, 0.72);
     }
 
     .badge {
@@ -529,9 +702,14 @@
 
     @media print {
       html, body { background: white; overflow: visible; }
-      .deck { display: block; height: auto; }
+      .presenter-start, .presenter-ui, .presenter-progress, .presenter-exit { display: none !important; }
+      .deck { position: static; height: auto; }
       .slide {
         display: flex !important;
+        position: relative;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
         page-break-after: always;
         width: 100%;
         height: 100vh;
@@ -539,13 +717,23 @@
         border-radius: 0;
         margin: 0;
       }
-      .nav, .hint { display: none; }
     }
   </style>
 </head>
 <body>
 
-<p class="hint">← → ou clic · F pour plein écran · Ctrl+P pour PDF</p>
+<div class="presenter-start" id="presenter-start">
+  <div class="presenter-start-inner">
+    <div class="presenter-start-logo">
+      <img src="../../assets/brand/suro-mark.svg" alt="SURO">
+      <span>SURO</span>
+    </div>
+    <h1>Pitch investisseurs</h1>
+    <p>12 slides · Mode présentation plein écran</p>
+    <button type="button" class="btn-present" id="btn-start">▶ Démarrer la présentation</button>
+    <p class="presenter-start-hint">Flèches · Espace · Clic gauche/droite · F plein écran · Échap pour quitter</p>
+  </div>
+</div>
 
 <div class="deck" id="deck">
 
@@ -941,43 +1129,123 @@
 
 </div>
 
-<nav class="nav" aria-label="Navigation slides">
+<div class="presenter-progress" aria-hidden="true">
+  <div class="presenter-progress-bar" id="progress-bar"></div>
+</div>
+
+<div class="presenter-exit" id="presenter-exit">
+  <button type="button" id="btn-exit">Quitter la présentation</button>
+</div>
+
+<nav class="presenter-ui" id="presenter-ui" aria-label="Navigation slides">
   <button type="button" id="prev" aria-label="Slide précédente">←</button>
-  <span class="counter" id="counter">1 / 12</span>
+  <span class="presenter-counter" id="counter">1 / 12</span>
   <button type="button" id="next" aria-label="Slide suivante">→</button>
+  <button type="button" id="btn-fullscreen" aria-label="Plein écran" title="Plein écran (F)">⛶</button>
 </nav>
 
 <script>
   const slides = [...document.querySelectorAll('.slide')];
+  const body = document.body;
+  const startScreen = document.getElementById('presenter-start');
+  const progressBar = document.getElementById('progress-bar');
   let current = 0;
+  let presenting = false;
+  let uiTimer = null;
 
-  function show(i) {
-    current = Math.max(0, Math.min(slides.length - 1, i));
-    slides.forEach((s, idx) => s.classList.toggle('active', idx === current));
-    document.getElementById('counter').textContent = `${current + 1} / ${slides.length}`;
+  function showUi() {
+    if (!presenting) return;
+    body.classList.add('show-ui');
+    clearTimeout(uiTimer);
+    uiTimer = setTimeout(() => body.classList.remove('show-ui'), 2800);
   }
 
+  function show(i) {
+    const next = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((slide, idx) => {
+      slide.classList.remove('active', 'slide--prev');
+      if (idx === current && next > current) slide.classList.add('slide--prev');
+      if (idx === current && next < current) slide.classList.add('slide--prev');
+    });
+    current = next;
+    slides.forEach((slide, idx) => slide.classList.toggle('active', idx === current));
+    document.getElementById('counter').textContent = `${current + 1} / ${slides.length}`;
+    progressBar.style.width = `${((current + 1) / slides.length) * 100}%`;
+    showUi();
+  }
+
+  async function enterPresentation() {
+    presenting = true;
+    body.classList.add('presentation-mode');
+    startScreen.classList.add('is-hidden');
+    show(0);
+    showUi();
+    try {
+      if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+    } catch (_) { /* plein écran optionnel si bloqué par le navigateur */ }
+  }
+
+  function exitPresentation() {
+    presenting = false;
+    body.classList.remove('presentation-mode', 'show-ui');
+    startScreen.classList.remove('is-hidden');
+    if (document.fullscreenElement) document.exitFullscreen();
+  }
+
+  document.getElementById('btn-start').onclick = enterPresentation;
+  document.getElementById('btn-exit').onclick = exitPresentation;
   document.getElementById('prev').onclick = () => show(current - 1);
   document.getElementById('next').onclick = () => show(current + 1);
+  document.getElementById('btn-fullscreen').onclick = async () => {
+    if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+    else await document.exitFullscreen();
+    showUi();
+  };
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); show(current + 1); }
-    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(current - 1); }
+    if (!presenting && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      enterPresentation();
+      return;
+    }
+    if (!presenting) return;
+
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      show(current + 1);
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      show(current - 1);
+    }
     if (e.key === 'Home') show(0);
     if (e.key === 'End') show(slides.length - 1);
+    if (e.key === 'Escape') exitPresentation();
     if (e.key === 'f' || e.key === 'F') {
+      e.preventDefault();
       if (!document.fullscreenElement) document.documentElement.requestFullscreen();
       else document.exitFullscreen();
+      showUi();
     }
   });
 
-  // Clic moitié droite / gauche
   document.getElementById('deck').addEventListener('click', (e) => {
-    if (e.target.closest('.nav')) return;
+    if (!presenting) return;
+    if (e.target.closest('.presenter-ui, .presenter-exit')) return;
     const x = e.clientX / window.innerWidth;
-    if (x > 0.65) show(current + 1);
-    else if (x < 0.35) show(current - 1);
+    if (x > 0.62) show(current + 1);
+    else if (x < 0.38) show(current - 1);
+    else showUi();
   });
+
+  document.addEventListener('mousemove', showUi);
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement && presenting) showUi();
+  });
+
+  // Première slide visible derrière l'écran d'accueil
+  slides[0].classList.add('active');
+  progressBar.style.width = `${(1 / slides.length) * 100}%`;
 </script>
 </body>
 </html>

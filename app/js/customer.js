@@ -491,9 +491,25 @@ class CustomerDashboard {
     }
   }
 
+  customerEmail() {
+    return (this.session?.email || '').trim().toLowerCase();
+  }
+
+  belongsToCustomer(record) {
+    const email = this.customerEmail();
+    if (!email || !record) return false;
+    return (record.customer_email || '').trim().toLowerCase() === email;
+  }
+
+  filterOwnCustomerRows(rows) {
+    return (rows || []).filter((row) => this.belongsToCustomer(row));
+  }
+
   async fetchPolicies(force = false) {
     if (!this.policies || force) {
-      this.policies = await this.api.getMyPolicies() || [];
+      const rows = await this.api.getMyPolicies() || [];
+      // Les comptes staff voient tout via RLS admin ; l'espace client = ses contrats seulement.
+      this.policies = this.filterOwnCustomerRows(rows);
     }
     return this.policies;
   }
@@ -1205,7 +1221,8 @@ class CustomerDashboard {
 
   async fetchDocuments(force = false) {
     if (!this.documents || force) {
-      this.documents = await this.api.getMyDocuments() || [];
+      const rows = await this.api.getMyDocuments() || [];
+      this.documents = this.filterOwnCustomerRows(rows);
     }
     return this.documents;
   }
@@ -1538,7 +1555,10 @@ class CustomerDashboard {
     try {
       const policies = await this.fetchPolicies();
       const p = policies.find(x => x.id === policyId);
-      if (!p) return;
+      if (!p) {
+        toast('Contrat introuvable sur ton compte.', 'err');
+        return;
+      }
 
       const premium = p.annual_premium
         ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH`
@@ -1569,7 +1589,10 @@ class CustomerDashboard {
     try {
       const policies = await this.fetchPolicies();
       const p = policies.find(x => x.id === policyId);
-      if (!p) return;
+      if (!p) {
+        toast('Contrat introuvable sur ton compte.', 'err');
+        return;
+      }
 
       const premium = p.annual_premium
         ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH`

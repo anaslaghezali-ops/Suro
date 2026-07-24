@@ -96,6 +96,7 @@ class CustomerDashboard {
     }
 
     this.setupNavigation();
+    this.setupDashboardStatCards();
     this.setupFilters();
     this.setupSupportLinks();
     this.loadProfileHeader();
@@ -246,9 +247,7 @@ class CustomerDashboard {
       ? `${new Date(p.expires_at).toLocaleDateString('fr-FR')}${expired ? ' <span class="policy-detail-expired">(expiré)</span>' : ''}`
       : '—';
 
-    const actionBtn = p.status === 'nouvelle'
-      ? `<button type="button" class="btn btn-primary" onclick="dashboard.payPolicy('${p.id}')">Payer et activer mon contrat</button>`
-      : `<button type="button" class="btn btn-primary" onclick="dashboard.renewPolicy('${p.id}')">Renouveler ce contrat</button>`;
+    const actionBtn = this.renderPolicyPrimaryAction(p, this.summarizeKycForPolicy(p.id, docs), { size: 'lg' });
 
     return `
       <div class="policy-detail">
@@ -312,12 +311,23 @@ class CustomerDashboard {
     `;
   }
 
-  policyActionButtons(p) {
+  renderPolicyPrimaryAction(p, kyc = null, { size = 'sm' } = {}) {
+    const btnClass = size === 'lg' ? 'btn btn-primary' : 'btn btn-primary btn-sm';
+    if (p.status === 'nouvelle') {
+      const label = size === 'lg' ? 'Payer et activer mon contrat' : 'Payer';
+      return `<button type="button" class="${btnClass}" onclick="dashboard.payPolicy('${p.id}')">${label}</button>`;
+    }
+    if (this.policyRequiresKyc(p) && kyc && !kyc.complete) {
+      const label = size === 'lg' ? 'Compléter mon dossier' : 'Compléter le dossier';
+      return `<button type="button" class="${btnClass}" onclick="dashboard.openDocumentsForPolicy('${p.id}')">${label}</button>`;
+    }
+    const label = size === 'lg' ? 'Renouveler ce contrat' : 'Renouveler';
+    return `<button type="button" class="${btnClass}" onclick="dashboard.renewPolicy('${p.id}')">${label}</button>`;
+  }
+
+  policyActionButtons(p, kyc = null) {
     const detailBtn = `<button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button>`;
-    const actionBtn = p.status === 'nouvelle'
-      ? `<button type="button" class="btn btn-primary btn-sm" onclick="dashboard.payPolicy('${p.id}')">Payer</button>`
-      : `<button type="button" class="btn btn-primary btn-sm" onclick="dashboard.renewPolicy('${p.id}')">Renouveler</button>`;
-    return `${detailBtn}${actionBtn}`;
+    return `${detailBtn}${this.renderPolicyPrimaryAction(p, kyc)}`;
   }
 
   renderPolicyCard(p, { compact = false, kyc = null } = {}) {
@@ -358,7 +368,7 @@ class CustomerDashboard {
         ${compact ? '' : stat('expiry', 'Échéance', expiry)}
         ${compact ? '' : stat('mobile-only', 'Type', typeLabel)}
         <span class="policy-card__status">${badge}</span>
-        <div class="policy-card__actions">${this.policyActionButtons(p)}</div>
+        <div class="policy-card__actions">${this.policyActionButtons(p, kyc)}</div>
       </article>
     `;
   }
@@ -448,6 +458,29 @@ class CustomerDashboard {
     });
   }
 
+  setupDashboardStatCards() {
+    document.querySelectorAll('.stat-card--link[data-nav-page]').forEach((card) => {
+      card.addEventListener('click', () => {
+        this.navigateToStat({
+          page: card.dataset.navPage,
+          filter: card.dataset.navFilter || '',
+        });
+      });
+    });
+  }
+
+  navigateToStat({ page, filter = '' }) {
+    if (page === 'policies' && filter) {
+      const select = document.getElementById('filter-policy-status');
+      if (select) select.value = filter;
+    }
+    if (page === 'claims' && filter) {
+      const select = document.getElementById('filter-claim-status');
+      if (select) select.value = filter;
+    }
+    this.navigateTo(page);
+  }
+
   setDashboardStatsLoading(loading) {
     const grid = document.getElementById('dashboard-stats');
     if (grid) grid.setAttribute('aria-busy', loading ? 'true' : 'false');
@@ -482,9 +515,25 @@ class CustomerDashboard {
     }
   }
 
+  customerEmail() {
+    return (this.session?.email || '').trim().toLowerCase();
+  }
+
+  belongsToCustomer(record) {
+    const email = this.customerEmail();
+    if (!email || !record) return false;
+    return (record.customer_email || '').trim().toLowerCase() === email;
+  }
+
+  filterOwnCustomerRows(rows) {
+    return (rows || []).filter((row) => this.belongsToCustomer(row));
+  }
+
   async fetchPolicies(force = false) {
     if (!this.policies || force) {
-      this.policies = await this.api.getMyPolicies() || [];
+      const rows = await this.api.getMyPolicies() || [];
+      // Les comptes staff voient tout via RLS admin ; l'espace client = ses contrats seulement.
+      this.policies = this.filterOwnCustomerRows(rows);
     }
     return this.policies;
   }
@@ -521,14 +570,13 @@ class CustomerDashboard {
       this.renderPendingPaymentBanner(policies, 'pending-payment-banner-dashboard');
       this.renderPendingDocsBanner(policies, allDocs, 'pending-docs-banner-dashboard');
       this.updateDocumentsNavBadge(policies, allDocs);
-      const claims = await this.api.getMyClaims() || [];
-      // Nombre réel de paiements (initial + renouvellements), pas de contrats
-      const payments = await this.api.getMyPayments().catch(() => []);
+      const claims = await this.fetchClaims(true);
+      const payments = await this.fetchPayments(true);
 
       document.getElementById('stat-active-policies').textContent =
         policies.filter(p => p.status === 'active').length;
       document.getElementById('stat-claims').textContent = claims.length;
-      document.getElementById('stat-payments').textContent = (payments || []).length;
+      document.getElementById('stat-payments').textContent = payments.length;
 
       // Prochaine échéance = la plus proche parmi les contrats actifs
       const expiries = policies
@@ -591,8 +639,7 @@ class CustomerDashboard {
   async loadClaims() {
     this.setTableSkeleton('claims-tbody', 5, 3);
     try {
-      const claims = await this.api.getMyClaims() || [];
-      this.claims = claims;
+      const claims = await this.fetchClaims(true);
       const statusFilter = document.getElementById('filter-claim-status')?.value || '';
       const filtered = statusFilter ? claims.filter(c => c.status === statusFilter) : claims;
       const tbody = document.getElementById('claims-tbody');
@@ -647,9 +694,20 @@ class CustomerDashboard {
 
   async fetchPayments(force = false) {
     if (!this.payments || force) {
-      this.payments = await this.api.getMyPayments().catch(() => []);
+      const rows = await this.api.getMyPayments().catch(() => []);
+      this.payments = this.filterOwnCustomerRows(rows);
     }
     return this.payments;
+  }
+
+  async fetchClaims(force = false) {
+    if (!this.claims || force) {
+      const rows = await this.api.getMyClaims() || [];
+      const policies = await this.fetchPolicies();
+      const ownPolicyIds = new Set((policies || []).map((p) => p.id));
+      this.claims = (rows || []).filter((c) => ownPolicyIds.has(c.application_id));
+    }
+    return this.claims;
   }
 
   setPaymentsLoading(loading) {
@@ -1030,10 +1088,10 @@ class CustomerDashboard {
     try {
       const [policies, payments] = await Promise.all([
         this.fetchPolicies(),
-        this.api.getMyPayments().catch(() => []),
+        this.fetchPayments(),
       ]);
       const activeCount = (policies || []).filter((p) => p.status === 'active').length;
-      const paymentCount = (payments || []).length;
+      const paymentCount = payments.length;
       const policiesEl = document.getElementById('profile-stat-policies');
       const paymentsEl = document.getElementById('profile-stat-payments');
       if (policiesEl) policiesEl.textContent = activeCount;
@@ -1196,7 +1254,8 @@ class CustomerDashboard {
 
   async fetchDocuments(force = false) {
     if (!this.documents || force) {
-      this.documents = await this.api.getMyDocuments() || [];
+      const rows = await this.api.getMyDocuments() || [];
+      this.documents = this.filterOwnCustomerRows(rows);
     }
     return this.documents;
   }
@@ -1529,7 +1588,10 @@ class CustomerDashboard {
     try {
       const policies = await this.fetchPolicies();
       const p = policies.find(x => x.id === policyId);
-      if (!p) return;
+      if (!p) {
+        toast('Contrat introuvable sur ton compte.', 'err');
+        return;
+      }
 
       const premium = p.annual_premium
         ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH`
@@ -1560,7 +1622,10 @@ class CustomerDashboard {
     try {
       const policies = await this.fetchPolicies();
       const p = policies.find(x => x.id === policyId);
-      if (!p) return;
+      if (!p) {
+        toast('Contrat introuvable sur ton compte.', 'err');
+        return;
+      }
 
       const premium = p.annual_premium
         ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH`
@@ -1644,7 +1709,7 @@ class CustomerDashboard {
 
   async viewClaimDetail(claimId) {
     try {
-      const claims = this.claims || await this.api.getMyClaims() || [];
+      const claims = await this.fetchClaims();
       const c = claims.find(x => x.id === claimId);
       if (!c) return;
 

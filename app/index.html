@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="../css/toast.css?v=38">
   <link rel="stylesheet" href="../css/tunnel.css?v=44">
   <link rel="stylesheet" href="css/dashboard.css?v=37">
-  <link rel="stylesheet" href="css/customer.css?v=51">
+  <link rel="stylesheet" href="css/customer.css?v=53">
 </head>
 <body>
   <div class="admin-container">
@@ -105,37 +105,37 @@
           <div id="pending-docs-banner-dashboard"></div>
 
           <div class="stats-grid" id="dashboard-stats" aria-busy="true">
-            <div class="stat-card">
+            <button type="button" class="stat-card stat-card--link" data-nav-page="policies" data-nav-filter="active" aria-label="Voir mes contrats actifs">
               <div class="stat-card-head">
                 <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg></span>
                 <h3>Contrats actifs</h3>
               </div>
               <div class="stat-value" id="stat-active-policies"><span class="stat-skeleton skeleton skeleton-text"></span></div>
-            </div>
+            </button>
 
-            <div class="stat-card">
+            <button type="button" class="stat-card stat-card--link" data-nav-page="claims" aria-label="Voir mes sinistres">
               <div class="stat-card-head">
                 <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19z"/><path d="M12 9v4M12 17h.01"/></svg></span>
                 <h3>Sinistres</h3>
               </div>
               <div class="stat-value" id="stat-claims"><span class="stat-skeleton skeleton skeleton-text"></span></div>
-            </div>
+            </button>
 
-            <div class="stat-card">
+            <button type="button" class="stat-card stat-card--link" data-nav-page="payments" aria-label="Voir mes paiements">
               <div class="stat-card-head">
                 <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>
                 <h3>Paiements effectués</h3>
               </div>
               <div class="stat-value" id="stat-payments"><span class="stat-skeleton skeleton skeleton-text"></span></div>
-            </div>
+            </button>
 
-            <div class="stat-card">
+            <button type="button" class="stat-card stat-card--link" data-nav-page="policies" data-nav-filter="active" aria-label="Voir mes contrats et échéances">
               <div class="stat-card-head">
                 <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
                 <h3>Prochaine échéance</h3>
               </div>
               <div class="stat-value stat-value--date" id="stat-next-renewal"><span class="stat-skeleton skeleton skeleton-text"></span></div>
-            </div>
+            </button>
           </div>
 
           <!-- Urgence sinistre -->
@@ -724,6 +724,6 @@
   <script src="../js/notifications.js?v=37"></script>
   <script src="../js/toast.js?v=38"></script>
   <script src="../js/features/onboarding/tunnel.js?v=46"></script>
-  <script src="js/customer.js?v=52"></script>
+  <script src="js/customer.js?v=56"></script>
 </body>
 </html>

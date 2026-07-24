@@ -5,6 +5,7 @@ import { useAsync } from '../lib/useAsync.js';
 import { Spinner, Badge, Empty, toast } from '../components/ui.js';
 import { fmtDate } from '../lib/format.js';
 import { OPERATING_MODES } from '../lib/permissions.js';
+import { readOperatingMode, operatingModeMeta, applyOperatingMode } from '../lib/operatingMode.js';
 
 const CABINET_ROLES = [
   { id: 'gestionnaire', label: 'Gestionnaire' },
@@ -32,33 +33,24 @@ function OperatingModePanel() {
   const [mode, setMode] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  const current = mode || (() => {
-    const by = {}; (settings.data || []).forEach((s) => { by[s.key] = s.value; });
-    return by.operating_mode === 'courtier' ? 'courtier' : 'intermediaire';
-  })();
-  const meta = OPERATING_MODES[current] || OPERATING_MODES.intermediaire;
+  const current = mode || readOperatingMode(settings.data);
+  const meta = operatingModeMeta(current);
 
   const save = async () => {
     setBusy(true);
     try {
-      let result = null;
-      try {
-        result = await api.switchOperatingMode(current);
-      } catch {
-        await api.updateSetting('operating_mode', current);
-        result = { ok: true };
-      }
-      if (result && result.ok === false) {
-        const parts = [result.message || result.error];
-        if (result.open_tasks != null) parts.push(`dossiers ouverts : ${result.open_tasks}`);
-        if (result.open_claims != null) parts.push(`sinistres ouverts : ${result.open_claims}`);
-        toast(parts.filter(Boolean).join(' — '), 'err');
-        return;
-      }
-      window.dispatchEvent(new CustomEvent('suro-operating-mode-changed', { detail: current }));
+      const outcome = await applyOperatingMode(current);
+      if (!outcome.ok) return;
       toast('Mode enregistré : ' + meta.label, 'ok');
       settings.reload();
-    } catch (e) { toast('Échec : ' + (e.message || ''), 'err'); }
+    } catch (e) {
+      const msg = e.message || '';
+      if (msg.includes('suro_switch_operating_mode') || msg.includes('Could not find the function')) {
+        toast('Migrations cabinet requises — exécutez ./staging/scripts/apply-migrations.sh sur la base', 'err');
+      } else {
+        toast('Échec : ' + msg, 'err');
+      }
+    }
     finally { setBusy(false); }
   };
 
@@ -248,7 +240,8 @@ export function Cabinets({ role }) {
           <strong>Vue d'ensemble indisponible</strong>
           <p class="muted" style="margin:8px 0 0">${overview.error.message}</p>
           <p class="muted" style="margin:8px 0 0;font-size:12px">
-            Appliquez les migrations : <code>./staging/scripts/apply-migrations.sh</code>
+            Vérifiez les RPC : <code>psql "$DATABASE_URL" -f staging/scripts/verify-cabinet-rpcs.sql</code>
+            puis <code>./staging/scripts/apply-migrations.sh</code>
           </p>
         </div>
       </div>` : null}

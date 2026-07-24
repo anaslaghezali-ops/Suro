@@ -37,6 +37,7 @@ USE_TEST_HARNESS=1 "$ROOT/staging/scripts/apply-migrations.sh" \
 echo
 echo "--- Phase 2 : rollback (ordre inverse) ---"
 run_sql "$ROOT/docs/migrations/20260727_cabinet_staff_admin_down.sql"
+run_sql "$ROOT/docs/migrations/20260727_operating_mode_guard_down.sql"
 run_sql "$ROOT/docs/migrations/20260727_cabinet_fixes_down.sql"
 run_sql "$ROOT/docs/migrations/20260726_operating_mode_down.sql"
 run_sql "$ROOT/docs/migrations/20260726_cabinet_rls_perf_down.sql"
@@ -62,6 +63,7 @@ CABINET_MIGRATIONS=(
   20260726_operating_mode.sql
   20260727_cabinet_fixes.sql
   20260727_cabinet_staff_admin.sql
+  20260727_operating_mode_guard.sql
 )
 for f in "${CABINET_MIGRATIONS[@]}"; do
   run_sql "$ROOT/docs/migrations/$f"

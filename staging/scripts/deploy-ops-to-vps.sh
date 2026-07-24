@@ -28,8 +28,12 @@ rsync -avz \
   "${ROOT}/js/services/cabinet-portal.js" \
   "${VPS_USER}@${VPS_HOST}:${WEB_ROOT}/js/services/"
 
-echo ""
 echo "==> Déployé. Dans le navigateur :"
 echo "    http://${VPS_HOST}/ops/#/cabinets   → créer cabinet + mode"
 echo "    http://${VPS_HOST}/ops/#/settings   → mode d'exploitation"
 echo "    Ctrl+Shift+R pour vider le cache"
+echo ""
+echo "==> Base de données (obligatoire avant utilisation Cabinets / mode) :"
+echo "    psql \"\$DATABASE_URL\" -f staging/scripts/verify-cabinet-rpcs.sql"
+echo "    ./staging/scripts/apply-migrations.sh"
+echo "    ./staging/scripts/seed-cabinets.sh"

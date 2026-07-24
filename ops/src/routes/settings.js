@@ -4,6 +4,7 @@ import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
 import { Spinner, Empty, toast } from '../components/ui.js';
 import { can, OPERATING_MODES } from '../lib/permissions.js';
+import { readOperatingMode, operatingModeMeta, applyOperatingMode } from '../lib/operatingMode.js';
 
 // Contacts support éditables (clés dans suro_settings)
 const CONTACT_FIELDS = [
@@ -64,37 +65,25 @@ function OperatingModeSettings({ editable }) {
   if (loading) return html`<div style="padding:20px"><${Spinner}/></div>`;
   if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;
 
-  const current = mode || (() => {
-    const by = {}; (data || []).forEach((s) => { by[s.key] = s.value; });
-    return by.operating_mode === 'courtier' ? 'courtier' : 'intermediaire';
-  })();
-  const meta = OPERATING_MODES[current] || OPERATING_MODES.intermediaire;
+  const current = mode || readOperatingMode(data);
+  const meta = operatingModeMeta(current);
 
   const save = async () => {
     setBusy(true);
     try {
-      let result = null;
-      try {
-        result = await api.switchOperatingMode(current);
-      } catch (rpcErr) {
-        // Fallback si migration suro_switch_operating_mode pas encore appliquée
-        await api.updateSetting('operating_mode', current);
-        result = { ok: true, mode: current, fallback: true };
-      }
-      if (result && result.ok === false) {
-        const parts = [result.message || result.error];
-        if (result.open_tasks != null) parts.push(`dossiers ouverts : ${result.open_tasks}`);
-        if (result.open_claims != null) parts.push(`sinistres ouverts : ${result.open_claims}`);
-        if (result.pending_kyc != null) parts.push(`KYC Ops en attente : ${result.pending_kyc}`);
-        if (result.pending_claims != null) parts.push(`sinistres Ops en attente : ${result.pending_claims}`);
-        toast(parts.filter(Boolean).join(' — '), 'err');
-        return;
-      }
+      const outcome = await applyOperatingMode(current);
+      if (!outcome.ok) return;
       await api.logAction('update', 'settings', null, { operating_mode: current }).catch(() => {});
-      window.dispatchEvent(new CustomEvent('suro-operating-mode-changed', { detail: current }));
       toast('Mode d’exploitation enregistré', 'ok');
       setMode(null); reload();
-    } catch (e) { toast('Échec : ' + (e.message || ''), 'err'); }
+    } catch (e) {
+      const msg = e.message || '';
+      if (msg.includes('suro_switch_operating_mode') || msg.includes('Could not find the function')) {
+        toast('Migrations cabinet requises — exécutez ./staging/scripts/apply-migrations.sh sur la base', 'err');
+      } else {
+        toast('Échec : ' + msg, 'err');
+      }
+    }
     finally { setBusy(false); }
   };
 

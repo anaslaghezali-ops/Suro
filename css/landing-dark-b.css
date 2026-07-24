@@ -1,0 +1,249 @@
+/* Landing preview B — ink sur sections centrales (pas hero/footer) */
+
+:root {
+  --ink: #111827;
+  --ink-muted: rgba(255, 255, 255, 0.7);
+  --ink-subtle: rgba(255, 255, 255, 0.5);
+  --ink-glass: rgba(255, 255, 255, 0.06);
+  --ink-glass-border: rgba(255, 255, 255, 0.12);
+}
+
+/* ====== SECTION INK (commun) ====== */
+.section.section--ink {
+  background: var(--ink);
+  color: #fff;
+}
+
+.section.section--ink .section-label {
+  color: var(--color-primary-light);
+  letter-spacing: 0.1em;
+}
+
+.section.section--ink .section-title {
+  color: #fff;
+}
+
+.section.section--ink .section-desc {
+  color: var(--ink-muted);
+}
+
+/* ====== COMMENT ÇA MARCHE ====== */
+.section--ink.section-how {
+  background: var(--ink);
+}
+
+.section--ink .how-steps::before {
+  background: linear-gradient(
+    90deg,
+    rgba(20, 184, 166, 0.15),
+    rgba(20, 184, 166, 0.55),
+    rgba(20, 184, 166, 0.15)
+  );
+}
+
+.section--ink .how-step-marker {
+  background: var(--ink-glass);
+  border-color: var(--ink-glass-border);
+  color: var(--color-primary-light);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.section--ink .how-step-num {
+  background: var(--color-primary-light);
+  border-color: var(--ink);
+}
+
+.section--ink .how-step h3 {
+  color: #fff;
+}
+
+.section--ink .how-step p {
+  color: var(--ink-muted);
+}
+
+.section--ink .how-cta-note {
+  color: var(--ink-subtle);
+}
+
+/* ====== BENEFITS ====== */
+.section--ink .benefit-card {
+  background: var(--ink-glass);
+  border-color: var(--ink-glass-border);
+  box-shadow: none;
+}
+
+.section--ink .benefit-card::before {
+  background: linear-gradient(90deg, var(--color-primary-light), var(--color-primary));
+  opacity: 0.35;
+}
+
+.section--ink .benefit-card:hover {
+  border-color: rgba(20, 184, 166, 0.35);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.section--ink .benefit-card:hover::before {
+  opacity: 1;
+}
+
+.section--ink .benefit-icon {
+  background: rgba(20, 184, 166, 0.12);
+  border-color: rgba(20, 184, 166, 0.25);
+  color: var(--color-primary-light);
+}
+
+.section--ink .benefit-card h3 {
+  color: #fff;
+}
+
+.section--ink .benefit-card p {
+  color: var(--ink-muted);
+}
+
+/* ====== TRUST PROMISE (ask-box dans section claire) ====== */
+.trust-promise--ink {
+  background: var(--ink);
+  border-color: var(--ink-glass-border);
+  color: #fff;
+}
+
+.trust-promise--ink .trust-promise-copy strong {
+  color: var(--color-primary-light);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: var(--weight-semibold);
+}
+
+.trust-promise--ink .trust-promise-copy p {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: var(--text-base);
+  line-height: 1.6;
+}
+
+.trust-promise--ink .btn-secondary {
+  background: var(--ink-glass);
+  border: 1px solid var(--ink-glass-border);
+  color: #fff;
+}
+
+.trust-promise--ink .btn-secondary:hover {
+  background: rgba(20, 184, 166, 0.15);
+  border-color: rgba(20, 184, 166, 0.35);
+  color: var(--color-primary-light);
+}
+
+/* ====== TESTIMONIALS ====== */
+.section--ink.section-testimonials {
+  background: var(--ink);
+}
+
+.section--ink .testimonials-summary {
+  background: var(--ink-glass);
+  border: 1px solid var(--ink-glass-border);
+  box-shadow: none;
+}
+
+.section--ink .testimonials-score-value,
+.section--ink .testimonials-stat strong {
+  color: #fff;
+}
+
+.section--ink .testimonials-score-stars {
+  color: var(--color-primary-light);
+}
+
+.section--ink .testimonials-score-label,
+.section--ink .testimonials-stat span {
+  color: var(--ink-subtle);
+}
+
+.section--ink .testimonials-summary-divider {
+  background: var(--ink-glass-border);
+}
+
+.section--ink .testimonial-card {
+  background: var(--ink-glass);
+  border-color: var(--ink-glass-border);
+  box-shadow: none;
+}
+
+.section--ink .testimonial-card--featured {
+  background: rgba(20, 184, 166, 0.08);
+  border-color: rgba(20, 184, 166, 0.28);
+}
+
+.section--ink .testimonial-verified {
+  background: rgba(20, 184, 166, 0.15);
+  color: var(--color-primary-light);
+}
+
+.section--ink .testimonial-stars {
+  color: var(--color-primary-light);
+}
+
+.section--ink .testimonial-card p {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.section--ink .testimonial-author cite {
+  color: #fff;
+}
+
+.section--ink .testimonial-author span {
+  color: var(--ink-subtle);
+}
+
+.section--ink .testimonial-avatar {
+  background: rgba(20, 184, 166, 0.15);
+  color: var(--color-primary-light);
+  border: 1px solid rgba(20, 184, 166, 0.25);
+}
+
+/* ====== FAQ ====== */
+.section--ink.section-faq {
+  background: var(--ink);
+}
+
+.section--ink .faq-item {
+  background: var(--ink-glass);
+  border-color: var(--ink-glass-border);
+}
+
+.section--ink .faq-item:hover {
+  border-color: rgba(20, 184, 166, 0.3);
+}
+
+.section--ink .faq-item.open {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.section--ink .faq-question {
+  color: #fff;
+}
+
+.section--ink .faq-toggle {
+  color: var(--ink-subtle);
+}
+
+.section--ink .faq-item.open .faq-toggle {
+  color: var(--color-primary-light);
+}
+
+.section--ink .faq-answer p {
+  color: var(--ink-muted);
+}
+
+.section--ink .faq-answer a {
+  color: var(--color-primary-light);
+}
+
+@media (max-width: 768px) {
+  .trust-promise--ink {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+}

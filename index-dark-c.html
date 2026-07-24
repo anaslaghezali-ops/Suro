@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Assurance auto en 5 minutes. Tarif affiché avant paiement — aucun frais ni condition cachée.">
-  <title>SURO — Assurance auto simple</title>
+  <title>SURO — Preview landing cover + ink C</title>
   <link rel="canonical" href="https://anaslaghezali-ops.github.io/Suro/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="SURO">
@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="css/tokens.css?v=37">
   <link rel="stylesheet" href="css/components.css?v=40">
   <link rel="stylesheet" href="css/main.css?v=41">
-  <link rel="stylesheet" href="css/landing-dark.css?v=1">
+  <link rel="stylesheet" href="css/landing-dark-c.css?v=1">
   <link rel="stylesheet" href="css/tunnel.css?v=48">
   <script type="application/ld+json">
   {
@@ -40,7 +40,7 @@
   }
   </script>
 </head>
-<body class="landing-ink">
+<body class="landing-ink-c">
   <header class="header">
     <div class="header-inner">
       <a href="/" class="logo" aria-label="SURO — Accueil">
@@ -74,27 +74,24 @@
 
   <main>
     <!-- HERO + TUNNEL -->
-    <section class="hero hero--ink" id="souscrire">
+    <section class="hero hero--cover" id="souscrire">
       <div class="hero-grid">
         <div class="hero-copy">
-          <div class="hero-eyebrow">
-            <span class="hero-eyebrow-dot"></span>
-            Assurance auto 100% en ligne
+          <div class="cover-logo">
+            <img src="assets/brand/suro-mark.svg" width="56" height="56" alt="">
+            <span>SURO</span>
           </div>
-          <h1>Ton assurance auto,<br>prête en 5 minutes.</h1>
-          <p class="hero-description">
+          <p class="cover-tagline">Assurance auto 100% en ligne · Maroc</p>
+          <h1>L'assurance auto<br>qui se fait en 5 minutes.</h1>
+          <p class="hero-description cover-subtitle">
             Devis personnalisé et paiement sécurisé — sans paperasse, sans attente au guichet.
           </p>
-          <ul class="hero-points">
+          <ul class="hero-points hero-points--cover">
             <li>Télécharge ton attestation et reçois ta carte verte chez toi</li>
             <li>Déclare un sinistre en quelques minutes</li>
           </ul>
-          <p class="hero-price-hint">
-            <span class="hero-price-badge">Devis gratuit</span>
-            Tarif affiché avant paiement — aucun frais ni condition cachée.
-          </p>
 
-          <div class="hero-stats">
+          <div class="hero-stats hero-stats--cover">
             <div>
               <div class="hero-stat-value">5 234</div>
               <div class="hero-stat-label">Clients assurés</div>
@@ -109,37 +106,9 @@
             </div>
           </div>
 
-          <!-- Aperçu produit (CSS) -->
-          <div class="hero-visual" aria-hidden="true">
-            <div class="product-mockup">
-              <div class="mockup-header">
-                <span class="mockup-logo">
-                  <img class="logo-mark logo-mark--sm" src="assets/brand/suro-mark.svg" width="24" height="24" alt="">
-                  <span class="logo-word">SURO</span>
-                </span>
-                <span class="mockup-badge mockup-badge--live">Actif</span>
-              </div>
-              <div class="mockup-card mockup-card--policy">
-                <div class="mockup-card-label">Contrat auto</div>
-                <div class="mockup-card-title">Renault Clio · 2021</div>
-                <div class="mockup-card-meta">12345-A-6 · Couverture complète</div>
-                <div class="mockup-card-price">4 200 <span>DH/an</span></div>
-              </div>
-              <div class="mockup-card mockup-card--doc">
-                <div class="mockup-doc-icon">
-                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>
-                </div>
-                <div>
-                  <div class="mockup-card-label">Carte verte</div>
-                  <div class="mockup-card-meta">PDF dispo · Envoi à domicile</div>
-                </div>
-                <span class="mockup-check">✓</span>
-              </div>
-              <div class="mockup-footer">
-                <span class="mockup-pill">Sinistre déclaré en 2 min</span>
-              </div>
-            </div>
-            <div class="hero-visual-glow"></div>
+          <div class="cover-meta">
+            <span>Suro Assurance</span>
+            <span>Devis gratuit · Sans engagement</span>
           </div>
         </div>
 
@@ -179,7 +148,7 @@
     </section>
 
     <!-- COMMENT ÇA MARCHE -->
-    <section class="section section-how" id="comment">
+    <section class="section section-how section--ink" id="comment">
       <div class="section-inner">
         <div class="section-header">
           <div class="section-label">Comment ça marche</div>
@@ -230,46 +199,25 @@
     </section>
 
     <!-- POURQUOI SURO -->
-    <section class="section" id="pourquoi">
+    <section class="section section--ink" id="pourquoi">
       <div class="section-inner">
         <div class="section-header">
           <div class="section-label">Pourquoi nous choisir</div>
           <h2 class="section-title">L'assurance, sans la galère</h2>
           <p class="section-desc">Fini les files d'attente et les contrats incompréhensibles. SURO, c'est simple, rapide et 100 % transparent.</p>
         </div>
-        <div class="benefits-grid">
-          <article class="benefit-card">
-            <div class="benefit-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M13 2.5 5.2 13.2H11l-1.1 8.3L18.8 10.5H13V2.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-                <path d="M19.5 4.5 21 6M20 2v2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.55"/>
-              </svg>
-            </div>
-            <h3>Rapide</h3>
-            <p>Devis en quelques clics, souscription en moins de 5 minutes. Zéro guichet — ta carte verte t'est envoyée à domicile.</p>
+        <div class="cover-cards">
+          <article class="cover-card cover-card--accent">
+            <h3>Devis en 5 min</h3>
+            <p>Immatriculation, véhicule, couverture — prix TTC affiché avant tout paiement.</p>
           </article>
-          <article class="benefit-card">
-            <div class="benefit-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M12 2.75 18.5 5.5V11c0 4.55-2.93 8.55-6.5 9.85C8.43 19.55 5.5 15.55 5.5 11V5.5L12 2.75z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-                <path d="M9.2 11.8 11 13.6l3.8-3.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <h3>Transparent</h3>
-            <p>Tarif, garanties et conditions générales accessibles avant paiement. Pas de frais cachés, pas de petite ligne — tu sais exactement ce que tu paies et ce que tu couvres.</p>
+          <article class="cover-card">
+            <h3>100 % digital</h3>
+            <p>Souscription, KYC, paiement, contrat et sinistres — tout en ligne.</p>
           </article>
-          <article class="benefit-card">
-            <div class="benefit-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <rect x="3.5" y="3.5" width="7" height="7" rx="1.8" stroke="currentColor" stroke-width="1.6"/>
-                <rect x="13.5" y="3.5" width="7" height="7" rx="1.8" stroke="currentColor" stroke-width="1.6"/>
-                <rect x="3.5" y="13.5" width="7" height="7" rx="1.8" stroke="currentColor" stroke-width="1.6"/>
-                <rect x="13.5" y="13.5" width="7" height="7" rx="1.8" stroke="currentColor" stroke-width="1.6"/>
-                <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-              </svg>
-            </div>
-            <h3>Tout au même endroit</h3>
-            <p>Contrats, documents, sinistres et paiements dans ton espace client. Déclare un incident en 2 minutes, suis ton dossier en temps réel.</p>
+          <article class="cover-card">
+            <h3>Relation continue</h3>
+            <p>Espace client unifié : contrats, documents, messagerie, renouvellement.</p>
           </article>
         </div>
       </div>
@@ -315,7 +263,7 @@
           </article>
         </div>
 
-        <div class="trust-promise">
+        <div class="trust-promise trust-promise--ink">
           <div class="trust-promise-copy">
             <strong>Notre engagement transparence</strong>
             <p>Prix affiché, garanties détaillées, conditions générales consultables avant paiement. Si quelque chose n'est pas clair, on t'explique avant que tu t'engages.</p>
@@ -326,7 +274,7 @@
     </section>
 
     <!-- AVIS CLIENTS -->
-    <section class="section section-testimonials" id="avis">
+    <section class="section section-testimonials section--ink" id="avis">
       <div class="section-inner">
         <div class="section-header">
           <div class="section-label">Ils nous font confiance</div>
@@ -415,7 +363,7 @@
     </section>
 
     <!-- FAQ -->
-    <section class="section section-faq" id="faq">
+    <section class="section section-faq section--ink" id="faq">
       <div class="section-inner">
         <div class="section-header">
           <div class="section-label">Questions</div>

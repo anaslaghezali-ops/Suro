@@ -1,0 +1,250 @@
+/* Landing preview C — cover slide (pitch #1) + sections ink (B) + CTA/footer ink (A) */
+
+@import url('landing-dark-b.css');
+@import url('landing-dark.css');
+
+/* ====== HEADER SUR GRADIENT COVER ====== */
+body.landing-ink-c .header {
+  background: rgba(11, 90, 84, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.landing-ink-c .logo,
+body.landing-ink-c .logo .logo-word {
+  color: #fff;
+}
+
+body.landing-ink-c .logo-mark {
+  filter: brightness(0) invert(1);
+}
+
+body.landing-ink-c .nav a {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+body.landing-ink-c .nav a:hover {
+  color: #fff;
+}
+
+body.landing-ink-c .nav-toggle {
+  color: #fff;
+}
+
+body.landing-ink-c .nav-mobile {
+  background: #0B5A54;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.landing-ink-c .nav-mobile a {
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ====== HERO COVER (slide 1 pitch deck) ====== */
+.hero.hero--cover {
+  max-width: none;
+  background: linear-gradient(145deg, #0B5A54 0%, #0F766E 45%, #0D9488 100%);
+  color: #fff;
+  padding-bottom: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero.hero--cover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 90%, rgba(255, 255, 255, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 10%, rgba(255, 255, 255, 0.06) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.hero.hero--cover .hero-grid,
+.hero.hero--cover .proof-strip {
+  position: relative;
+  z-index: 1;
+  max-width: var(--max-width-wide);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero.hero--cover .hero-copy {
+  padding-top: var(--space-sm);
+}
+
+.cover-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: var(--space-xl);
+}
+
+.cover-logo img {
+  width: 56px;
+  height: 56px;
+  filter: brightness(0) invert(1);
+}
+
+.cover-logo span {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #fff;
+}
+
+.cover-tagline {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 20px;
+}
+
+.hero.hero--cover h1 {
+  color: #fff;
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  max-width: 14ch;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  margin-bottom: var(--space-md);
+}
+
+.hero.hero--cover .cover-subtitle,
+.hero.hero--cover .hero-description {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: var(--text-lg);
+  max-width: 46ch;
+  margin-bottom: var(--space-md);
+}
+
+.hero.hero--cover .hero-points--cover li {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.hero.hero--cover .hero-points--cover li::before {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.hero.hero--cover .hero-stats--cover {
+  border-top-color: rgba(255, 255, 255, 0.15);
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+}
+
+.hero.hero--cover .hero-stat-value {
+  color: #fff;
+}
+
+.hero.hero--cover .hero-stat-label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.cover-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.hero.hero--cover .hero-form .tunnel-card {
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+.hero.hero--cover .proof-strip {
+  border-top-color: rgba(255, 255, 255, 0.15);
+  padding-bottom: var(--space-xl);
+}
+
+.hero.hero--cover .proof-item {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.hero.hero--cover .proof-item svg {
+  color: rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+}
+
+.hero.hero--cover .proof-item strong {
+  color: #fff;
+}
+
+/* Cartes pitch deck dans Pourquoi SURO */
+.cover-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+}
+
+.cover-card {
+  background: var(--ink-glass);
+  border: 1px solid var(--ink-glass-border);
+  border-radius: 14px;
+  padding: 22px 24px;
+}
+
+.cover-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.cover-card p {
+  font-size: 14px;
+  color: var(--ink-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.cover-card--accent {
+  background: linear-gradient(135deg, #0F766E 0%, #0B5A54 100%);
+  border: none;
+}
+
+.cover-card--accent h3 {
+  color: #fff;
+}
+
+.cover-card--accent p {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+@media (max-width: 768px) {
+  .hero.hero--cover {
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+  }
+
+  .cover-logo img {
+    width: 44px;
+    height: 44px;
+  }
+
+  .cover-logo span {
+    font-size: 22px;
+  }
+
+  .cover-meta {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .cover-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .cover-cards {
+    grid-template-columns: 1fr;
+  }
+}

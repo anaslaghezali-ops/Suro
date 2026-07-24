@@ -96,6 +96,7 @@ class CustomerDashboard {
     }
 
     this.setupNavigation();
+    this.setupDashboardStatCards();
     this.setupFilters();
     this.setupSupportLinks();
     this.loadProfileHeader();
@@ -455,6 +456,29 @@ class CustomerDashboard {
         this.navigateTo(page);
       });
     });
+  }
+
+  setupDashboardStatCards() {
+    document.querySelectorAll('.stat-card--link[data-nav-page]').forEach((card) => {
+      card.addEventListener('click', () => {
+        this.navigateToStat({
+          page: card.dataset.navPage,
+          filter: card.dataset.navFilter || '',
+        });
+      });
+    });
+  }
+
+  navigateToStat({ page, filter = '' }) {
+    if (page === 'policies' && filter) {
+      const select = document.getElementById('filter-policy-status');
+      if (select) select.value = filter;
+    }
+    if (page === 'claims' && filter) {
+      const select = document.getElementById('filter-claim-status');
+      if (select) select.value = filter;
+    }
+    this.navigateTo(page);
   }
 
   setDashboardStatsLoading(loading) {
@@ -1685,7 +1709,7 @@ class CustomerDashboard {
 
   async viewClaimDetail(claimId) {
     try {
-      const claims = this.claims || await this.api.getMyClaims() || [];
+      const claims = await this.fetchClaims();
       const c = claims.find(x => x.id === claimId);
       if (!c) return;
 

@@ -246,9 +246,7 @@ class CustomerDashboard {
       ? `${new Date(p.expires_at).toLocaleDateString('fr-FR')}${expired ? ' <span class="policy-detail-expired">(expiré)</span>' : ''}`
       : '—';
 
-    const actionBtn = p.status === 'nouvelle'
-      ? `<button type="button" class="btn btn-primary" onclick="dashboard.payPolicy('${p.id}')">Payer et activer mon contrat</button>`
-      : `<button type="button" class="btn btn-primary" onclick="dashboard.renewPolicy('${p.id}')">Renouveler ce contrat</button>`;
+    const actionBtn = this.renderPolicyPrimaryAction(p, this.summarizeKycForPolicy(p.id, docs), { size: 'lg' });
 
     return `
       <div class="policy-detail">
@@ -312,12 +310,23 @@ class CustomerDashboard {
     `;
   }
 
-  policyActionButtons(p) {
+  renderPolicyPrimaryAction(p, kyc = null, { size = 'sm' } = {}) {
+    const btnClass = size === 'lg' ? 'btn btn-primary' : 'btn btn-primary btn-sm';
+    if (p.status === 'nouvelle') {
+      const label = size === 'lg' ? 'Payer et activer mon contrat' : 'Payer';
+      return `<button type="button" class="${btnClass}" onclick="dashboard.payPolicy('${p.id}')">${label}</button>`;
+    }
+    if (this.policyRequiresKyc(p) && kyc && !kyc.complete) {
+      const label = size === 'lg' ? 'Compléter mon dossier' : 'Compléter le dossier';
+      return `<button type="button" class="${btnClass}" onclick="dashboard.openDocumentsForPolicy('${p.id}')">${label}</button>`;
+    }
+    const label = size === 'lg' ? 'Renouveler ce contrat' : 'Renouveler';
+    return `<button type="button" class="${btnClass}" onclick="dashboard.renewPolicy('${p.id}')">${label}</button>`;
+  }
+
+  policyActionButtons(p, kyc = null) {
     const detailBtn = `<button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.viewPolicyDetail('${p.id}')">Détails</button>`;
-    const actionBtn = p.status === 'nouvelle'
-      ? `<button type="button" class="btn btn-primary btn-sm" onclick="dashboard.payPolicy('${p.id}')">Payer</button>`
-      : `<button type="button" class="btn btn-primary btn-sm" onclick="dashboard.renewPolicy('${p.id}')">Renouveler</button>`;
-    return `${detailBtn}${actionBtn}`;
+    return `${detailBtn}${this.renderPolicyPrimaryAction(p, kyc)}`;
   }
 
   renderPolicyCard(p, { compact = false, kyc = null } = {}) {
@@ -358,7 +367,7 @@ class CustomerDashboard {
         ${compact ? '' : stat('expiry', 'Échéance', expiry)}
         ${compact ? '' : stat('mobile-only', 'Type', typeLabel)}
         <span class="policy-card__status">${badge}</span>
-        <div class="policy-card__actions">${this.policyActionButtons(p)}</div>
+        <div class="policy-card__actions">${this.policyActionButtons(p, kyc)}</div>
       </article>
     `;
   }

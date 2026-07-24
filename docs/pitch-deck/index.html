@@ -119,6 +119,19 @@
       box-shadow: 0 16px 48px rgba(0, 0, 0, 0.32);
     }
 
+    .btn-present--ghost {
+      margin-top: 12px;
+      background: transparent;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: none;
+    }
+
+    .btn-present--ghost:hover {
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+    }
+
     .presenter-start-hint {
       margin-top: 20px !important;
       font-size: 13px !important;
@@ -167,6 +180,7 @@
 
     .slide-inner {
       flex: 1;
+      position: relative;
       width: 100%;
       max-width: var(--slide-w);
       margin: 0 auto;
@@ -396,13 +410,15 @@
 
     /* Cover slide */
     .slide--cover {
-      background: linear-gradient(145deg, var(--primary-dark) 0%, var(--primary) 45%, #0D9488 100%);
+      background-color: #0F766E;
+      background-image: linear-gradient(145deg, var(--primary-dark) 0%, var(--primary) 45%, #0D9488 100%);
       color: white;
     }
 
     .slide--cover .slide-inner {
       justify-content: center;
       align-items: flex-start;
+      min-height: 100%;
     }
 
     .slide--cover h1 {
@@ -451,7 +467,7 @@
 
     /* Closing slide */
     .slide--close {
-      background: var(--ink);
+      background-color: #111827;
       color: white;
     }
 
@@ -460,6 +476,7 @@
     .slide--close .ask-box {
       margin-top: 32px;
       padding: 28px 32px;
+      background-color: #1a2332;
       background: rgba(255,255,255,.06);
       border: 1px solid rgba(255,255,255,.12);
       border-radius: 16px;
@@ -701,21 +718,150 @@
     .badge--live { background: #D1FAE5; color: #065F46; }
 
     @media print {
-      html, body { background: white; overflow: visible; }
-      .presenter-start, .presenter-ui, .presenter-progress, .presenter-exit { display: none !important; }
-      .deck { position: static; height: auto; }
+      /* Format 16:9 widescreen (identique PowerPoint) */
+      @page {
+        size: 33.867cm 19.05cm;
+        margin: 0;
+      }
+
+      html, body {
+        width: 33.867cm;
+        height: auto;
+        margin: 0;
+        padding: 0;
+        background: #fff !important;
+        overflow: visible;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
+      *, *::before, *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
+      .presenter-start,
+      .presenter-ui,
+      .presenter-progress,
+      .presenter-exit {
+        display: none !important;
+      }
+
+      .deck {
+        position: static;
+        width: 33.867cm;
+        height: auto;
+        background: #fff;
+      }
+
       .slide {
         display: flex !important;
-        position: relative;
+        position: relative !important;
         opacity: 1 !important;
         visibility: visible !important;
         transform: none !important;
+        width: 33.867cm !important;
+        height: 19.05cm !important;
+        min-height: 19.05cm !important;
+        max-height: 19.05cm !important;
         page-break-after: always;
-        width: 100%;
-        height: 100vh;
+        break-after: page;
+        page-break-inside: avoid;
+        break-inside: avoid;
         box-shadow: none;
         border-radius: 0;
         margin: 0;
+        overflow: hidden;
+        background-color: #fff !important;
+      }
+
+      .slide:last-child {
+        page-break-after: auto;
+        break-after: auto;
+      }
+
+      .slide-inner {
+        width: 100%;
+        max-width: none;
+        height: 100%;
+        padding: 1.6cm 2cm 1.4cm;
+      }
+
+      /* Slide 1 — cover : couleurs forcées pour PDF */
+      .slide--cover {
+        background-color: #0F766E !important;
+        background-image: linear-gradient(145deg, #0B5A54 0%, #0F766E 45%, #0D9488 100%) !important;
+        color: #fff !important;
+      }
+
+      .slide--cover h1,
+      .slide--cover .cover-logo span {
+        color: #fff !important;
+      }
+
+      .slide--cover .subtitle {
+        color: rgba(255, 255, 255, 0.82) !important;
+      }
+
+      .slide--cover .tagline,
+      .slide--cover .cover-meta {
+        color: rgba(255, 255, 255, 0.65) !important;
+      }
+
+      /* Slide 12 — closing : couleurs forcées pour PDF */
+      .slide--close {
+        background-color: #111827 !important;
+        color: #fff !important;
+      }
+
+      .slide--close h1,
+      .slide--close .subtitle {
+        color: #fff !important;
+      }
+
+      .slide--close .subtitle {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
+
+      .slide--close .ask-box {
+        background-color: #1a2332 !important;
+        border-color: #374151 !important;
+      }
+
+      .slide--close .ask-box h4 {
+        color: #14B8A6 !important;
+      }
+
+      .slide--close .ask-box p {
+        color: rgba(255, 255, 255, 0.85) !important;
+      }
+
+      .slide--close .brand,
+      .slide--close .slide-num {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
+
+      .card--accent {
+        background-color: #0F766E !important;
+        background-image: linear-gradient(135deg, #0F766E 0%, #0B5A54 100%) !important;
+        color: #fff !important;
+      }
+
+      .card--accent h4,
+      .card--accent p {
+        color: rgba(255, 255, 255, 0.92) !important;
+      }
+
+      .slide-footer {
+        background: linear-gradient(90deg, #0F766E, #14B8A6) !important;
+        background-color: #0F766E !important;
+      }
+
+      .badge--live {
+        background-color: #D1FAE5 !important;
+        color: #065F46 !important;
       }
     }
   </style>
@@ -731,14 +877,15 @@
     <h1>Pitch investisseurs</h1>
     <p>12 slides · Mode présentation plein écran</p>
     <button type="button" class="btn-present" id="btn-start">▶ Démarrer la présentation</button>
-    <p class="presenter-start-hint">Flèches · Espace · Clic gauche/droite · F plein écran · Échap pour quitter</p>
+    <button type="button" class="btn-present btn-present--ghost" id="btn-pdf">↓ Exporter en PDF (16:9)</button>
+    <p class="presenter-start-hint">PDF : activer « Graphiques d'arrière-plan » dans la fenêtre d'impression</p>
   </div>
 </div>
 
 <div class="deck" id="deck">
 
   <!-- SLIDE 1 — COVER -->
-  <section class="slide slide--cover active" data-slide="1">
+  <section class="slide slide--cover active" data-slide="1" style="background-color:#0F766E">
     <div class="slide-inner">
       <div class="cover-logo">
         <img src="../../assets/brand/suro-mark.svg" alt="SURO">
@@ -1105,7 +1252,7 @@
   </section>
 
   <!-- SLIDE 12 — ASK -->
-  <section class="slide slide--close" data-slide="12">
+  <section class="slide slide--close" data-slide="12" style="background-color:#111827">
     <div class="slide-inner">
       <div class="slide-header">
         <div class="brand" style="color:rgba(255,255,255,.7)"><img src="../../assets/brand/suro-mark.svg" alt="" style="filter:brightness(0) invert(1)"> SURO</div>
@@ -1192,7 +1339,34 @@
     if (document.fullscreenElement) document.exitFullscreen();
   }
 
+  function preparePrint() {
+    slides.forEach((slide) => {
+      slide.classList.add('active');
+      slide.style.display = 'flex';
+      slide.style.opacity = '1';
+      slide.style.visibility = 'visible';
+    });
+  }
+
+  function restoreAfterPrint() {
+    slides.forEach((slide, idx) => {
+      slide.classList.toggle('active', idx === current);
+      slide.style.display = '';
+      slide.style.opacity = '';
+      slide.style.visibility = '';
+    });
+  }
+
+  function exportPdf() {
+    preparePrint();
+    window.print();
+  }
+
+  window.addEventListener('beforeprint', preparePrint);
+  window.addEventListener('afterprint', restoreAfterPrint);
+
   document.getElementById('btn-start').onclick = enterPresentation;
+  document.getElementById('btn-pdf').onclick = exportPdf;
   document.getElementById('btn-exit').onclick = exitPresentation;
   document.getElementById('prev').onclick = () => show(current - 1);
   document.getElementById('next').onclick = () => show(current + 1);

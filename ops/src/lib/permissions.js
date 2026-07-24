@@ -12,6 +12,7 @@ export const NAV = [
   { id: 'documents',     label: 'Pièces KYC',    icon: '⎙', roles: ALL },
   { id: 'payments',      label: 'Paiements',     icon: '⛁', roles: ALL },
   { id: 'claims',        label: 'Sinistres',     icon: '⚠', roles: ALL },
+  { id: 'cabinets',      label: 'Cabinets',      icon: '🏢', roles: ['super_admin', 'admin', 'operations'] },
   { id: 'analytics',     label: 'Funnel',        icon: '▽', roles: ['super_admin'] },
   { id: 'users',         label: 'Utilisateurs',  icon: '⚑', roles: ['super_admin'] },
   { id: 'privileges',    label: 'Privilèges',    icon: '⚿', roles: ['super_admin'] },

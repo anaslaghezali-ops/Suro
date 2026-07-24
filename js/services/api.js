@@ -18,7 +18,8 @@ Object.assign(
   window.SURO_CUSTOMER,
   window.SURO_ADMIN,
   window.SURO_API_NOTIFICATIONS,
-  window.SURO_VEHICLES
+  window.SURO_VEHICLES,
+  window.SURO_CABINET || {}
 );
 
 if (typeof window !== 'undefined') {

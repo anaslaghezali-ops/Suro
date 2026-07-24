@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>SURO — Portail cabinet</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=20">
+  <link rel="stylesheet" href="../ops/styles/ops.css?v=8">
+  <link rel="stylesheet" href="styles/cabinet.css?v=1">
+  <script type="importmap">
+  {
+    "imports": {
+      "preact": "../ops/vendor/preact-htm-standalone.module.js",
+      "preact/hooks": "../ops/vendor/preact-htm-standalone.module.js",
+      "htm/preact": "../ops/vendor/preact-htm-standalone.module.js"
+    }
+  }
+  </script>
+  <script src="../js/services/config.staging.js?v=1"></script>
+  <script src="../js/services/config-env.js?v=1"></script>
+  <script src="../js/services/config.js?v=42"></script>
+  <script src="../js/services/session.js?v=42"></script>
+  <script src="../js/services/http.js?v=45"></script>
+  <script src="../js/services/auth.js?v=42"></script>
+  <script src="../js/services/cabinet-portal.js?v=1"></script>
+  <script src="../js/services/api.js?v=43"></script>
+</head>
+<body>
+  <div id="cabinet-root"></div>
+  <script type="module" src="./src/main.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SURO — Connexion cabinet partenaire</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/tokens.css?v=31">
+  <link rel="stylesheet" href="css/components.css?v=31">
+  <link rel="stylesheet" href="css/auth.css?v=32">
+</head>
+<body>
+  <div class="auth-layout">
+    <aside class="auth-brand auth-brand--staff">
+      <a href="index.html" class="auth-brand-logo" aria-label="SURO">
+        <img class="logo-mark" src="assets/brand/suro-mark.svg" width="32" height="32" alt="">
+        <span class="logo-word">SURO</span>
+      </a>
+      <div class="auth-brand-content">
+        <h1>Portail cabinet<br>partenaire.</h1>
+        <p>Traitez les dossiers clients assignés par SURO — souscriptions et sinistres.</p>
+        <div class="auth-staff-note">
+          <strong>Accès restreint</strong>
+          Réservé aux gestionnaires des cabinets partenaires SURO.
+        </div>
+      </div>
+    </aside>
+    <main class="auth-panel">
+      <div class="auth-card">
+        <div class="auth-header">
+          <span class="auth-eyebrow">Cabinet partenaire</span>
+          <h1 class="auth-title">Connexion</h1>
+          <p class="auth-subtitle">Identifie-toi pour accéder à ton portail cabinet</p>
+        </div>
+        <form id="login-form" class="auth-form">
+          <div class="form-group">
+            <label for="email">Email professionnel</label>
+            <input type="email" id="email" name="email" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary"><span data-btn-text>Se connecter</span></button>
+          <div class="error-message" id="form-error"></div>
+        </form>
+        <div class="auth-footer">
+          Équipe SURO ? <a href="admin-login.html">Portail Ops</a>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="js/services/config.staging.js?v=1"></script>
+  <script src="js/services/config-env.js?v=1"></script>
+  <script src="js/services/config.js?v=42"></script>
+  <script src="js/services/session.js?v=42"></script>
+  <script src="js/services/http.js?v=45"></script>
+  <script src="js/services/auth.js?v=42"></script>
+  <script src="js/services/cabinet-portal.js?v=1"></script>
+  <script src="js/services/api.js?v=43"></script>
+  <script src="js/auth.js?v=22"></script>
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors();
+      const btn = e.target.querySelector('button[type="submit"]');
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      setLoading(btn, true, 'Connexion…', 'Se connecter');
+      try {
+        await window.SURO_API.login(email, password);
+        const ctx = await window.SURO_CABINET.context();
+        if (!ctx || !ctx.cabinet_id) {
+          await window.SURO_API.logout();
+          showFormError('form-error', 'Ce compte n\'a pas accès au portail cabinet.');
+          return;
+        }
+        window.location.href = 'cabinet/';
+      } catch (error) {
+        showFormError('form-error', error.message || 'Erreur de connexion');
+      } finally {
+        setLoading(btn, false, 'Connexion…', 'Se connecter');
+      }
+    });
+  </script>
+</body>
+</html>

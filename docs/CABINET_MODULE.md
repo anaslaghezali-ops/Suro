@@ -8,6 +8,19 @@
 
 ## 1. Modèle métier
 
+### Deux modes d'exploitation (une plateforme)
+
+| Mode | Clé `suro_settings` | Comportement post-KYC |
+|------|---------------------|------------------------|
+| **SURO-intermédiaire** | `operating_mode = intermediaire` (défaut) | Round-robin cabinets → `suro_broker_tasks` |
+| **SURO-courtier** | `operating_mode = courtier` | File Ops interne → notification admin, traitement via écrans Documents / Souscriptions |
+
+Fonctions : `suro_get_operating_mode()`, `suro_courtier_enqueue_kyc_review()`.  
+Migration : `docs/migrations/20260726_operating_mode.sql`.  
+Bascule : Ops → Paramètres → Mode d'exploitation (`settings.edit`).
+
+Le portail `/cabinet/` et l'écran Ops « Cabinets » sont masqués en mode courtier.
+
 ### SURO est-il une plateforme SaaS multi-tenant ?
 
 **Oui.** SURO est une **plateforme technologique multi-tenant** qui orchestre la relation client et les workflows opérationnels. Chaque **cabinet partenaire** (tenant) dispose de :
@@ -111,9 +124,10 @@ Fonction : `suro_cabinet_pick_next(cabinet_id)`
 Trigger `suro_trg_kyc_task` sur `insurance_documents` INSERT :
 
 1. Auto-check (`suro_cabinet_auto_check`) : 6 pièces KYC présentes, `storage_path` non vide
-2. Si OK → `suro_cabinet_try_create_task(application_id)`
-3. Création `suro_broker_tasks` + assignation cabinet + gestionnaire
-4. Notification client SURO + notification gestionnaire(s)
+2. Si OK → selon `suro_get_operating_mode()` :
+   - **intermediaire** : `suro_cabinet_try_create_task(application_id)` → tâche cabinet + round-robin
+   - **courtier** : `suro_courtier_enqueue_kyc_review(application_id)` → notification Ops (`kyc_ready_for_ops`) + client
+3. Notification client SURO (les deux modes) ; notification gestionnaire cabinet (intermédiaire uniquement)
 
 ---
 
@@ -188,6 +202,8 @@ Créés par `staging/scripts/seed-cabinets.sh` :
 | `docs/migrations/20260725_cabinet_module.sql` | Schéma + RPC + RLS base |
 | `docs/migrations/20260725_cabinet_rls_hardening.sql` | Durcissement audit CTO |
 | `docs/migrations/20260725_cabinet_module_down.sql` | **Rollback complet** |
+| `docs/migrations/20260726_operating_mode.sql` | Flag intermediaire / courtier + trigger branché |
+| `docs/migrations/20260726_operating_mode_down.sql` | Rollback mode d'exploitation |
 
 Ordre d'application : voir `staging/scripts/apply-migrations.sh`
 

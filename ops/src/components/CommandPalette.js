@@ -9,7 +9,7 @@ import { vehicleLabel } from '../lib/format.js';
 let _open = null;
 export function openCommandPalette() { if (_open) _open(); }
 
-export function CommandPalette({ role }) {
+export function CommandPalette({ role, operatingMode = 'intermediaire' }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
   const [active, setActive] = useState(0);
@@ -37,7 +37,7 @@ export function CommandPalette({ role }) {
   }, [open]);
 
   const needle = q.trim().toLowerCase();
-  const navItems = navFor(role)
+  const navItems = navFor(role, operatingMode)
     .filter((n) => !needle || n.label.toLowerCase().includes(needle))
     .map((n) => ({ key: 'nav-' + n.id, icon: n.icon, label: n.label, hint: 'Aller à', go: n.id }));
 

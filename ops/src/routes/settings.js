@@ -3,7 +3,7 @@ import { useState } from 'preact/hooks';
 import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
 import { Spinner, Empty, toast } from '../components/ui.js';
-import { can } from '../lib/permissions.js';
+import { can, OPERATING_MODES } from '../lib/permissions.js';
 
 // Contacts support éditables (clés dans suro_settings)
 const CONTACT_FIELDS = [
@@ -56,6 +56,53 @@ function ContactSettings({ editable }) {
   `;
 }
 
+function OperatingModeSettings({ editable }) {
+  const { data, loading, error, reload } = useAsync(() => api.getSettings().catch(() => []), []);
+  const [mode, setMode] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  if (loading) return html`<div style="padding:20px"><${Spinner}/></div>`;
+  if (error) return html`<${Empty}>Erreur : ${error.message}<//>`;
+
+  const current = mode || (() => {
+    const by = {}; (data || []).forEach((s) => { by[s.key] = s.value; });
+    return by.operating_mode === 'courtier' ? 'courtier' : 'intermediaire';
+  })();
+  const meta = OPERATING_MODES[current] || OPERATING_MODES.intermediaire;
+
+  const save = async () => {
+    setBusy(true);
+    try {
+      await api.updateSetting('operating_mode', current);
+      await api.logAction('update', 'settings', null, { operating_mode: current }).catch(() => {});
+      window.dispatchEvent(new CustomEvent('suro-operating-mode-changed', { detail: current }));
+      toast('Mode d’exploitation enregistré', 'ok');
+      setMode(null); reload();
+    } catch (e) { toast('Échec : ' + (e.message || ''), 'err'); }
+    finally { setBusy(false); }
+  };
+
+  return html`
+    <div class="card-body">
+      <p class="muted" style="margin:0 0 14px;font-size:12.5px">
+        Une seule plateforme — bascule entre distribution via cabinets partenaires et traitement courtier interne.
+      </p>
+      <label>Mode actif
+        <select class="ops-input" disabled=${!editable} value=${current}
+          onChange=${(e) => setMode(e.target.value)}>
+          ${Object.entries(OPERATING_MODES).map(([id, m]) => html`
+            <option value=${id}>${m.label}</option>`)}
+        </select>
+        <span class="muted" style="font-weight:400;font-size:11px">${meta.hint}</span>
+      </label>
+      ${editable ? html`
+        <div style="margin-top:14px">
+          <button class="btn-o primary" disabled=${busy} onClick=${save}>${busy ? 'Enregistrement…' : 'Enregistrer le mode'}</button>
+        </div>` : html`<p class="muted" style="margin-top:12px">Lecture seule.</p>`}
+    </div>
+  `;
+}
+
 export function Settings({ caps }) {
   const editable = can(caps, 'settings.edit');
   return html`
@@ -71,6 +118,11 @@ export function Settings({ caps }) {
         <div class="field-row"><div class="k">Environnement</div><div class="v">Production (Supabase + hébergement statique)</div></div>
         <div class="field-row" style="border:none"><div class="k">Portails</div><div class="v">Client (/app) · Operations (/ops)</div></div>
       </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Mode d’exploitation</h3></div>
+      <${OperatingModeSettings} editable=${editable} />
     </div>
 
     <div class="card">

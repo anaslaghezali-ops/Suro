@@ -1,8 +1,10 @@
 import { html } from 'htm/preact';
 import { useState } from 'preact/hooks';
+import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
 import { Spinner, Badge, Empty, toast } from '../components/ui.js';
 import { fmtDate } from '../lib/format.js';
+import { OPERATING_MODES } from '../lib/permissions.js';
 
 const CABINET_ROLES = [
   { id: 'gestionnaire', label: 'Gestionnaire' },
@@ -21,16 +23,83 @@ function slugify(name) {
 }
 
 function cabinetApi() {
-  if (!window.SURO_CABINET) throw new Error('Module cabinet non chargé — recharger la page');
+  if (!window.SURO_CABINET) throw new Error('Module cabinet non chargé — rechargez la page (Ctrl+Shift+R)');
   return window.SURO_CABINET;
+}
+
+function OperatingModePanel() {
+  const settings = useAsync(() => api.getSettings().catch(() => []), []);
+  const [mode, setMode] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  const current = mode || (() => {
+    const by = {}; (settings.data || []).forEach((s) => { by[s.key] = s.value; });
+    return by.operating_mode === 'courtier' ? 'courtier' : 'intermediaire';
+  })();
+  const meta = OPERATING_MODES[current] || OPERATING_MODES.intermediaire;
+
+  const save = async () => {
+    setBusy(true);
+    try {
+      let result = null;
+      try {
+        result = await api.switchOperatingMode(current);
+      } catch {
+        await api.updateSetting('operating_mode', current);
+        result = { ok: true };
+      }
+      if (result && result.ok === false) {
+        const parts = [result.message || result.error];
+        if (result.open_tasks != null) parts.push(`dossiers ouverts : ${result.open_tasks}`);
+        if (result.open_claims != null) parts.push(`sinistres ouverts : ${result.open_claims}`);
+        toast(parts.filter(Boolean).join(' — '), 'err');
+        return;
+      }
+      window.dispatchEvent(new CustomEvent('suro-operating-mode-changed', { detail: current }));
+      toast('Mode enregistré : ' + meta.label, 'ok');
+      settings.reload();
+    } catch (e) { toast('Échec : ' + (e.message || ''), 'err'); }
+    finally { setBusy(false); }
+  };
+
+  return html`
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-head"><h3>Mode d'exploitation</h3></div>
+      <div class="card-body">
+        ${settings.loading ? html`<${Spinner}/>` : html`
+          <p class="muted" style="margin:0 0 14px;font-size:12.5px">${meta.hint}</p>
+          <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+            <label style="flex:1;min-width:220px">Mode actif
+              <select class="ops-input" value=${current} onChange=${(e) => setMode(e.target.value)}>
+                ${Object.entries(OPERATING_MODES).map(([id, m]) => html`
+                  <option value=${id}>${m.label}</option>`)}
+              </select>
+            </label>
+            <button class="btn-o primary" disabled=${busy} onClick=${save}>
+              ${busy ? 'Enregistrement…' : 'Appliquer le mode'}
+            </button>
+          </div>
+          <p class="muted" style="margin:12px 0 0;font-size:11px">
+            Mode <strong>courtier</strong> : traitement interne Ops, menu Cabinets masqué.
+            Mode <strong>intermédiaire</strong> : assignation aux cabinets partenaires.
+          </p>`}
+      </div>
+    </div>
+  `;
 }
 
 export function Cabinets({ role }) {
   const canManage = ['super_admin', 'admin'].includes(role);
-  const overview = useAsync(() => cabinetApi().opsOverview(), []);
-  const anomalies = useAsync(() => cabinetApi().opsAnomalies(30), []);
+  const overview = useAsync(() => {
+    try { return cabinetApi().opsOverview(); }
+    catch (e) { return Promise.reject(e); }
+  }, []);
+  const anomalies = useAsync(() => {
+    try { return cabinetApi().opsAnomalies(30); }
+    catch (e) { return Promise.reject(e); }
+  }, []);
 
-  const [showCreate, setShowCreate] = useState(false);
+  const [showCreate, setShowCreate] = useState(true);
   const [cabName, setCabName] = useState('');
   const [cabSlug, setCabSlug] = useState('');
   const [createBusy, setCreateBusy] = useState(false);
@@ -42,7 +111,6 @@ export function Cabinets({ role }) {
   const [memberBusy, setMemberBusy] = useState(false);
 
   const reload = () => { overview.reload(); anomalies.reload(); };
-
   const cabinets = overview.data || [];
 
   const createCabinet = async () => {
@@ -56,7 +124,7 @@ export function Cabinets({ role }) {
     try {
       await cabinetApi().staffUpsertCabinet(name, slug);
       toast('Cabinet créé', 'ok');
-      setCabName(''); setCabSlug(''); setShowCreate(false);
+      setCabName(''); setCabSlug('');
       reload();
     } catch (e) { toast('Échec : ' + (e.message || ''), 'err'); }
     finally { setCreateBusy(false); }
@@ -83,7 +151,7 @@ export function Cabinets({ role }) {
     } catch (e) {
       const msg = (e.message || '');
       if (msg.includes('introuvable')) {
-        toast('Compte Auth introuvable — créez d’abord l’utilisateur dans Supabase Auth', 'err');
+        toast("Compte Auth introuvable — créez d'abord l'utilisateur dans Supabase Auth", 'err');
       } else {
         toast('Échec : ' + msg, 'err');
       }
@@ -91,35 +159,33 @@ export function Cabinets({ role }) {
     finally { setMemberBusy(false); }
   };
 
-  if (overview.loading) return html`<div style="padding:40px"><${Spinner}/></div>`;
-
   return html`
     <div class="page-head" style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
       <div>
         <h1>Cabinets partenaires</h1>
-        <p>Supervision des cabinets — dossiers ouverts, anomalies et sinistres.</p>
+        <p>Configuration et supervision des cabinets — dossiers, anomalies et sinistres.</p>
       </div>
-      ${canManage ? html`
-        <button class="btn-o primary" onClick=${() => setShowCreate((v) => !v)}>
-          ${showCreate ? 'Annuler' : '+ Nouveau cabinet'}
-        </button>` : null}
     </div>
 
-    ${overview.error ? html`
-      <div class="card" style="margin-bottom:20px;border-color:var(--color-error-200,#fecaca)">
+    ${!window.SURO_CABINET ? html`
+      <div class="card" style="margin-bottom:20px;border-color:#fecaca">
         <div class="card-body">
-          <strong>Impossible de charger les cabinets</strong>
-          <p class="muted" style="margin:8px 0 0">${overview.error.message}</p>
-          <p class="muted" style="margin:8px 0 0;font-size:12px">
-            Vérifiez que les migrations cabinet sont appliquées sur cet environnement
-            (<code>20260725_cabinet_module.sql</code> et suivantes).
-          </p>
+          <strong>Module cabinet non chargé</strong>
+          <p class="muted" style="margin:8px 0 0">Rechargez la page avec Ctrl+Shift+R. Si le problème persiste, déployez la dernière version du front Ops.</p>
         </div>
       </div>` : null}
 
-    ${canManage && showCreate ? html`
+    ${canManage ? html`<${OperatingModePanel}/>` : null}
+
+    ${canManage ? html`
       <div class="card" style="margin-bottom:20px">
-        <div class="card-head"><h3>Créer un cabinet</h3></div>
+        <div class="card-head" style="display:flex;justify-content:space-between;align-items:center">
+          <h3>Créer un cabinet</h3>
+          <button class="btn-o sm" onClick=${() => setShowCreate((v) => !v)}>
+            ${showCreate ? 'Masquer' : 'Afficher'}
+          </button>
+        </div>
+        ${showCreate ? html`
         <div class="card-body">
           <div class="form-grid">
             <label>Nom du cabinet
@@ -130,23 +196,21 @@ export function Cabinets({ role }) {
             <label>Slug (identifiant unique)
               <input class="ops-input" value=${cabSlug} onInput=${(e) => setCabSlug(e.target.value)}
                 placeholder="exemple-assurances" />
-              <span class="muted" style="font-weight:400;font-size:11px">Minuscules, chiffres et tirets — utilisé en interne</span>
             </label>
           </div>
           <div style="margin-top:14px">
             <button class="btn-o primary" disabled=${createBusy} onClick=${createCabinet}>
-              ${createBusy ? 'Création…' : 'Créer le cabinet'}
+              ${createBusy ? 'Création…' : '+ Créer le cabinet'}
             </button>
           </div>
-        </div>
-      </div>` : null}
+        </div>` : null}
+      </div>
 
-    ${canManage ? html`
       <div class="card" style="margin-bottom:20px">
         <div class="card-head"><h3>Ajouter un membre à un cabinet</h3></div>
         <div class="card-body">
           <p class="muted" style="margin:0 0 14px;font-size:12.5px">
-            L’utilisateur doit déjà exister dans Supabase Auth (Authentication → Users).
+            L'utilisateur doit exister dans Supabase Auth (Authentication → Users).
           </p>
           <div class="form-grid">
             <label>Cabinet
@@ -171,16 +235,28 @@ export function Cabinets({ role }) {
             </label>
           </div>
           <div style="margin-top:14px">
-            <button class="btn-o primary" disabled=${memberBusy || cabinets.length === 0} onClick=${addMember}>
+            <button class="btn-o primary" disabled=${memberBusy} onClick=${addMember}>
               ${memberBusy ? 'Ajout…' : 'Ajouter le membre'}
             </button>
           </div>
         </div>
       </div>` : null}
 
+    ${overview.error ? html`
+      <div class="card" style="margin-bottom:20px;border-color:#fecaca">
+        <div class="card-body">
+          <strong>Vue d'ensemble indisponible</strong>
+          <p class="muted" style="margin:8px 0 0">${overview.error.message}</p>
+          <p class="muted" style="margin:8px 0 0;font-size:12px">
+            Appliquez les migrations : <code>./staging/scripts/apply-migrations.sh</code>
+          </p>
+        </div>
+      </div>` : null}
+
     <h2 style="font-size:16px;margin-bottom:12px">Vue d'ensemble</h2>
-    ${cabinets.length === 0 && !overview.error ? html`
-      <${Empty}>Aucun cabinet. ${canManage ? 'Cliquez sur « + Nouveau cabinet » pour commencer.' : 'Contactez un admin SURO.'}<//>
+    ${overview.loading ? html`<${Spinner}/>` :
+      cabinets.length === 0 && !overview.error ? html`
+      <${Empty}>Aucun cabinet en base. Utilisez le formulaire « Créer un cabinet » ci-dessus.<//>
     ` : html`
     <table class="ops-table" style="margin-bottom:28px">
       <thead><tr>

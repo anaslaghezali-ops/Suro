@@ -73,7 +73,14 @@ function OperatingModeSettings({ editable }) {
   const save = async () => {
     setBusy(true);
     try {
-      const result = await api.switchOperatingMode(current);
+      let result = null;
+      try {
+        result = await api.switchOperatingMode(current);
+      } catch (rpcErr) {
+        // Fallback si migration suro_switch_operating_mode pas encore appliquée
+        await api.updateSetting('operating_mode', current);
+        result = { ok: true, mode: current, fallback: true };
+      }
       if (result && result.ok === false) {
         const parts = [result.message || result.error];
         if (result.open_tasks != null) parts.push(`dossiers ouverts : ${result.open_tasks}`);
@@ -112,8 +119,8 @@ function OperatingModeSettings({ editable }) {
   `;
 }
 
-export function Settings({ caps }) {
-  const editable = can(caps, 'settings.edit');
+export function Settings({ caps, role }) {
+  const editable = ['super_admin', 'admin'].includes(role) || can(caps, 'settings.edit');
   return html`
     <div class="page-head">
       <h1>Paramètres</h1>

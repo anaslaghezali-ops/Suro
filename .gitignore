@@ -36,3 +36,7 @@ coverage/
 # Temporary
 .tmp/
 temp/
+
+# Database backups (données sensibles — ne pas committer)
+backups/
+*.dump

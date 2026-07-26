@@ -99,11 +99,18 @@ export function Cabinets({ role }) {
 
   const [memberEmail, setMemberEmail] = useState('');
   const [memberName, setMemberName] = useState('');
+  const [memberPassword, setMemberPassword] = useState('');
   const [memberRole, setMemberRole] = useState('gestionnaire');
   const [memberCabinet, setMemberCabinet] = useState('');
+  const [memberFilterCabinet, setMemberFilterCabinet] = useState('');
   const [memberBusy, setMemberBusy] = useState(false);
 
-  const reload = () => { overview.reload(); anomalies.reload(); };
+  const members = useAsync(() => {
+    try { return cabinetApi().listMembers(memberFilterCabinet || null); }
+    catch (e) { return Promise.reject(e); }
+  }, [memberFilterCabinet]);
+
+  const reload = () => { overview.reload(); anomalies.reload(); members.reload(); };
   const cabinets = overview.data || [];
 
   const createCabinet = async () => {
@@ -147,22 +154,27 @@ export function Cabinets({ role }) {
     const email = memberEmail.trim();
     if (!email) { toast('Email requis', 'err'); return; }
     if (!memberCabinet) { toast('Sélectionnez un cabinet', 'err'); return; }
+    if (!memberPassword || memberPassword.length < 6) {
+      toast('Mot de passe : 6 caractères minimum', 'err'); return;
+    }
     setMemberBusy(true);
     try {
-      await cabinetApi().addUser(email, memberRole, memberName.trim() || null, memberCabinet);
-      toast('Membre ajouté au cabinet', 'ok');
-      setMemberEmail(''); setMemberName('');
+      const res = await cabinetApi().createCabinetUser({
+        email,
+        password: memberPassword,
+        role: memberRole,
+        name: memberName.trim() || null,
+        cabinetId: memberCabinet,
+      });
+      toast(res && res.attached ? 'Compte existant rattaché au cabinet' : 'Membre créé', 'ok');
+      setMemberEmail(''); setMemberName(''); setMemberPassword('');
       reload();
-    } catch (e) {
-      const msg = (e.message || '');
-      if (msg.includes('introuvable')) {
-        toast("Compte Auth introuvable — créez d'abord l'utilisateur dans Supabase Auth", 'err');
-      } else {
-        toast('Échec : ' + msg, 'err');
-      }
-    }
+    } catch (e) { toast('Échec : ' + (e.message || ''), 'err'); }
     finally { setMemberBusy(false); }
   };
+
+  const cabinetRoleLabel = (id) => CABINET_ROLES.find((r) => r.id === id)?.label || id;
+  const memberRows = members.data || [];
 
   return html`
     <div class="page-head" style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
@@ -219,11 +231,11 @@ export function Cabinets({ role }) {
       </div>
 
       <div class="card" style="margin-bottom:20px">
-        <div class="card-head"><h3>Ajouter un membre à un cabinet</h3></div>
+        <div class="card-head"><h3>Créer un membre cabinet</h3></div>
         <div class="card-body">
           <p class="muted" style="margin:0 0 14px;font-size:12.5px">
-            L'utilisateur doit exister dans Supabase Auth (Authentication → Users) avec un mot de passe défini.
-            Il se connecte ensuite sur <a href="../cabinet-login.html" target="_blank" rel="noopener">cabinet-login.html</a>.
+            Crée le compte avec email et mot de passe. Connexion sur
+            <a href="../cabinet-login.html" target="_blank" rel="noopener">cabinet-login.html</a>.
           </p>
           <div class="form-grid">
             <label>Cabinet
@@ -237,6 +249,11 @@ export function Cabinets({ role }) {
               <input class="ops-input" type="email" value=${memberEmail}
                 onInput=${(e) => setMemberEmail(e.target.value)} placeholder="gestionnaire@cabinet.ma" />
             </label>
+            <label>Mot de passe
+              <input class="ops-input" type="password" value=${memberPassword}
+                onInput=${(e) => setMemberPassword(e.target.value)} placeholder="6 caractères min."
+                autocomplete="new-password" />
+            </label>
             <label>Nom affiché
               <input class="ops-input" value=${memberName}
                 onInput=${(e) => setMemberName(e.target.value)} placeholder="Prénom Nom" />
@@ -249,9 +266,44 @@ export function Cabinets({ role }) {
           </div>
           <div style="margin-top:14px">
             <button class="btn-o primary" disabled=${memberBusy} onClick=${addMember}>
-              ${memberBusy ? 'Ajout…' : 'Ajouter le membre'}
+              ${memberBusy ? 'Création…' : '+ Créer le membre'}
             </button>
           </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <h3>Membres des cabinets</h3>
+          <label style="font-size:13px;display:flex;align-items:center;gap:8px">
+            Filtrer
+            <select class="ops-input" style="width:auto" value=${memberFilterCabinet}
+              onChange=${(e) => setMemberFilterCabinet(e.target.value)}>
+              <option value="">Tous les cabinets</option>
+              ${cabinets.map((c) => html`
+                <option key=${c.cabinet_id} value=${c.cabinet_id}>${c.cabinet_name}</option>`)}
+            </select>
+          </label>
+        </div>
+        <div class="card-body" style="padding-top:0">
+          ${members.loading ? html`<${Spinner}/>` :
+            members.error ? html`<p class="muted" style="color:#b91c1c">${members.error.message}</p>` :
+            memberRows.length === 0 ? html`<p class="muted">Aucun membre.</p>` : html`
+            <table class="ops-table">
+              <thead><tr>
+                <th>Cabinet</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Depuis</th>
+              </tr></thead>
+              <tbody>
+                ${memberRows.map((m) => html`<tr key=${m.member_id}>
+                  <td>${m.cabinet_name}</td>
+                  <td>${m.display_name || html`<span class="muted">—</span>`}</td>
+                  <td>${m.email}</td>
+                  <td>${cabinetRoleLabel(m.role)}</td>
+                  <td>${m.is_active ? html`<${Badge} tone="green">Actif<//>` : html`<${Badge} tone="gray">Inactif<//>`}</td>
+                  <td>${fmtDate(m.created_at)}</td>
+                </tr>`)}
+              </tbody>
+            </table>`}
         </div>
       </div>` : null}
 

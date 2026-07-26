@@ -17,6 +17,8 @@ export const api = {
   async taskAction(id, action, payload) { return window.SURO_CABINET.taskAction(id, action, payload); },
   async claimSetStatus(id, status, msg) { return window.SURO_CABINET.claimSetStatus(id, status, msg); },
   async addUser(email, role, name) { return window.SURO_CABINET.addUser(email, role, name); },
+  async createCabinetUser(payload) { return window.SURO_CABINET.createCabinetUser(payload); },
+  async listMembers(cabinetId) { return window.SURO_CABINET.listMembers(cabinetId); },
   login: (...a) => window.SURO_AUTH.login(...a),
 };
 

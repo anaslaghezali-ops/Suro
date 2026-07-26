@@ -4,71 +4,140 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SURO — Connexion cabinet partenaire</title>
+  <meta name="description" content="Portail réservé aux cabinets partenaires SURO — souscriptions et sinistres.">
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/tokens.css?v=31">
   <link rel="stylesheet" href="css/components.css?v=31">
-  <link rel="stylesheet" href="css/auth.css?v=32">
+  <link rel="stylesheet" href="css/auth.css?v=33">
 </head>
 <body>
   <div class="auth-layout">
     <aside class="auth-brand auth-brand--staff">
-      <a href="index.html" class="auth-brand-logo" aria-label="SURO">
+      <a href="index.html" class="auth-brand-logo" aria-label="SURO — Accueil">
         <img class="logo-mark" src="assets/brand/suro-mark.svg" width="32" height="32" alt="">
         <span class="logo-word">SURO</span>
       </a>
       <div class="auth-brand-content">
         <h1>Portail cabinet<br>partenaire.</h1>
         <p>Traitez les dossiers clients assignés par SURO — souscriptions et sinistres.</p>
+        <ul class="auth-brand-features">
+          <li>
+            <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+            Souscriptions et émission des polices
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+            Suivi des sinistres clients
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+            Accès sécurisé réservé à votre équipe
+          </li>
+        </ul>
         <div class="auth-staff-note">
           <strong>Accès restreint</strong>
           Réservé aux gestionnaires des cabinets partenaires SURO.
         </div>
       </div>
+      <p class="auth-brand-footer">© 2026 SURO · Cabinet partenaire</p>
     </aside>
+
     <main class="auth-panel">
+      <a href="index.html" class="auth-mobile-logo" aria-label="SURO — Accueil">
+        <img class="logo-mark" src="assets/brand/suro-mark.svg" width="32" height="32" alt="">
+        <span class="logo-word">SURO</span>
+      </a>
       <div class="auth-card">
+        <a href="index.html" class="auth-back">
+          <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Retour au site
+        </a>
+
         <div class="auth-header">
           <span class="auth-eyebrow">Cabinet partenaire</span>
           <h1 class="auth-title">Connexion</h1>
           <p class="auth-subtitle">Identifie-toi pour accéder à ton portail cabinet</p>
         </div>
+
         <form id="login-form" class="auth-form">
           <div class="form-group">
             <label for="email">Email professionnel</label>
-            <input type="email" id="email" name="email" required autocomplete="email">
+            <input type="email" id="email" name="email" placeholder="gestionnaire@cabinet.ma" autocomplete="email" required>
+            <div class="field-error" id="email-error"></div>
           </div>
+
           <div class="form-group">
             <label for="password">Mot de passe</label>
-            <input type="password" id="password" name="password" required autocomplete="current-password">
+            <div class="password-wrap">
+              <input type="password" id="password" name="password" placeholder="Ton mot de passe" autocomplete="current-password" required>
+              <button type="button" class="password-toggle" onclick="togglePassword(this)" aria-label="Afficher le mot de passe">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="field-error" id="password-error"></div>
           </div>
-          <div class="form-options">
+
+          <div class="form-row">
+            <label>
+              <input type="checkbox" name="remember" value="true">
+              Se souvenir de moi
+            </label>
             <a href="reset-password.html" class="form-link">Mot de passe oublié ?</a>
           </div>
-          <button type="submit" class="btn btn-primary"><span data-btn-text>Se connecter</span></button>
+
+          <button type="submit" class="btn btn-primary">
+            <span class="loading-spinner"></span>
+            <span data-btn-text>Se connecter</span>
+          </button>
+
           <div class="error-message" id="form-error"></div>
         </form>
+
         <div class="auth-footer">
           Équipe SURO ? <a href="admin-login.html">Portail Ops</a>
         </div>
       </div>
     </main>
   </div>
+
   <script src="js/services/config.js?v=42"></script>
   <script src="js/services/session.js?v=42"></script>
   <script src="js/services/http.js?v=45"></script>
   <script src="js/services/auth.js?v=42"></script>
-  <script src="js/services/cabinet-portal.js?v=7"></script>
+  <script src="js/services/cabinet-portal.js?v=8"></script>
   <script src="js/services/api.js?v=43"></script>
   <script src="js/auth.js?v=22"></script>
   <script>
+    const REMEMBER_KEY = 'suroCabinetRememberEmail';
+    const emailInput = document.getElementById('email');
+    const rememberInput = document.querySelector('input[name="remember"]');
+
+    const savedEmail = localStorage.getItem(REMEMBER_KEY);
+    if (savedEmail && emailInput) {
+      emailInput.value = savedEmail;
+      if (rememberInput) rememberInput.checked = true;
+    }
+
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       clearErrors();
+
       const btn = e.target.querySelector('button[type="submit"]');
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
+
+      if (!email) {
+        showFieldError('email-error', 'L\'email est requis', 'email');
+        return;
+      }
+      if (!password) {
+        showFieldError('password-error', 'Le mot de passe est requis', 'password');
+        return;
+      }
+
       setLoading(btn, true, 'Connexion…', 'Se connecter');
+
       try {
         await window.SURO_API.login(email, password);
         const ctx = await window.SURO_CABINET.context();
@@ -77,9 +146,22 @@
           showFormError('form-error', 'Ce compte n\'a pas accès au portail cabinet.');
           return;
         }
+
+        if (rememberInput && rememberInput.checked) {
+          localStorage.setItem(REMEMBER_KEY, email);
+        } else {
+          localStorage.removeItem(REMEMBER_KEY);
+        }
+
         window.location.href = new URL('cabinet/', window.location.href).href;
       } catch (error) {
-        showFormError('form-error', error.message || 'Erreur de connexion');
+        let message = error.message || 'Erreur de connexion';
+        if (/invalid login credentials/i.test(message)) {
+          message = 'Email ou mot de passe incorrect';
+        } else if (/email not confirmed/i.test(message)) {
+          message = 'Confirme ton email avant de te connecter';
+        }
+        showFormError('form-error', message);
       } finally {
         setLoading(btn, false, 'Connexion…', 'Se connecter');
       }

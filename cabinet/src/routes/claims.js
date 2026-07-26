@@ -39,6 +39,12 @@ export function Claims() {
   const claims = useAsync(() => api.listClaims(null, 100, 0), []);
 
   if (claims.loading) return html`<${Spinner}/>`;
+  if (claims.error) {
+    return html`
+      <h1 class="ops-h1">Sinistres</h1>
+      <${Empty}>Impossible de charger les sinistres : ${claims.error.message || 'erreur'}<//>
+    `;
+  }
   const rows = claims.data || [];
 
   return html`

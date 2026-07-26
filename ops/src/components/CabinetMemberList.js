@@ -29,11 +29,20 @@ function initials(displayName, email) {
   return (email?.[0] || '?').toUpperCase();
 }
 
-function MemberCard({ member, roleLabel, showCabinet }) {
+function MemberCard({
+  member,
+  roleLabel,
+  showCabinet,
+  canManage,
+  onEdit,
+  onToggleActive,
+  onRemove,
+}) {
   const role = member.role || 'gestionnaire';
   const tone = ROLE_TONE[role] || 'gray';
   const label = roleLabel ? roleLabel(role) : role;
   const title = member.display_name || member.email;
+  const manageable = canManage ? canManage(member) : false;
 
   return html`
     <article class="cabinet-member-card ${member.is_active ? '' : 'is-inactive'}">
@@ -58,6 +67,14 @@ function MemberCard({ member, roleLabel, showCabinet }) {
         <${Badge} tone=${tone}>${label}<//>
         <span class="cabinet-member-since">Depuis ${fmtDate(member.created_at)}</span>
       </div>
+      ${manageable ? html`
+        <div class="cabinet-member-actions">
+          <button type="button" class="btn-o sm" onClick=${() => onEdit(member)}>Éditer</button>
+          <button type="button" class="btn-o sm" onClick=${() => onToggleActive(member)}>
+            ${member.is_active ? 'Désactiver' : 'Activer'}
+          </button>
+          <button type="button" class="btn-o sm danger" onClick=${() => onRemove(member)}>Supprimer</button>
+        </div>` : null}
     </article>
   `;
 }
@@ -69,6 +86,10 @@ export function CabinetMemberList({
   roleLabel,
   showCabinet = false,
   emptyMessage = 'Aucun membre pour le moment.',
+  canManage = null,
+  onEdit = null,
+  onToggleActive = null,
+  onRemove = null,
 }) {
   if (loading) {
     return html`<div class="cabinet-member-loading"><${Spinner}/></div>`;
@@ -94,6 +115,10 @@ export function CabinetMemberList({
           member=${m}
           roleLabel=${roleLabel}
           showCabinet=${showCabinet}
+          canManage=${canManage}
+          onEdit=${onEdit}
+          onToggleActive=${onToggleActive}
+          onRemove=${onRemove}
         />`)}
     </div>
   `;

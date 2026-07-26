@@ -29,6 +29,9 @@ export const api = {
   async addUser(email, role, name) { return window.SURO_CABINET.addUser(email, role, name); },
   async createCabinetUser(payload) { return window.SURO_CABINET.createCabinetUser(payload); },
   async listMembers(cabinetId) { return window.SURO_CABINET.listMembers(cabinetId); },
+  async updateCabinetUser(payload) { return window.SURO_CABINET.updateCabinetUser(payload); },
+  async setMemberActive(memberId, active) { return window.SURO_CABINET.setMemberActive(memberId, active); },
+  async removeMember(memberId) { return window.SURO_CABINET.removeMember(memberId); },
 
   login(email, password) {
     const client = window.SURO_API

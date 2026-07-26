@@ -75,6 +75,29 @@
       });
     },
 
+    async updateCabinetUser({ memberId, newEmail, newPassword }) {
+      return window.SURO_HTTP.sb('/functions/v1/suro-update-cabinet-user', {
+        method: 'POST',
+        asUser: true,
+        body: JSON.stringify({
+          member_id: memberId,
+          newEmail: newEmail || null,
+          newPassword: newPassword || null,
+        }),
+      });
+    },
+
+    async setMemberActive(memberId, active) {
+      return rpc('suro_cabinet_set_member_active', {
+        p_member_id: memberId,
+        p_active: active,
+      });
+    },
+
+    async removeMember(memberId) {
+      return rpc('suro_cabinet_remove_member', { p_member_id: memberId });
+    },
+
     /* Supervision Ops */
     async opsOverview() {
       return rpc('suro_ops_cabinet_overview');

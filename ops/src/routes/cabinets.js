@@ -2,7 +2,7 @@ import { html } from 'htm/preact';
 import { useState } from 'preact/hooks';
 import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
-import { Spinner, Badge, Empty, toast } from '../components/ui.js';
+import { Spinner, Badge, Empty, toast, SlideOver } from '../components/ui.js';
 import { CabinetMemberList } from '../components/CabinetMemberList.js';
 import { fmtDate } from '../lib/format.js';
 import { OPERATING_MODES } from '../lib/permissions.js';
@@ -105,6 +105,10 @@ export function Cabinets({ role }) {
   const [memberCabinet, setMemberCabinet] = useState('');
   const [memberFilterCabinet, setMemberFilterCabinet] = useState('');
   const [memberBusy, setMemberBusy] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
+  const [editMemberEmail, setEditMemberEmail] = useState('');
+  const [editMemberPassword, setEditMemberPassword] = useState('');
+  const [memberSaveBusy, setMemberSaveBusy] = useState(false);
 
   const members = useAsync(() => {
     try { return cabinetApi().listMembers(memberFilterCabinet || null); }
@@ -176,6 +180,54 @@ export function Cabinets({ role }) {
 
   const cabinetRoleLabel = (id) => CABINET_ROLES.find((r) => r.id === id)?.label || id;
   const memberRows = members.data || [];
+
+  const openEditMember = (m) => {
+    setEditingMember(m);
+    setEditMemberEmail(m.email || '');
+    setEditMemberPassword('');
+  };
+
+  const saveEditMember = async () => {
+    if (!editingMember) return;
+    const newEmail = editMemberEmail.trim().toLowerCase();
+    const newPassword = editMemberPassword.trim();
+    const emailChanged = newEmail && newEmail !== (editingMember.email || '').toLowerCase();
+    if (!emailChanged && !newPassword) { toast('Rien à modifier', 'err'); return; }
+    if (newPassword && newPassword.length < 6) { toast('Mot de passe : 6 caractères minimum', 'err'); return; }
+    setMemberSaveBusy(true);
+    try {
+      await cabinetApi().updateCabinetUser({
+        memberId: editingMember.member_id,
+        newEmail: emailChanged ? newEmail : null,
+        newPassword: newPassword || null,
+      });
+      toast('Membre mis à jour', 'ok');
+      setEditingMember(null);
+      reload();
+    } catch (e) { toast('Échec : ' + (e.message || ''), 'err'); }
+    finally { setMemberSaveBusy(false); }
+  };
+
+  const toggleMemberActive = async (m) => {
+    const label = m.display_name || m.email;
+    const verb = m.is_active ? 'Désactiver' : 'Activer';
+    if (!confirm(`${verb} « ${label} » ?`)) return;
+    try {
+      await cabinetApi().setMemberActive(m.member_id, !m.is_active);
+      toast(m.is_active ? 'Membre désactivé' : 'Membre activé', 'ok');
+      reload();
+    } catch (e) { toast('Échec : ' + (e.message || ''), 'err'); }
+  };
+
+  const removeMember = async (m) => {
+    const label = m.display_name || m.email;
+    if (!confirm(`Retirer « ${label} » du cabinet ?`)) return;
+    try {
+      await cabinetApi().removeMember(m.member_id);
+      toast('Membre retiré', 'ok');
+      reload();
+    } catch (e) { toast('Échec : ' + (e.message || ''), 'err'); }
+  };
 
   return html`
     <div class="page-head" style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
@@ -293,6 +345,10 @@ export function Cabinets({ role }) {
             error=${members.error}
             roleLabel=${cabinetRoleLabel}
             showCabinet=${true}
+            canManage=${() => true}
+            onEdit=${openEditMember}
+            onToggleActive=${toggleMemberActive}
+            onRemove=${removeMember}
             emptyMessage="Aucun membre — créez-en un avec le formulaire ci-dessus."
           />
         </div>
@@ -355,5 +411,28 @@ export function Cabinets({ role }) {
           </tr>`)}
         </tbody>
       </table>`}
+
+    ${editingMember ? html`<${SlideOver} open=${true}
+      title=${'Modifier — ' + (editingMember.display_name || editingMember.email)}
+      subtitle=${cabinetRoleLabel(editingMember.role) + (editingMember.cabinet_name ? ' · ' + editingMember.cabinet_name : '')}
+      onClose=${() => setEditingMember(null)}>
+      <div class="form-grid" style="grid-template-columns:1fr">
+        <label>Email
+          <input class="ops-input" type="email" value=${editMemberEmail}
+            onInput=${(e) => setEditMemberEmail(e.target.value)} autocomplete="off" />
+        </label>
+        <label>Nouveau mot de passe
+          <span class="muted" style="font-weight:400"> (laisser vide pour ne pas changer)</span>
+          <input class="ops-input" type="password" placeholder="6 caractères min." value=${editMemberPassword}
+            onInput=${(e) => setEditMemberPassword(e.target.value)} autocomplete="new-password" />
+        </label>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-o primary" disabled=${memberSaveBusy} onClick=${saveEditMember}>
+          ${memberSaveBusy ? 'Enregistrement…' : 'Enregistrer'}
+        </button>
+        <button class="btn-o" onClick=${() => setEditingMember(null)}>Annuler</button>
+      </div>
+    <//>` : null}
   `;
 }

@@ -38,6 +38,18 @@ select 'suro_cabinet_list_members' as rpc,
     where n.nspname = 'public' and p.proname = 'suro_cabinet_list_members'
   ) then 'OK' else 'MANQUANT' end as status;
 
+select 'suro_cabinet_set_member_active' as rpc,
+  case when exists (
+    select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proname = 'suro_cabinet_set_member_active'
+  ) then 'OK' else 'MANQUANT' end as status;
+
+select 'suro_cabinet_remove_member' as rpc,
+  case when exists (
+    select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proname = 'suro_cabinet_remove_member'
+  ) then 'OK' else 'MANQUANT' end as status;
+
 select 'operating_mode_setting' as rpc,
   case when exists (
     select 1 from public.suro_settings where key = 'operating_mode'

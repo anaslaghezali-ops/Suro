@@ -504,9 +504,25 @@ class CustomerDashboard {
     }
   }
 
+  customerEmail() {
+    return (this.session?.email || '').trim().toLowerCase();
+  }
+
+  belongsToCustomer(record) {
+    const email = this.customerEmail();
+    if (!email || !record) return false;
+    return (record.customer_email || '').trim().toLowerCase() === email;
+  }
+
+  filterOwnCustomerRows(rows) {
+    return (rows || []).filter((row) => this.belongsToCustomer(row));
+  }
+
   async fetchPolicies(force = false) {
     if (!this.policies || force) {
-      this.policies = await this.api.getMyPolicies() || [];
+      const rows = await this.api.getMyPolicies() || [];
+      // Les comptes staff voient tout via RLS admin ; l'espace client = ses contrats seulement.
+      this.policies = this.filterOwnCustomerRows(rows);
     }
     return this.policies;
   }
@@ -546,14 +562,13 @@ class CustomerDashboard {
       this.renderPendingClaimReplyBanner(awaitingReply, 'pending-claim-reply-banner-dashboard');
       this.updateClaimsNavBadge(awaitingReply);
       this.updateDocumentsNavBadge(policies, allDocs);
-      const claims = await this.api.getMyClaims() || [];
-      // Nombre réel de paiements (initial + renouvellements), pas de contrats
-      const payments = await this.api.getMyPayments().catch(() => []);
+      const claims = await this.fetchClaims(true);
+      const payments = await this.fetchPayments(true);
 
       document.getElementById('stat-active-policies').textContent =
         policies.filter(p => p.status === 'active').length;
       document.getElementById('stat-claims').textContent = claims.length;
-      document.getElementById('stat-payments').textContent = (payments || []).length;
+      document.getElementById('stat-payments').textContent = payments.length;
 
       // Prochaine échéance = la plus proche parmi les contrats actifs
       const expiries = policies
@@ -567,7 +582,7 @@ class CustomerDashboard {
       const rows = policies.slice(0, 5);
       list.innerHTML = rows.length ? rows.map((p) => this.renderPolicyCard(p, {
         compact: true,
-        kyc: this.summarizeKycForPolicy(p.id, allDocs),
+        kyc: this.summarizeKycForPolicy(p.id, allDocs, p.customer_email),
       })).join('') : this.policyListEmptyHTML({
         title: 'Aucun contrat actif',
         desc: 'Souscris une assurance en quelques minutes.',
@@ -599,7 +614,7 @@ class CustomerDashboard {
       const list = document.getElementById('policies-list');
 
       list.innerHTML = filtered.length ? filtered.map((p) => this.renderPolicyCard(p, {
-        kyc: this.summarizeKycForPolicy(p.id, allDocs),
+        kyc: this.summarizeKycForPolicy(p.id, allDocs, p.customer_email),
       })).join('') : this.policyListEmptyHTML({
         title: statusFilter ? 'Aucun contrat pour ce filtre' : 'Aucun contrat',
         desc: statusFilter ? 'Essaie un autre statut ou souscris une nouvelle assurance.' : 'Commence par souscrire ton assurance auto.',
@@ -617,10 +632,9 @@ class CustomerDashboard {
     this.setTableSkeleton('claims-tbody', 5, 3);
     try {
       const [claims, awaitingReply] = await Promise.all([
-        this.api.getMyClaims().then((r) => r || []),
+        this.fetchClaims(true),
         this.fetchClaimsAwaitingReply(true),
       ]);
-      this.claims = claims;
       this.updateClaimsNavBadge(awaitingReply);
       const awaitingIds = new Set((awaitingReply || []).map((r) => r.claim_id));
       const statusFilter = document.getElementById('filter-claim-status')?.value || '';
@@ -682,9 +696,20 @@ class CustomerDashboard {
 
   async fetchPayments(force = false) {
     if (!this.payments || force) {
-      this.payments = await this.api.getMyPayments().catch(() => []);
+      const rows = await this.api.getMyPayments().catch(() => []);
+      this.payments = this.filterOwnCustomerRows(rows);
     }
     return this.payments;
+  }
+
+  async fetchClaims(force = false) {
+    if (!this.claims || force) {
+      const rows = await this.api.getMyClaims() || [];
+      const policies = await this.fetchPolicies();
+      const ownPolicyIds = new Set((policies || []).map((p) => p.id));
+      this.claims = (rows || []).filter((c) => ownPolicyIds.has(c.application_id));
+    }
+    return this.claims;
   }
 
   setPaymentsLoading(loading) {
@@ -1065,10 +1090,10 @@ class CustomerDashboard {
     try {
       const [policies, payments] = await Promise.all([
         this.fetchPolicies(),
-        this.api.getMyPayments().catch(() => []),
+        this.fetchPayments(),
       ]);
       const activeCount = (policies || []).filter((p) => p.status === 'active').length;
-      const paymentCount = (payments || []).length;
+      const paymentCount = payments.length;
       const policiesEl = document.getElementById('profile-stat-policies');
       const paymentsEl = document.getElementById('profile-stat-payments');
       if (policiesEl) policiesEl.textContent = activeCount;
@@ -1231,7 +1256,8 @@ class CustomerDashboard {
 
   async fetchDocuments(force = false) {
     if (!this.documents || force) {
-      this.documents = await this.api.getMyDocuments() || [];
+      const rows = await this.api.getMyDocuments() || [];
+      this.documents = this.filterOwnCustomerRows(rows);
     }
     return this.documents;
   }
@@ -1325,8 +1351,8 @@ class CustomerDashboard {
     this.viewClaimDetail(claimId, { focusMessages: true });
   }
 
-  summarizeKycForPolicy(applicationId, allDocs) {
-    return Kyc().summarizeKycForPolicy(applicationId, allDocs);
+  summarizeKycForPolicy(applicationId, allDocs, customerEmail) {
+    return Kyc().summarizeKycForPolicy(applicationId, allDocs, customerEmail);
   }
 
   policyRequiresKyc(p) {
@@ -1336,14 +1362,14 @@ class CustomerDashboard {
   getPoliciesAwaitingDocs(policies, allDocs) {
     return (policies || []).filter((p) => {
       if (!this.policyRequiresKyc(p)) return false;
-      return this.summarizeKycForPolicy(p.id, allDocs).needsUpload;
+      return this.summarizeKycForPolicy(p.id, allDocs, p.customer_email).needsUpload;
     });
   }
 
   getPoliciesPendingReview(policies, allDocs) {
     return (policies || []).filter((p) => {
       if (!this.policyRequiresKyc(p)) return false;
-      return this.summarizeKycForPolicy(p.id, allDocs).pendingReview;
+      return this.summarizeKycForPolicy(p.id, allDocs, p.customer_email).pendingReview;
     });
   }
 
@@ -1403,12 +1429,15 @@ class CustomerDashboard {
 
     if (awaitingUpload.length === 1 && !pendingReview.length) {
       const p = awaitingUpload[0];
-      const kyc = this.summarizeKycForPolicy(p.id, allDocs);
+      const kyc = this.summarizeKycForPolicy(p.id, allDocs, p.customer_email);
+      const desc = kyc.onlyCarteGriseMissing
+        ? `Carte grise pour ${this.escape(this.vehicleLabel(p))}. CIN et permis déjà enregistrés. ${kyc.received}/${kyc.totalSlots} faces reçues.`
+        : `CIN, permis et carte grise pour ${this.escape(this.vehicleLabel(p))}. ${kyc.received}/${kyc.totalSlots} faces reçues.`;
       el.innerHTML = `
         <div class="pending-banner pending-banner--docs" role="status">
           <div class="pending-banner-copy">
-            <div class="pending-banner-title">Complète ton dossier — 3 pièces (recto + verso)</div>
-            <p class="pending-banner-desc">CIN, permis et carte grise pour ${this.escape(this.vehicleLabel(p))}. ${kyc.received}/${kyc.totalSlots} faces reçues.</p>
+            <div class="pending-banner-title">${kyc.onlyCarteGriseMissing ? 'Carte grise à envoyer' : 'Complète ton dossier — 3 pièces (recto + verso)'}</div>
+            <p class="pending-banner-desc">${desc}</p>
           </div>
           <button type="button" class="btn btn-primary btn-sm" onclick="dashboard.openDocumentsForPolicy('${p.id}')">Compléter mon dossier</button>
         </div>`;
@@ -1417,7 +1446,7 @@ class CustomerDashboard {
 
     if (pendingReview.length === 1 && !awaitingUpload.length) {
       const p = pendingReview[0];
-      const kyc = this.summarizeKycForPolicy(p.id, allDocs);
+      const kyc = this.summarizeKycForPolicy(p.id, allDocs, p.customer_email);
       el.innerHTML = `
         <div class="pending-banner pending-banner--review" role="status">
           <div class="pending-banner-copy">
@@ -1434,7 +1463,7 @@ class CustomerDashboard {
         <div class="pending-banner pending-banner--docs" role="status">
           <div class="pending-banner-copy">
             <div class="pending-banner-title">${awaitingUpload.length} dossier${awaitingUpload.length > 1 ? 's' : ''} à compléter</div>
-            <p class="pending-banner-desc">Envoie ta CIN, ton permis et ta carte grise pour chaque contrat payé.</p>
+            <p class="pending-banner-desc">${awaitingUpload.length > 1 ? 'Envoie la carte grise de chaque véhicule. CIN et permis sont partagés entre tes contrats.' : 'Envoie ta CIN, ton permis et ta carte grise pour activer ton contrat.'}</p>
           </div>
           <button type="button" class="btn btn-primary btn-sm" onclick="dashboard.navigateTo('documents')">Voir mes documents</button>
         </div>`;
@@ -1491,13 +1520,13 @@ class CustomerDashboard {
 
       let policyId = this._documentsPolicyId;
       if (!policyId || !eligible.some((p) => p.id === policyId)) {
-        policyId = eligible.find((p) => this.summarizeKycForPolicy(p.id, allDocs).needsUpload)?.id
-          || eligible.find((p) => this.summarizeKycForPolicy(p.id, allDocs).pendingReview)?.id
+        policyId = eligible.find((p) => this.summarizeKycForPolicy(p.id, allDocs, p.customer_email).needsUpload)?.id
+          || eligible.find((p) => this.summarizeKycForPolicy(p.id, allDocs, p.customer_email).pendingReview)?.id
           || eligible[0].id;
       }
       this._documentsPolicyId = policyId;
       const policy = eligible.find((p) => p.id === policyId);
-      const kyc = this.summarizeKycForPolicy(policyId, allDocs);
+      const kyc = this.summarizeKycForPolicy(policyId, allDocs, policy.customer_email);
 
       const selector = eligible.length > 1 ? `
         <div class="filter-bar docs-policy-select">
@@ -1516,15 +1545,21 @@ class CustomerDashboard {
         ? 'Dossier complet'
         : kyc.pendingReview
           ? 'Validation en cours'
-          : missingTypes.length === 1
-            ? `${Kyc().KYC_DOC_TYPES.find((d) => d.id === missingTypes[0])?.label || 'Pièce'} incomplète`
-            : 'Dernière étape avant activation';
+          : kyc.onlyCarteGriseMissing
+            ? 'Carte grise à envoyer'
+            : missingTypes.length === 1
+              ? `${Kyc().KYC_DOC_TYPES.find((d) => d.id === missingTypes[0])?.label || 'Pièce'} incomplète`
+              : 'Dernière étape avant activation';
 
       const bannerDesc = kyc.complete
         ? 'Tes 3 pièces (recto + verso) sont validées. Ton contrat est activé.'
         : kyc.pendingReview
-          ? 'Tes 6 faces ont bien été reçues. Notre équipe vérifie tes pièces — tu seras notifié une fois le dossier validé (sous 48 h ouvrées).'
-          : 'Paiement reçu ✓ — Envoie le recto et le verso de chaque pièce. Validation sous 48 h ouvrées.';
+          ? 'Tes pièces ont bien été reçues. Notre équipe vérifie ton dossier — tu seras notifié une fois validé (sous 48 h ouvrées).'
+          : kyc.onlyCarteGriseMissing
+            ? `Paiement reçu ✓ — Envoie la carte grise (recto + verso) pour ${this.escape(this.vehicleLabel(policy))}. CIN et permis sont déjà enregistrés pour tous tes véhicules.`
+            : kyc.sharedIdentityComplete
+              ? `Paiement reçu ✓ — Il ne reste que la carte grise pour ce véhicule.`
+              : 'Paiement reçu ✓ — Envoie le recto et le verso de chaque pièce. Validation sous 48 h ouvrées.';
 
       const chips = Kyc().KYC_DOC_TYPES.map((def) => {
         const agg = Kyc().typeAggregateStatus(kyc.byType[def.id]);
@@ -1555,7 +1590,8 @@ class CustomerDashboard {
           ${Kyc().KYC_DOC_TYPES.map((def) => this.renderKycDocCard(policy, def, kyc.byType[def.id])).join('')}
         </div>
         <div class="docs-note">
-          <strong>Conseil :</strong> une photo par face (recto et verso), en lumière naturelle et sans reflet. Les 3 pièces doivent correspondre au nom du titulaire du contrat.
+          <strong>Conseil :</strong> une photo par face (recto et verso), en lumière naturelle et sans reflet.
+          ${kyc.sharedIdentityComplete ? 'CIN et permis sont valables pour tous tes véhicules — seule la carte grise change.' : 'Les 3 pièces doivent correspondre au nom du titulaire du contrat.'}
         </div>`;
     } catch (error) {
       if (this.handleAuthError(error)) return;
@@ -1577,6 +1613,13 @@ class CustomerDashboard {
       ? `${def.hint} (${this.escape(policy.immatriculation)}).`
       : def.hint;
 
+    const sharedIdentity = Kyc().isCustomerSharedType(def.id)
+      && (typeEntry.recto || typeEntry.verso)
+      && [typeEntry.recto, typeEntry.verso].some((d) => d && d.application_id !== policy.id);
+    const sharedHtml = sharedIdentity
+      ? '<p class="muted" style="font-size:12px;margin-top:4px">Pièce enregistrée pour tous vos véhicules.</p>'
+      : '';
+
     const st = agg === 'approved' ? { label: 'Validé', tone: 'ok' }
       : agg === 'pending' ? { label: 'En vérification', tone: 'review' }
         : agg === 'rejected' ? { label: 'À renvoyer', tone: 'ko' }
@@ -1589,6 +1632,7 @@ class CustomerDashboard {
         <div class="doc-copy">
           <h3>${def.label}</h3>
           <p>${hint}</p>
+          ${sharedHtml}
           <div class="doc-sides">
             ${Kyc().KYC_SIDES.map((side) => this.renderKycSideSlot(policy, def, side, typeEntry[side])).join('')}
           </div>
@@ -1606,18 +1650,23 @@ class CustomerDashboard {
       ? `<div class="doc-reject"><strong>Refusé :</strong> ${this.escape(doc.reject_reason)}</div>`
       : '';
 
+    const inherited = doc && doc.application_id !== policy.id;
     const needsUpload = !doc || doc.status === 'rejected';
     const uploadZone = needsUpload ? `
       <div class="upload-zone upload-zone--compact">
         <strong>${sideLabel}</strong>
         JPG, PNG ou PDF · max. 5 Mo
-      </div>` : `<div class="doc-meta">${this.formatKycDocMeta(doc)}</div>`;
+      </div>` : `<div class="doc-meta">${this.formatKycDocMeta(doc)}${inherited ? ' · <span class="muted">partagée</span>' : ''}</div>`;
 
     const actions = doc?.status === 'approved'
       ? `<button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.downloadDoc('${this.escape(doc.storage_path)}', '${this.escape(doc.name).replace(/'/g, "\\'")}')">Voir</button>`
-      : doc?.status === 'pending'
+      : doc?.status === 'pending' && !inherited
         ? `<button type="button" class="btn btn-ghost btn-sm" onclick="dashboard.triggerKycUpload('${policy.id}', '${def.id}', '${side}')">Remplacer</button>`
-        : `<button type="button" class="btn btn-primary btn-sm" onclick="dashboard.triggerKycUpload('${policy.id}', '${def.id}', '${side}')">${doc?.status === 'rejected' ? 'Renvoyer' : 'Ajouter'}</button>`;
+        : inherited && doc?.status === 'pending'
+          ? `<span class="muted" style="font-size:12px">En vérification (partagée)</span>`
+          : needsUpload
+            ? `<button type="button" class="btn btn-primary btn-sm" onclick="dashboard.triggerKycUpload('${policy.id}', '${def.id}', '${side}')">${doc?.status === 'rejected' ? 'Renvoyer' : 'Ajouter'}</button>`
+            : '';
 
     return `
       <div class="doc-side-slot doc-side-slot--${st.tone}">
@@ -1702,7 +1751,10 @@ class CustomerDashboard {
     try {
       const policies = await this.fetchPolicies();
       const p = policies.find(x => x.id === policyId);
-      if (!p) return;
+      if (!p) {
+        toast('Contrat introuvable sur ton compte.', 'err');
+        return;
+      }
 
       const premium = p.annual_premium
         ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH`
@@ -1733,7 +1785,10 @@ class CustomerDashboard {
     try {
       const policies = await this.fetchPolicies();
       const p = policies.find(x => x.id === policyId);
-      if (!p) return;
+      if (!p) {
+        toast('Contrat introuvable sur ton compte.', 'err');
+        return;
+      }
 
       const premium = p.annual_premium
         ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH`
@@ -1818,7 +1873,7 @@ class CustomerDashboard {
   async viewClaimDetail(claimId, options = {}) {
     const { focusMessages = false } = options;
     try {
-      const claims = this.claims || await this.api.getMyClaims() || [];
+      const claims = await this.fetchClaims();
       const c = claims.find(x => x.id === claimId);
       if (!c) return;
 

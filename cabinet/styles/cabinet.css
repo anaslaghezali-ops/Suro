@@ -1,0 +1,12 @@
+/* Portail cabinet — épuré, traitement rapide */
+.cabinet-brand span { color: var(--color-primary-600); }
+.cabinet-priority { font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.cabinet-priority.urgente { color: #dc2626; }
+.cabinet-priority.haute { color: #d97706; }
+.cabinet-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.cabinet-actions .btn-o { font-size: 12px; padding: 4px 10px; }
+.cabinet-kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.cabinet-kpi { background: #fff; border: 1px solid var(--color-neutral-200); border-radius: 10px; padding: 14px 16px; }
+.cabinet-kpi .n { font-size: 28px; font-weight: 800; color: var(--color-primary-700); }
+.cabinet-kpi .l { font-size: 12px; color: var(--color-neutral-600); margin-top: 4px; }
+.cabinet-env-banner { background: #fef3c7; color: #92400e; font-size: 12px; padding: 6px 12px; text-align: center; }

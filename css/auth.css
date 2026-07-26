@@ -548,6 +548,64 @@ body {
   }
 }
 
+/* Panneau cabinets (admin-login, session admin active) */
+.auth-cabinet-panel {
+  display: none;
+  margin-top: 8px;
+}
+
+.auth-cabinet-panel.is-visible {
+  display: block;
+}
+
+.auth-cabinet-panel .auth-header {
+  margin-bottom: 20px;
+}
+
+.auth-cabinet-list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.auth-cabinet-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-neutral-100);
+  font-size: 14px;
+}
+
+.auth-cabinet-list li:last-child {
+  border-bottom: none;
+}
+
+.auth-cabinet-list .cabinet-slug {
+  font-size: 12px;
+  color: var(--color-neutral-500);
+}
+
+.auth-cabinet-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.auth-cabinet-actions .btn-secondary {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-800);
+}
+
+.auth-login-section.is-hidden {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation: none !important;

@@ -85,7 +85,7 @@ function SlotReview({ doc, caps, onReviewed }) {
 }
 
 function KycDossierDetail({ app, docs, caps, onClose, onReviewed }) {
-  const summary = Kyc().summarizeKycForPolicy(app.id, docs);
+  const summary = Kyc().summarizeKycForPolicy(app.id, docs, app.customer_email);
   const pendingCount = Kyc().KYC_DOC_TYPE_IDS.reduce((n, type) => {
     return n + Kyc().KYC_SIDES.filter((side) => summary.byType[type][side]?.status === 'pending').length;
   }, 0);
@@ -135,7 +135,7 @@ function KycDossiersTab({ apps, docs, caps, reload }) {
   const rows = useMemo(() => {
     const paidApps = (apps || []).filter((a) => a.status === 'active' && a.paid_at);
     return paidApps.map((app) => {
-      const summary = Kyc().summarizeKycForPolicy(app.id, docs);
+      const summary = Kyc().summarizeKycForPolicy(app.id, docs, app.customer_email);
       const pendingCount = Kyc().KYC_DOC_TYPE_IDS.reduce((n, type) => {
         return n + Kyc().KYC_SIDES.filter((side) => summary.byType[type][side]?.status === 'pending').length;
       }, 0);

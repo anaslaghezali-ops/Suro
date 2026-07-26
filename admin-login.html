@@ -9,7 +9,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/tokens.css?v=31">
   <link rel="stylesheet" href="css/components.css?v=31">
-  <link rel="stylesheet" href="css/auth.css?v=32">
+  <link rel="stylesheet" href="css/auth.css?v=33">
 </head>
 <body>
   <div class="auth-layout">
@@ -54,6 +54,7 @@
           Retour au site
         </a>
 
+        <div id="login-section" class="auth-login-section">
         <div class="auth-header">
           <span class="auth-eyebrow">Équipe SURO</span>
           <h1 class="auth-title">Connexion admin</h1>
@@ -97,6 +98,43 @@
         <div class="auth-footer">
           Tu es client ? <a href="customer-login.html">Accéder à mon espace</a>
         </div>
+        </div>
+
+        <div id="cabinet-panel" class="auth-cabinet-panel" hidden>
+          <div class="auth-header">
+            <span class="auth-eyebrow">Administration</span>
+            <h1 class="auth-title">Cabinets partenaires</h1>
+            <p class="auth-subtitle">Crée et gère les cabinets (mode intermédiaire)</p>
+          </div>
+
+          <form id="cabinet-form" class="auth-form">
+            <div class="form-group">
+              <label for="cabinet-name">Nom du cabinet</label>
+              <input type="text" id="cabinet-name" name="cabinet-name" placeholder="Cabinet Exemple Assurances" required>
+            </div>
+            <div class="form-group">
+              <label for="cabinet-slug">Slug (identifiant unique)</label>
+              <input type="text" id="cabinet-slug" name="cabinet-slug" placeholder="cabinet-exemple">
+              <p class="muted" style="margin-top:6px;font-size:12px;color:var(--color-neutral-500)">Lettres minuscules, chiffres et tirets — ex. cabinet-1</p>
+            </div>
+            <button type="submit" class="btn btn-primary" id="cabinet-submit">
+              <span class="loading-spinner"></span>
+              <span data-btn-text>+ Créer le cabinet</span>
+            </button>
+            <div class="error-message" id="cabinet-error"></div>
+            <div class="success-message" id="cabinet-success" style="display:none;margin-top:12px;padding:12px;border-radius:8px;background:#ecfdf5;color:#047857;font-size:14px"></div>
+          </form>
+
+          <h2 style="font-size:15px;margin:24px 0 8px;font-weight:600">Cabinets existants</h2>
+          <ul id="cabinet-list" class="auth-cabinet-list">
+            <li style="color:var(--color-neutral-500)">Chargement…</li>
+          </ul>
+
+          <div class="auth-cabinet-actions">
+            <a href="ops/#/cabinets" class="btn btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">Ouvrir Ops — Cabinets</a>
+            <button type="button" class="btn btn-secondary" id="cabinet-logout" style="padding:12px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:600">Déconnexion</button>
+          </div>
+        </div>
       </div>
     </main>
   </div>
@@ -108,19 +146,149 @@
   <script src="js/services/onboarding.js?v=42"></script>
   <script src="js/services/auth.js?v=42"></script>
   <script src="js/services/customer-portal.js?v=42"></script>
-  <script src="js/services/admin.js?v=47"></script>
+  <script src="js/services/admin.js?v=49"></script>
   <script src="js/services/api-notifications.js?v=42"></script>
+  <script src="js/services/cabinet-portal.js?v=7"></script>
   <script src="js/services/api.js?v=42"></script>
   <script src="js/auth.js?v=22"></script>
   <script>
     const REMEMBER_KEY = 'suroAdminRememberEmail';
     const emailInput = document.getElementById('email');
     const rememberInput = document.querySelector('input[name="remember"]');
+    const loginSection = document.getElementById('login-section');
+    const cabinetPanel = document.getElementById('cabinet-panel');
+    const cabinetList = document.getElementById('cabinet-list');
+    const cabinetNameInput = document.getElementById('cabinet-name');
+    const cabinetSlugInput = document.getElementById('cabinet-slug');
+
+    function slugify(name) {
+      return String(name || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 48);
+    }
+
+    function canManageCabinets(role) {
+      return role === 'super_admin' || role === 'admin';
+    }
+
+    function showCabinetPanel(role) {
+      loginSection.classList.add('is-hidden');
+      cabinetPanel.hidden = false;
+      cabinetPanel.classList.add('is-visible');
+      loadCabinets();
+    }
+
+    function showLoginForm() {
+      loginSection.classList.remove('is-hidden');
+      cabinetPanel.hidden = true;
+      cabinetPanel.classList.remove('is-visible');
+    }
+
+    async function loadCabinets() {
+      if (!window.SURO_CABINET) {
+        cabinetList.innerHTML = '<li>Module cabinet non chargé — rechargez la page</li>';
+        return;
+      }
+      try {
+        const rows = await window.SURO_CABINET.opsOverview();
+        if (!rows || rows.length === 0) {
+          cabinetList.innerHTML = '<li style="color:var(--color-neutral-500)">Aucun cabinet — créez-en un ci-dessus</li>';
+          return;
+        }
+        cabinetList.innerHTML = rows.map((c) => `
+          <li>
+            <span><strong>${escapeHtml(c.cabinet_name)}</strong><br><span class="cabinet-slug">${escapeHtml(c.is_active ? 'actif' : 'inactif')}</span></span>
+          </li>
+        `).join('');
+      } catch (e) {
+        cabinetList.innerHTML = `<li style="color:#b91c1c">Erreur : ${escapeHtml(e.message || 'chargement impossible')}</li>`;
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    async function initSession() {
+      const session = window.SURO_API.getSession();
+      if (!session || !session.access_token) return;
+      try {
+        const staff = await window.SURO_API.isStaff();
+        if (!staff) return;
+        const role = await window.SURO_API.currentRole();
+        if (canManageCabinets(role)) showCabinetPanel(role);
+      } catch (e) { /* rester sur login */ }
+    }
+
+    cabinetNameInput.addEventListener('input', () => {
+      if (!cabinetSlugInput.dataset.touched) {
+        cabinetSlugInput.value = slugify(cabinetNameInput.value);
+      }
+    });
+    cabinetSlugInput.addEventListener('input', () => {
+      cabinetSlugInput.dataset.touched = cabinetSlugInput.value ? '1' : '';
+    });
+    cabinetSlugInput.addEventListener('blur', () => {
+      if (cabinetSlugInput.value.trim()) {
+        cabinetSlugInput.value = slugify(cabinetSlugInput.value);
+      }
+    });
+
+    document.getElementById('cabinet-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors();
+      const btn = document.getElementById('cabinet-submit');
+      const name = cabinetNameInput.value.trim();
+      const slug = slugify(cabinetSlugInput.value.trim() || name);
+      const errEl = document.getElementById('cabinet-error');
+      const okEl = document.getElementById('cabinet-success');
+
+      if (!name) {
+        showFormError('cabinet-error', 'Le nom du cabinet est requis');
+        return;
+      }
+      if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
+        showFormError('cabinet-error', 'Slug invalide (a-z, 0-9, tirets)');
+        return;
+      }
+      if (!window.SURO_CABINET) {
+        showFormError('cabinet-error', 'Module cabinet non chargé');
+        return;
+      }
+
+      setLoading(btn, true, 'Création…', '+ Créer le cabinet');
+      okEl.style.display = 'none';
+      try {
+        await window.SURO_CABINET.staffUpsertCabinet(name, slug);
+        okEl.textContent = 'Cabinet « ' + name + ' » créé avec succès';
+        okEl.style.display = 'block';
+        cabinetNameInput.value = '';
+        cabinetSlugInput.value = '';
+        cabinetSlugInput.dataset.touched = '';
+        await loadCabinets();
+      } catch (error) {
+        showFormError('cabinet-error', error.message || 'Échec de la création');
+      } finally {
+        setLoading(btn, false, 'Création…', '+ Créer le cabinet');
+      }
+    });
+
+    document.getElementById('cabinet-logout').addEventListener('click', async () => {
+      await window.SURO_API.logout();
+      showLoginForm();
+    });
+
     const savedEmail = localStorage.getItem(REMEMBER_KEY);
     if (savedEmail && emailInput) {
       emailInput.value = savedEmail;
       if (rememberInput) rememberInput.checked = true;
     }
+
+    initSession();
 
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -155,6 +323,14 @@
           localStorage.setItem(REMEMBER_KEY, email);
         } else {
           localStorage.removeItem(REMEMBER_KEY);
+        }
+
+        let role = null;
+        try { role = await window.SURO_API.currentRole(); } catch (e) { /* ignore */ }
+
+        if (canManageCabinets(role)) {
+          showCabinetPanel(role);
+          return;
         }
 
         window.location.href = 'ops/';

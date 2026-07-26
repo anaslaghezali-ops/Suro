@@ -131,6 +131,18 @@ export function Cabinets({ role }) {
     } catch (e) { toast('Échec : ' + (e.message || ''), 'err'); }
   };
 
+  const deleteCabinet = async (cabinetId, cabinetName) => {
+    const label = cabinetName || 'ce cabinet';
+    if (!confirm(`Supprimer définitivement « ${label} » ?\n\nImpossible si des dossiers ou sinistres y sont liés — utilisez Désactiver à la place.`)) {
+      return;
+    }
+    try {
+      await cabinetApi().staffDeleteCabinet(cabinetId);
+      toast('Cabinet supprimé', 'ok');
+      reload();
+    } catch (e) { toast('Échec : ' + (e.message || ''), 'err'); }
+  };
+
   const addMember = async () => {
     const email = memberEmail.trim();
     if (!email) { toast('Email requis', 'err'); return; }
@@ -210,7 +222,8 @@ export function Cabinets({ role }) {
         <div class="card-head"><h3>Ajouter un membre à un cabinet</h3></div>
         <div class="card-body">
           <p class="muted" style="margin:0 0 14px;font-size:12.5px">
-            L'utilisateur doit exister dans Supabase Auth (Authentication → Users).
+            L'utilisateur doit exister dans Supabase Auth (Authentication → Users) avec un mot de passe défini.
+            Il se connecte ensuite sur <a href="../cabinet-login.html" target="_blank" rel="noopener">cabinet-login.html</a>.
           </p>
           <div class="form-grid">
             <label>Cabinet
@@ -272,9 +285,12 @@ export function Cabinets({ role }) {
           <td>${c.tasks_anomaly > 0 ? html`<${Badge} tone="red">${c.tasks_anomaly}<//>` : '0'}</td>
           <td>${c.claims_open}</td>
           <td>${c.avg_task_age_hours ?? '—'}</td>
-          ${canManage ? html`<td>
+          ${canManage ? html`<td style="white-space:nowrap">
             <button class="btn-o sm" onClick=${() => toggleActive(c.cabinet_id, c.is_active)}>
               ${c.is_active ? 'Désactiver' : 'Activer'}
+            </button>
+            <button class="btn-o sm danger" style="margin-left:6px" onClick=${() => deleteCabinet(c.cabinet_id, c.cabinet_name)}>
+              Supprimer
             </button>
           </td>` : null}
         </tr>`)}

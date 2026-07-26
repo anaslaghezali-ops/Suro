@@ -78,5 +78,11 @@
         p_active: active,
       });
     },
+
+    async staffDeleteCabinet(cabinetId) {
+      return rpc('suro_staff_delete_cabinet', {
+        p_cabinet_id: cabinetId,
+      });
+    },
   };
 })();

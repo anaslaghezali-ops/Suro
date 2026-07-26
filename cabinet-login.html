@@ -77,7 +77,7 @@
           showFormError('form-error', 'Ce compte n\'a pas accès au portail cabinet.');
           return;
         }
-        window.location.href = 'cabinet/';
+        window.location.href = new URL('cabinet/', window.location.href).href;
       } catch (error) {
         showFormError('form-error', error.message || 'Erreur de connexion');
       } finally {

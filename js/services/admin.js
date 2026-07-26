@@ -179,6 +179,9 @@
     },
 
     adminUpdateSetting(key, value) {
+      if (key === 'operating_mode') {
+        return Promise.reject(new Error('operating_mode : utiliser switchOperatingMode() (RPC suro_switch_operating_mode)'));
+      }
       return this.sb(`/rest/v1/suro_settings?key=eq.${encodeURIComponent(key)}`, {
         method: 'PATCH',
         asUser: true,

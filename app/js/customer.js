@@ -504,9 +504,25 @@ class CustomerDashboard {
     }
   }
 
+  customerEmail() {
+    return (this.session?.email || '').trim().toLowerCase();
+  }
+
+  belongsToCustomer(record) {
+    const email = this.customerEmail();
+    if (!email || !record) return false;
+    return (record.customer_email || '').trim().toLowerCase() === email;
+  }
+
+  filterOwnCustomerRows(rows) {
+    return (rows || []).filter((row) => this.belongsToCustomer(row));
+  }
+
   async fetchPolicies(force = false) {
     if (!this.policies || force) {
-      this.policies = await this.api.getMyPolicies() || [];
+      const rows = await this.api.getMyPolicies() || [];
+      // Les comptes staff voient tout via RLS admin ; l'espace client = ses contrats seulement.
+      this.policies = this.filterOwnCustomerRows(rows);
     }
     return this.policies;
   }
@@ -546,14 +562,13 @@ class CustomerDashboard {
       this.renderPendingClaimReplyBanner(awaitingReply, 'pending-claim-reply-banner-dashboard');
       this.updateClaimsNavBadge(awaitingReply);
       this.updateDocumentsNavBadge(policies, allDocs);
-      const claims = await this.api.getMyClaims() || [];
-      // Nombre réel de paiements (initial + renouvellements), pas de contrats
-      const payments = await this.api.getMyPayments().catch(() => []);
+      const claims = await this.fetchClaims(true);
+      const payments = await this.fetchPayments(true);
 
       document.getElementById('stat-active-policies').textContent =
         policies.filter(p => p.status === 'active').length;
       document.getElementById('stat-claims').textContent = claims.length;
-      document.getElementById('stat-payments').textContent = (payments || []).length;
+      document.getElementById('stat-payments').textContent = payments.length;
 
       // Prochaine échéance = la plus proche parmi les contrats actifs
       const expiries = policies
@@ -617,10 +632,9 @@ class CustomerDashboard {
     this.setTableSkeleton('claims-tbody', 5, 3);
     try {
       const [claims, awaitingReply] = await Promise.all([
-        this.api.getMyClaims().then((r) => r || []),
+        this.fetchClaims(true),
         this.fetchClaimsAwaitingReply(true),
       ]);
-      this.claims = claims;
       this.updateClaimsNavBadge(awaitingReply);
       const awaitingIds = new Set((awaitingReply || []).map((r) => r.claim_id));
       const statusFilter = document.getElementById('filter-claim-status')?.value || '';
@@ -682,9 +696,20 @@ class CustomerDashboard {
 
   async fetchPayments(force = false) {
     if (!this.payments || force) {
-      this.payments = await this.api.getMyPayments().catch(() => []);
+      const rows = await this.api.getMyPayments().catch(() => []);
+      this.payments = this.filterOwnCustomerRows(rows);
     }
     return this.payments;
+  }
+
+  async fetchClaims(force = false) {
+    if (!this.claims || force) {
+      const rows = await this.api.getMyClaims() || [];
+      const policies = await this.fetchPolicies();
+      const ownPolicyIds = new Set((policies || []).map((p) => p.id));
+      this.claims = (rows || []).filter((c) => ownPolicyIds.has(c.application_id));
+    }
+    return this.claims;
   }
 
   setPaymentsLoading(loading) {
@@ -1065,10 +1090,10 @@ class CustomerDashboard {
     try {
       const [policies, payments] = await Promise.all([
         this.fetchPolicies(),
-        this.api.getMyPayments().catch(() => []),
+        this.fetchPayments(),
       ]);
       const activeCount = (policies || []).filter((p) => p.status === 'active').length;
-      const paymentCount = (payments || []).length;
+      const paymentCount = payments.length;
       const policiesEl = document.getElementById('profile-stat-policies');
       const paymentsEl = document.getElementById('profile-stat-payments');
       if (policiesEl) policiesEl.textContent = activeCount;
@@ -1231,7 +1256,8 @@ class CustomerDashboard {
 
   async fetchDocuments(force = false) {
     if (!this.documents || force) {
-      this.documents = await this.api.getMyDocuments() || [];
+      const rows = await this.api.getMyDocuments() || [];
+      this.documents = this.filterOwnCustomerRows(rows);
     }
     return this.documents;
   }
@@ -1702,7 +1728,10 @@ class CustomerDashboard {
     try {
       const policies = await this.fetchPolicies();
       const p = policies.find(x => x.id === policyId);
-      if (!p) return;
+      if (!p) {
+        toast('Contrat introuvable sur ton compte.', 'err');
+        return;
+      }
 
       const premium = p.annual_premium
         ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH`
@@ -1733,7 +1762,10 @@ class CustomerDashboard {
     try {
       const policies = await this.fetchPolicies();
       const p = policies.find(x => x.id === policyId);
-      if (!p) return;
+      if (!p) {
+        toast('Contrat introuvable sur ton compte.', 'err');
+        return;
+      }
 
       const premium = p.annual_premium
         ? `${Number(p.annual_premium).toLocaleString('fr-FR')} DH`
@@ -1818,7 +1850,7 @@ class CustomerDashboard {
   async viewClaimDetail(claimId, options = {}) {
     const { focusMessages = false } = options;
     try {
-      const claims = this.claims || await this.api.getMyClaims() || [];
+      const claims = await this.fetchClaims();
       const c = claims.find(x => x.id === claimId);
       if (!c) return;
 

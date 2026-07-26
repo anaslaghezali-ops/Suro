@@ -41,6 +41,14 @@
       }
     },
 
+    async currentRole() {
+      return this.sb('/rest/v1/rpc/suro_current_role', {
+        method: 'POST',
+        asUser: true,
+        body: JSON.stringify({}),
+      });
+    },
+
     adminGetApplications() {
       return this.sb('/rest/v1/insurance_applications?select=*&order=created_at.desc', { asUser: true });
     },

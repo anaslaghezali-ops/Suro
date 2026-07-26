@@ -4,11 +4,16 @@
 # Prérequis : pg_dump (postgresql-client) + mot de passe base Supabase.
 #
 # Usage :
-#   export DATABASE_URL='postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-eu-west-3.pooler.supabase.com:5432/postgres'
+#   export DATABASE_URL='...'   # copier EXACTEMENT depuis le dashboard (voir ci-dessous)
 #   ./scripts/backup-suro-db.sh
 #
-# Récupérer DATABASE_URL :
-#   Supabase Dashboard → Project Settings → Database → Connection string (Session pooler, port 5432)
+# Récupérer DATABASE_URL (ne pas deviner la région) :
+#   Supabase Dashboard → bouton **Connect** (en haut) → **Session pooler** (port 5432)
+#   Coller la chaîne telle quelle, remplacer [YOUR-PASSWORD].
+#
+# Alternative directe (pg_dump recommandé par Supabase) :
+#   postgresql://postgres:[PASSWORD]@db.eprtmdugiusidtbwzozj.supabase.co:5432/postgres
+#   (user = postgres, pas postgres.PROJECT_REF — nécessite IPv6 ou add-on IPv4)
 #
 # Projet Suro prod : eprtmdugiusidtbwzozj
 set -euo pipefail

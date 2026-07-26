@@ -2,16 +2,14 @@ import { html } from 'htm/preact';
 import { useState } from 'preact/hooks';
 import { api } from '../lib/api.js';
 import { useAsync } from '../../../ops/src/lib/useAsync.js';
-import { Badge, Spinner, toast } from '../components/ui.js';
+import { toast } from '../components/ui.js';
+import { CabinetMemberList } from '../../../ops/src/components/CabinetMemberList.js';
 import { roleLabel } from '../lib/permissions.js';
-import { fmtDate } from '../../../ops/src/lib/format.js';
 
 const TEAM_ROLES = [
   { id: 'gestionnaire', label: 'Gestionnaire' },
   { id: 'responsable', label: 'Responsable' },
 ];
-
-const roleTone = (r) => ({ admin_cabinet: 'blue', responsable: 'amber', gestionnaire: 'gray' }[r] || 'gray');
 
 export function Team() {
   const members = useAsync(() => api.listMembers(), []);
@@ -42,19 +40,20 @@ export function Team() {
     finally { setBusy(false); }
   };
 
-  const rows = members.data || [];
-
   return html`
-    <h1 class="ops-h1">Équipe du cabinet</h1>
-    <p style="color:var(--color-neutral-600);margin-bottom:20px">
-      Créez des gestionnaires et responsables avec email et mot de passe.
-      Ils se connectent sur <a href="../cabinet-login.html">cabinet-login.html</a>.
-    </p>
+    <div class="page-head">
+      <h1>Équipe</h1>
+      <p>Gérez les accès de votre cabinet — gestionnaires et responsables.</p>
+    </div>
 
     <div class="card" style="margin-bottom:24px">
-      <div class="card-head"><h3>Créer un membre</h3></div>
+      <div class="card-head"><h3>Nouveau membre</h3></div>
       <div class="card-body">
-        <div class="form-grid" style="grid-template-columns:1fr 1fr">
+        <p class="muted" style="margin:0 0 14px;font-size:12.5px">
+          Définissez email et mot de passe. Connexion sur
+          <a href="../cabinet-login.html" target="_blank" rel="noopener">cabinet-login.html</a>.
+        </p>
+        <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
           <label>Email
             <input class="ops-input" type="email" placeholder="gestionnaire@cabinet.ma"
               value=${email} onInput=${(e) => setEmail(e.target.value)} />
@@ -81,23 +80,17 @@ export function Team() {
       </div>
     </div>
 
-    <h2 style="font-size:16px;margin-bottom:12px">Membres du cabinet</h2>
-    ${members.loading ? html`<${Spinner}/>` :
-      members.error ? html`<p style="color:#b91c1c">${members.error.message}</p>` :
-      rows.length === 0 ? html`<p style="color:var(--color-neutral-500)">Aucun membre.</p>` : html`
-      <table class="ops-table">
-        <thead><tr>
-          <th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Depuis</th>
-        </tr></thead>
-        <tbody>
-          ${rows.map((m) => html`<tr key=${m.member_id}>
-            <td>${m.display_name || html`<span class="muted">—</span>`}</td>
-            <td>${m.email}</td>
-            <td><${Badge} tone=${roleTone(m.role)}>${roleLabel(m.role)}<//></td>
-            <td>${m.is_active ? html`<${Badge} tone="green">Actif<//>` : html`<${Badge} tone="gray">Inactif<//>`}</td>
-            <td>${fmtDate(m.created_at)}</td>
-          </tr>`)}
-        </tbody>
-      </table>`}
+    <div class="card">
+      <div class="card-head"><h3>Membres du cabinet</h3></div>
+      <div class="card-body">
+        <${CabinetMemberList}
+          members=${members.data || []}
+          loading=${members.loading}
+          error=${members.error}
+          roleLabel=${roleLabel}
+          emptyMessage="Aucun membre — invitez votre première personne avec le formulaire ci-dessus."
+        />
+      </div>
+    </div>
   `;
 }

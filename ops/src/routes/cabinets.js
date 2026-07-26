@@ -3,6 +3,7 @@ import { useState } from 'preact/hooks';
 import { api } from '../lib/api.js';
 import { useAsync } from '../lib/useAsync.js';
 import { Spinner, Badge, Empty, toast } from '../components/ui.js';
+import { CabinetMemberList } from '../components/CabinetMemberList.js';
 import { fmtDate } from '../lib/format.js';
 import { OPERATING_MODES } from '../lib/permissions.js';
 import { readOperatingMode, operatingModeMeta, applyOperatingMode } from '../lib/operatingMode.js';
@@ -285,25 +286,15 @@ export function Cabinets({ role }) {
             </select>
           </label>
         </div>
-        <div class="card-body" style="padding-top:0">
-          ${members.loading ? html`<${Spinner}/>` :
-            members.error ? html`<p class="muted" style="color:#b91c1c">${members.error.message}</p>` :
-            memberRows.length === 0 ? html`<p class="muted">Aucun membre.</p>` : html`
-            <table class="ops-table">
-              <thead><tr>
-                <th>Cabinet</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Depuis</th>
-              </tr></thead>
-              <tbody>
-                ${memberRows.map((m) => html`<tr key=${m.member_id}>
-                  <td>${m.cabinet_name}</td>
-                  <td>${m.display_name || html`<span class="muted">—</span>`}</td>
-                  <td>${m.email}</td>
-                  <td>${cabinetRoleLabel(m.role)}</td>
-                  <td>${m.is_active ? html`<${Badge} tone="green">Actif<//>` : html`<${Badge} tone="gray">Inactif<//>`}</td>
-                  <td>${fmtDate(m.created_at)}</td>
-                </tr>`)}
-              </tbody>
-            </table>`}
+        <div class="card-body">
+          <${CabinetMemberList}
+            members=${memberRows}
+            loading=${members.loading}
+            error=${members.error}
+            roleLabel=${cabinetRoleLabel}
+            showCabinet=${true}
+            emptyMessage="Aucun membre — créez-en un avec le formulaire ci-dessus."
+          />
         </div>
       </div>` : null}
 

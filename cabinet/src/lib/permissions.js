@@ -37,3 +37,13 @@ export const CLAIM_STATUS = {
   indemnisation_en_cours: 'Indemnisation en cours',
   cloture: 'Clôturé',
 };
+
+export const CLAIM_STATUS_META = {
+  dossier_recu: { label: 'Dossier reçu', tone: 'blue' },
+  pieces_manquantes: { label: 'Pièces manquantes', tone: 'amber' },
+  transmis_compagnie: { label: 'Transmis compagnie', tone: 'blue' },
+  expertise_programmee: { label: 'Expertise programmée', tone: 'amber' },
+  attente_compagnie: { label: 'En attente compagnie', tone: 'gray' },
+  indemnisation_en_cours: { label: 'Indemnisation en cours', tone: 'green' },
+  cloture: { label: 'Clôturé', tone: 'gray' },
+};

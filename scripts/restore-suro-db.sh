@@ -20,12 +20,20 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
   exit 1
 fi
 
-if ! command -v pg_restore >/dev/null 2>&1; then
-  echo "Erreur : pg_restore introuvable. Installer postgresql-client." >&2
-  exit 1
+PG_RESTORE="${PG_RESTORE:-}"
+if [[ -z "$PG_RESTORE" ]]; then
+  if [[ -x /usr/lib/postgresql/17/bin/pg_restore ]]; then
+    PG_RESTORE=/usr/lib/postgresql/17/bin/pg_restore
+  elif command -v pg_restore >/dev/null 2>&1; then
+    PG_RESTORE=pg_restore
+  else
+    echo "Erreur : pg_restore introuvable. Installer postgresql-client-17." >&2
+    exit 1
+  fi
 fi
 
 echo "!!! ATTENTION : restauration vers $DATABASE_URL"
+echo "    pg_restore : $($PG_RESTORE --version)"
 echo "    Fichier : $DUMP"
 echo "    Tapez 'oui' pour confirmer :"
 read -r confirm
@@ -35,7 +43,7 @@ if [[ "$confirm" != "oui" ]]; then
 fi
 
 echo "==> Restauration en cours..."
-pg_restore \
+$PG_RESTORE \
   --dbname="$DATABASE_URL" \
   --clean \
   --if-exists \

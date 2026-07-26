@@ -1,5 +1,5 @@
 import { html } from 'htm/preact';
-import { useState, useMemo } from 'preact/hooks';
+import { useState, useMemo, useEffect } from 'preact/hooks';
 import { api } from '../lib/api.js';
 import { useAsync } from '../../../ops/src/lib/useAsync.js';
 import { SlideOver, Badge, Spinner, Empty, toast } from '../components/ui.js';
@@ -20,6 +20,97 @@ function claimMatchesFilter(claim, filterId) {
   if (filterId === 'all') return true;
   if (filterId === 'open') return claim.broker_status !== 'cloture';
   return claim.broker_status === filterId;
+}
+
+function claimFileKind(file) {
+  const type = file.content_type || '';
+  if (type.startsWith('image')) return 'image';
+  if (type.startsWith('video')) return 'video';
+  if (/\.(png|jpe?g|gif|webp)$/i.test(file.name || '')) return 'image';
+  if (/\.(mp4|webm|mov)$/i.test(file.name || '')) return 'video';
+  return 'file';
+}
+
+function ClaimFilePreview({ file }) {
+  const [state, setState] = useState({ loading: true, url: null, type: '', error: null });
+  const kind = claimFileKind(file);
+
+  useEffect(() => {
+    let revoked = false;
+    let objUrl = null;
+    setState({ loading: true, url: null, type: '', error: null });
+    api.getClaimFileBlobUrl(file.storage_path)
+      .then(({ url, type }) => {
+        if (!revoked) {
+          objUrl = url;
+          setState({ loading: false, url, type, error: null });
+        }
+      })
+      .catch((e) => {
+        if (!revoked) setState({ loading: false, url: null, type: '', error: e.message || 'Erreur' });
+      });
+    return () => {
+      revoked = true;
+      if (objUrl) URL.revokeObjectURL(objUrl);
+    };
+  }, [file.id]);
+
+  if (state.loading) return html`<div class="cabinet-claim-file-preview"><${Spinner}/></div>`;
+  if (state.error) return html`<div class="cabinet-claim-file-preview cabinet-claim-file-fallback">Aperçu indisponible</div>`;
+
+  const mime = state.type || file.content_type || '';
+  if (kind === 'image' || mime.startsWith('image')) {
+    return html`<div class="cabinet-claim-file-preview">
+      <img src=${state.url} alt=${file.name} loading="lazy" />
+    </div>`;
+  }
+  if (kind === 'video' || mime.startsWith('video')) {
+    return html`<div class="cabinet-claim-file-preview">
+      <video src=${state.url} controls preload="metadata"></video>
+    </div>`;
+  }
+  return html`<div class="cabinet-claim-file-preview cabinet-claim-file-fallback">📎 Fichier</div>`;
+}
+
+function ClaimFilesSection({ claimId }) {
+  const files = useAsync(() => api.listClaimFiles(claimId), [claimId]);
+  const [busyId, setBusyId] = useState(null);
+
+  const download = async (file) => {
+    setBusyId(file.id);
+    try {
+      await api.downloadClaimFile(file.storage_path, file.name);
+    } catch (e) {
+      toast(e.message || 'Téléchargement impossible', 'err');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  if (files.loading) return html`<div class="cabinet-detail-section"><${Spinner}/></div>`;
+  const rows = files.data || [];
+
+  return html`
+    <div class="cabinet-detail-section">
+      <h3>Photos & pièces jointes</h3>
+      ${rows.length === 0
+        ? html`<p class="cabinet-page-sub">Aucune photo ou pièce jointe pour ce sinistre.</p>`
+        : html`<div class="cabinet-claim-gallery">
+          ${rows.map((file) => {
+            const kind = claimFileKind(file);
+            const label = kind === 'video' ? 'Vidéo' : kind === 'image' ? 'Photo' : 'Fichier';
+            return html`<div class="cabinet-claim-file" key=${file.id}>
+              <${ClaimFilePreview} file=${file} />
+              <div class="cabinet-claim-file-meta">
+                <strong>${label}</strong>
+                <small>${file.name} · ${fmtDate(file.created_at)}</small>
+                <button class="btn-o sm" disabled=${busyId === file.id} onClick=${() => download(file)}>⤓ Télécharger</button>
+              </div>
+            </div>`;
+          })}
+        </div>`}
+    </div>
+  `;
 }
 
 function ClaimDetail({ claim, onClose, onChanged }) {
@@ -46,6 +137,7 @@ function ClaimDetail({ claim, onClose, onChanged }) {
       <div class="field-row"><div class="k">Véhicule</div><div class="v">${veh.label}${veh.plate ? ` (${veh.plate})` : ''}</div></div>
       <div class="field-row"><div class="k">Déclaré le</div><div class="v">${fmtDate(claim.created_at)}</div></div>
       <div class="field-row"><div class="k">Survenu le</div><div class="v">${fmtDate(claim.claim_date)}</div></div>
+      <${ClaimFilesSection} claimId=${claim.claim_id} />
       <div class="cabinet-detail-section cabinet-status-form">
         <h3>Mise à jour statut</h3>
         <label for="claim-status-select">Statut cabinet</label>

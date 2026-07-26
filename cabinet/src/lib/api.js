@@ -38,6 +38,15 @@ export const api = {
   async downloadDocument(storagePath, fileName) {
     return window.SURO_CABINET.downloadDocument(storagePath, fileName);
   },
+  async listClaimFiles(claimId) {
+    return window.SURO_CABINET.listClaimFiles(claimId);
+  },
+  async downloadClaimFile(storagePath, fileName) {
+    return window.SURO_CABINET.downloadClaimFile(storagePath, fileName);
+  },
+  async getClaimFileBlobUrl(storagePath) {
+    return window.SURO_CABINET.getClaimFileBlobUrl(storagePath);
+  },
 
   login(email, password) {
     const client = window.SURO_API

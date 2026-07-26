@@ -134,6 +134,27 @@
       a.remove();
     },
 
+    async listClaimFiles(claimId) {
+      return rpc('suro_cabinet_list_claim_files', { p_claim_id: claimId });
+    },
+
+    async getClaimFileBlobUrl(storagePath) {
+      const blob = await storageFetch(`suro-claims/${storagePath}`);
+      return { url: window.URL.createObjectURL(blob), type: blob.type };
+    },
+
+    async downloadClaimFile(storagePath, fileName) {
+      const blob = await storageFetch(`suro-claims/${storagePath}`);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName || storagePath.split('/').pop();
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    },
+
     /* Supervision Ops */
     async opsOverview() {
       return rpc('suro_ops_cabinet_overview');

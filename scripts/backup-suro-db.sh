@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Sauvegarde complète de la base Suro (Supabase Cloud).
 #
-# Prérequis : pg_dump (postgresql-client) + mot de passe base Supabase.
+# Prérequis : pg_dump **17+** (Supabase = PG 17) + mot de passe base Supabase.
+#   sudo apt install postgresql-client-17
+#   # ou utiliser /usr/lib/postgresql/17/bin/pg_dump explicitement
 #
 # Usage :
 #   export DATABASE_URL='...'   # copier EXACTEMENT depuis le dashboard (voir ci-dessous)
@@ -27,10 +29,20 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
   exit 1
 fi
 
-if ! command -v pg_dump >/dev/null 2>&1; then
-  echo "Erreur : pg_dump introuvable. Installer postgresql-client." >&2
-  exit 1
+# Préférer pg_dump 17 (Supabase tourne en PG 17 — pg_dump 16 échoue)
+PG_DUMP="${PG_DUMP:-}"
+if [[ -z "$PG_DUMP" ]]; then
+  if [[ -x /usr/lib/postgresql/17/bin/pg_dump ]]; then
+    PG_DUMP=/usr/lib/postgresql/17/bin/pg_dump
+  elif command -v pg_dump >/dev/null 2>&1; then
+    PG_DUMP=pg_dump
+  else
+    echo "Erreur : pg_dump introuvable. Installer postgresql-client-17." >&2
+    exit 1
+  fi
 fi
+
+echo "    pg_dump : $($PG_DUMP --version)"
 
 mkdir -p "$OUT_DIR"
 
@@ -38,7 +50,7 @@ echo "==> Backup Suro → $OUT_DIR"
 echo "    Date UTC : $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 # Format custom (PGDMP) — compatible pg_restore, comme les backups VPS
-pg_dump "$DATABASE_URL" \
+$PG_DUMP "$DATABASE_URL" \
   --format=custom \
   --no-owner \
   --no-acl \

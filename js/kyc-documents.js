@@ -1,6 +1,7 @@
 /**
  * Pièces KYC client — CIN, permis, carte grise (recto + verso chacune).
- * Partagé entre l'espace client (window.SuroKyc) et le portail Ops.
+ * CIN et permis sont partagés entre tous les contrats du même client ;
+ * la carte grise est spécifique à chaque véhicule.
  */
 (function (root) {
   'use strict';
@@ -15,10 +16,20 @@
   ];
 
   const KYC_DOC_TYPE_IDS = KYC_DOC_TYPES.map((d) => d.id);
+  const KYC_CUSTOMER_TYPES = ['cin', 'permis'];
+  const KYC_VEHICLE_TYPES = ['carte_grise'];
   const KYC_SLOT_COUNT = KYC_DOC_TYPE_IDS.length * KYC_SIDES.length;
+
+  function normalizeEmail(email) {
+    return (email || '').trim().toLowerCase();
+  }
 
   function isKycDocument(doc) {
     return doc && KYC_DOC_TYPE_IDS.includes(doc.document_type);
+  }
+
+  function isCustomerSharedType(type) {
+    return KYC_CUSTOMER_TYPES.includes(type);
   }
 
   function latestDocForSlot(docs, applicationId, type, side) {
@@ -28,6 +39,24 @@
         && (d.document_side || null) === side)
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     return rows[0] || null;
+  }
+
+  function latestDocForCustomerSlot(docs, customerEmail, type, side) {
+    const email = normalizeEmail(customerEmail);
+    if (!email) return null;
+    const rows = (docs || [])
+      .filter((d) => normalizeEmail(d.customer_email) === email
+        && d.document_type === type
+        && (d.document_side || null) === side)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return rows[0] || null;
+  }
+
+  function resolveDocForPolicySlot(docs, applicationId, customerEmail, type, side) {
+    if (isCustomerSharedType(type)) {
+      return latestDocForCustomerSlot(docs, customerEmail, type, side);
+    }
+    return latestDocForSlot(docs, applicationId, type, side);
   }
 
   function typeAggregateStatus(typeEntry) {
@@ -41,7 +70,10 @@
     return 'missing';
   }
 
-  function summarizeKycForPolicy(applicationId, allDocs) {
+  function summarizeKycForPolicy(applicationId, allDocs, customerEmail) {
+    const email = normalizeEmail(customerEmail)
+      || normalizeEmail((allDocs || []).find((d) => d.application_id === applicationId)?.customer_email);
+
     const byType = {};
     let received = 0;
     let approved = 0;
@@ -49,23 +81,29 @@
     for (const type of KYC_DOC_TYPE_IDS) {
       byType[type] = { recto: null, verso: null };
       for (const side of KYC_SIDES) {
-        const doc = latestDocForSlot(allDocs, applicationId, type, side);
+        const doc = resolveDocForPolicySlot(allDocs, applicationId, email, type, side);
         byType[type][side] = doc;
         if (doc) received += 1;
         if (doc?.status === 'approved') approved += 1;
       }
     }
 
-    const piecesComplete = KYC_DOC_TYPE_IDS.filter(
-      (type) => typeAggregateStatus(byType[type]) === 'approved'
-    ).length;
-
-    const needsUpload = KYC_DOC_TYPE_IDS.some((type) => {
+    const missingTypes = KYC_DOC_TYPE_IDS.filter((type) => {
       const agg = typeAggregateStatus(byType[type]);
       return agg === 'missing' || agg === 'rejected' || agg === 'partial';
     });
 
+    const piecesComplete = KYC_DOC_TYPE_IDS.filter(
+      (type) => typeAggregateStatus(byType[type]) === 'approved'
+    ).length;
+
+    const needsUpload = missingTypes.length > 0;
+
     const pendingReview = !needsUpload && received === KYC_SLOT_COUNT && approved < KYC_SLOT_COUNT;
+
+    const sharedIdentityComplete = KYC_CUSTOMER_TYPES.every(
+      (type) => typeAggregateStatus(byType[type]) === 'approved'
+    );
 
     return {
       byType,
@@ -75,6 +113,9 @@
       complete: approved === KYC_SLOT_COUNT,
       needsUpload,
       pendingReview,
+      missingTypes,
+      onlyCarteGriseMissing: missingTypes.length === 1 && missingTypes[0] === 'carte_grise',
+      sharedIdentityComplete,
       totalSlots: KYC_SLOT_COUNT,
       totalPieces: KYC_DOC_TYPE_IDS.length,
     };
@@ -98,9 +139,14 @@
     KYC_SIDE_LABELS,
     KYC_DOC_TYPES,
     KYC_DOC_TYPE_IDS,
+    KYC_CUSTOMER_TYPES,
+    KYC_VEHICLE_TYPES,
     KYC_SLOT_COUNT,
     isKycDocument,
+    isCustomerSharedType,
     latestDocForSlot,
+    latestDocForCustomerSlot,
+    resolveDocForPolicySlot,
     typeAggregateStatus,
     summarizeKycForPolicy,
     kycDocLabel,

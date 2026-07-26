@@ -16,7 +16,7 @@ function docLabel(doc) {
   return doc.name || 'Document';
 }
 
-function DocumentsSection({ applicationId }) {
+function DocumentsSection({ applicationId, customerEmail }) {
   const docs = useAsync(() => api.listApplicationDocuments(applicationId), [applicationId]);
   const [busyId, setBusyId] = useState(null);
 
@@ -38,7 +38,7 @@ function DocumentsSection({ applicationId }) {
   }
 
   const kyc = Kyc();
-  const summary = kyc ? kyc.summarizeKycForPolicy(applicationId, rows) : null;
+  const summary = kyc ? kyc.summarizeKycForPolicy(applicationId, rows, customerEmail) : null;
 
   return html`
     <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--color-neutral-200)">
@@ -81,7 +81,7 @@ function TaskDetail({ task, onClose, onChanged }) {
       <div class="field-row"><div class="k">Produit</div><div class="v">${task.coverage_type || '—'}</div></div>
       <div class="field-row"><div class="k">Prime</div><div class="v">${task.annual_premium ? task.annual_premium + ' MAD' : '—'}</div></div>
       <div class="field-row"><div class="k">Statut</div><div class="v">${(TASK_STATUS[task.status] || {}).label || task.status}</div></div>
-      <${DocumentsSection} applicationId=${task.application_id} />
+      <${DocumentsSection} applicationId=${task.application_id} customerEmail=${task.customer_email} />
       <div class="cabinet-actions" style="margin-top:20px">
         <button class="btn-o primary" onClick=${() => act('prendre_en_charge')}>Prendre en charge</button>
         <button class="btn-o" onClick=${() => act('valider')}>Valider</button>

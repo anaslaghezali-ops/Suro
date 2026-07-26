@@ -26,6 +26,12 @@ select 'suro_staff_set_cabinet_active' as rpc,
     where n.nspname = 'public' and p.proname = 'suro_staff_set_cabinet_active'
   ) then 'OK' else 'MANQUANT' end as status;
 
+select 'suro_staff_delete_cabinet' as rpc,
+  case when exists (
+    select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proname = 'suro_staff_delete_cabinet'
+  ) then 'OK' else 'MANQUANT' end as status;
+
 select 'operating_mode_setting' as rpc,
   case when exists (
     select 1 from public.suro_settings where key = 'operating_mode'

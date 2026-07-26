@@ -12,6 +12,7 @@ class OnboardingForm {
 
     // Pré-remplissage (renouvellement : on récupère les infos du contrat existant)
     this.applyPrefill();
+    this.applyLoggedInContactFromSession();
 
     this.quoteError = false;
     this.fields = this.getFields();
@@ -38,6 +39,37 @@ class OnboardingForm {
         }
       });
     }
+  }
+
+  applyLoggedInContactFromSession() {
+    if (!this.loggedIn) return;
+    const user = this.session?.user || {};
+    const meta = user.user_metadata || {};
+    const fields = {
+      email: user.email || this.session?.email || null,
+      prenom: meta.prenom || null,
+      nom: meta.nom || null,
+      phone: meta.phone || null,
+      address: meta.address || null,
+    };
+    if (!fields.prenom && meta.name) {
+      const parts = String(meta.name).trim().split(/\s+/);
+      fields.prenom = parts[0] || null;
+      fields.nom = parts.slice(1).join(' ') || null;
+    }
+    Object.entries(fields).forEach(([k, v]) => {
+      if (v && !this.store.getState(`onboarding.data.${k}`)) {
+        this.store.setState(`onboarding.data.${k}`, v);
+      }
+    });
+  }
+
+  hasCompleteContact() {
+    const d = this.store.getState('onboarding.data') || {};
+    return !!(String(d.prenom || '').trim()
+      && String(d.nom || '').trim()
+      && String(d.phone || '').trim()
+      && String(d.address || '').trim());
   }
 
   init() {
@@ -312,9 +344,13 @@ class OnboardingForm {
       },
     ];
 
-    // Client déjà connecté : pas besoin de recréer un compte
+    // Client déjà connecté : pas de compte à créer ; coordonnées pré-remplies si connues
     if (this.loggedIn) {
-      return fields.filter((f) => f.id !== 'account');
+      let steps = fields.filter((f) => f.id !== 'account');
+      if (this.hasCompleteContact()) {
+        steps = steps.filter((f) => f.id !== 'contact');
+      }
+      return steps;
     }
     return fields;
   }

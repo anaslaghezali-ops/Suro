@@ -41,6 +41,14 @@
       }
     },
 
+    async currentRole() {
+      return this.sb('/rest/v1/rpc/suro_current_role', {
+        method: 'POST',
+        asUser: true,
+        body: JSON.stringify({}),
+      });
+    },
+
     adminGetApplications() {
       return this.sb('/rest/v1/insurance_applications?select=*&order=created_at.desc', { asUser: true });
     },
@@ -179,6 +187,9 @@
     },
 
     adminUpdateSetting(key, value) {
+      if (key === 'operating_mode') {
+        return Promise.reject(new Error('operating_mode : utiliser switchOperatingMode() (RPC suro_switch_operating_mode)'));
+      }
       return this.sb(`/rest/v1/suro_settings?key=eq.${encodeURIComponent(key)}`, {
         method: 'PATCH',
         asUser: true,

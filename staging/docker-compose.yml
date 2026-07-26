@@ -1,0 +1,14 @@
+# SURO — Staging Supabase (self-hosted)
+#
+# Rebuild en une commande :
+#   cd staging && cp .env.example .env && ./scripts/init-docker.sh && ./scripts/bootstrap.sh
+#
+# Le dossier supabase-docker/ est généré par init-docker.sh (gitignored).
+# Source : https://github.com/supabase/supabase/tree/master/docker
+
+name: suro-staging
+
+# Wrapper : pointe vers le compose officiel cloné localement
+include:
+  - path: ./supabase-docker/docker-compose.yml
+    env_file: ./.env

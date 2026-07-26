@@ -94,6 +94,7 @@ export function Cabinets({ role }) {
   const [showCreate, setShowCreate] = useState(true);
   const [cabName, setCabName] = useState('');
   const [cabSlug, setCabSlug] = useState('');
+  const [slugTouched, setSlugTouched] = useState(false);
   const [createBusy, setCreateBusy] = useState(false);
 
   const [memberEmail, setMemberEmail] = useState('');
@@ -107,7 +108,7 @@ export function Cabinets({ role }) {
 
   const createCabinet = async () => {
     const name = cabName.trim();
-    const slug = (cabSlug.trim() || slugify(name));
+    const slug = slugify(cabSlug.trim() || name);
     if (!name) { toast('Nom du cabinet requis', 'err'); return; }
     if (!slug || !/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
       toast('Slug invalide (a-z, 0-9, tirets)', 'err'); return;
@@ -116,7 +117,7 @@ export function Cabinets({ role }) {
     try {
       await cabinetApi().staffUpsertCabinet(name, slug);
       toast('Cabinet créé', 'ok');
-      setCabName(''); setCabSlug('');
+      setCabName(''); setCabSlug(''); setSlugTouched(false);
       reload();
     } catch (e) { toast('Échec : ' + (e.message || ''), 'err'); }
     finally { setCreateBusy(false); }
@@ -182,12 +183,19 @@ export function Cabinets({ role }) {
           <div class="form-grid">
             <label>Nom du cabinet
               <input class="ops-input" value=${cabName}
-                onInput=${(e) => { setCabName(e.target.value); if (!cabSlug) setCabSlug(slugify(e.target.value)); }}
+                onInput=${(e) => {
+                  const v = e.target.value;
+                  setCabName(v);
+                  if (!slugTouched) setCabSlug(slugify(v));
+                }}
                 placeholder="Cabinet Exemple Assurances" />
             </label>
             <label>Slug (identifiant unique)
-              <input class="ops-input" value=${cabSlug} onInput=${(e) => setCabSlug(e.target.value)}
-                placeholder="exemple-assurances" />
+              <input class="ops-input" value=${cabSlug}
+                onInput=${(e) => { setSlugTouched(true); setCabSlug(e.target.value); }}
+                onBlur=${(e) => { if (e.target.value.trim()) setCabSlug(slugify(e.target.value)); }}
+                placeholder="cabinet-exemple" />
+              <span class="muted" style="font-size:11px">Lettres minuscules, chiffres et tirets — ex. cabinet-1</span>
             </label>
           </div>
           <div style="margin-top:14px">

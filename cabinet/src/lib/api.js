@@ -32,6 +32,12 @@ export const api = {
   async updateCabinetUser(payload) { return window.SURO_CABINET.updateCabinetUser(payload); },
   async setMemberActive(memberId, active) { return window.SURO_CABINET.setMemberActive(memberId, active); },
   async removeMember(memberId) { return window.SURO_CABINET.removeMember(memberId); },
+  async listApplicationDocuments(applicationId) {
+    return window.SURO_CABINET.listApplicationDocuments(applicationId);
+  },
+  async downloadDocument(storagePath, fileName) {
+    return window.SURO_CABINET.downloadDocument(storagePath, fileName);
+  },
 
   login(email, password) {
     const client = window.SURO_API

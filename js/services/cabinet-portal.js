@@ -1,11 +1,24 @@
 /* API portail cabinet partenaire — RPC Supabase dédiées. */
 (function () {
+  const SUPABASE_URL = window.SURO_CONFIG.SUPABASE_URL;
+
   function rpc(fn, params) {
     return window.SURO_HTTP.sb('/rest/v1/rpc/' + fn, {
       method: 'POST',
       asUser: true,
       body: JSON.stringify(params || {}),
     });
+  }
+
+  async function storageFetch(path) {
+    const session = await window.SURO_SESSION.ensureValidSession();
+    if (!session) throw new Error('Session expirée');
+    const res = await fetch(
+      `${SUPABASE_URL}/storage/v1/object/authenticated/${path}`,
+      { headers: { Authorization: `Bearer ${session.access_token}` } }
+    );
+    if (!res.ok) throw new Error('Fichier inaccessible');
+    return res.blob();
   }
 
   window.SURO_CABINET = {
@@ -96,6 +109,29 @@
 
     async removeMember(memberId) {
       return rpc('suro_cabinet_remove_member', { p_member_id: memberId });
+    },
+
+    async listApplicationDocuments(applicationId) {
+      return rpc('suro_cabinet_list_application_documents', {
+        p_application_id: applicationId,
+      });
+    },
+
+    async getDocumentBlobUrl(storagePath) {
+      const blob = await storageFetch(`suro-documents/${storagePath}`);
+      return { url: window.URL.createObjectURL(blob), type: blob.type };
+    },
+
+    async downloadDocument(storagePath, fileName) {
+      const blob = await storageFetch(`suro-documents/${storagePath}`);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName || storagePath.split('/').pop();
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
     },
 
     /* Supervision Ops */

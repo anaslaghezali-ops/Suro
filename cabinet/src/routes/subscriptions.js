@@ -6,6 +6,61 @@ import { SlideOver, Badge, Spinner, Empty, toast } from '../components/ui.js';
 import { TASK_STATUS } from '../lib/permissions.js';
 import { fmtDate } from '../../../ops/src/lib/format.js';
 
+const Kyc = () => window.SuroKyc;
+
+function docLabel(doc) {
+  const kyc = Kyc();
+  if (kyc && doc.document_type) {
+    return kyc.kycDocShortLabel(doc.document_type, doc.document_side);
+  }
+  return doc.name || 'Document';
+}
+
+function DocumentsSection({ applicationId }) {
+  const docs = useAsync(() => api.listApplicationDocuments(applicationId), [applicationId]);
+  const [busyId, setBusyId] = useState(null);
+
+  const download = async (doc) => {
+    setBusyId(doc.id);
+    try {
+      await api.downloadDocument(doc.storage_path, doc.name);
+    } catch (e) {
+      toast(e.message || 'Téléchargement impossible', 'err');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  if (docs.loading) return html`<div style="margin-top:16px"><${Spinner}/></div>`;
+  const rows = docs.data || [];
+  if (rows.length === 0) {
+    return html`<div style="margin-top:16px" class="muted">Aucun document client.</div>`;
+  }
+
+  const kyc = Kyc();
+  const summary = kyc ? kyc.summarizeKycForPolicy(applicationId, rows) : null;
+
+  return html`
+    <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--color-neutral-200)">
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px">DOCUMENTS SOUSCRIPTEUR</div>
+      ${summary ? html`<div class="muted" style="font-size:12px;margin-bottom:10px">
+        ${summary.received}/${summary.totalSlots} pièces KYC reçues
+      </div>` : null}
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${rows.map((doc) => html`<div key=${doc.id}
+          style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--color-neutral-200);border-radius:8px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600">${docLabel(doc)}</div>
+            <div class="muted" style="font-size:11px">${doc.name} · ${fmtDate(doc.created_at)}</div>
+          </div>
+          <button class="btn-o sm" disabled=${busyId === doc.id}
+            onClick=${() => download(doc)}>⤓ Télécharger</button>
+        </div>`)}
+      </div>
+    </div>
+  `;
+}
+
 function TaskDetail({ task, onClose, onChanged }) {
   const [policyNum, setPolicyNum] = useState('');
 
@@ -26,6 +81,7 @@ function TaskDetail({ task, onClose, onChanged }) {
       <div class="field-row"><div class="k">Produit</div><div class="v">${task.coverage_type || '—'}</div></div>
       <div class="field-row"><div class="k">Prime</div><div class="v">${task.annual_premium ? task.annual_premium + ' MAD' : '—'}</div></div>
       <div class="field-row"><div class="k">Statut</div><div class="v">${(TASK_STATUS[task.status] || {}).label || task.status}</div></div>
+      <${DocumentsSection} applicationId=${task.application_id} />
       <div class="cabinet-actions" style="margin-top:20px">
         <button class="btn-o primary" onClick=${() => act('prendre_en_charge')}>Prendre en charge</button>
         <button class="btn-o" onClick=${() => act('valider')}>Valider</button>

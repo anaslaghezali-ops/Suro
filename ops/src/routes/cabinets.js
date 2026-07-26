@@ -276,9 +276,9 @@ export function Cabinets({ role }) {
       <div class="card" style="margin-bottom:20px">
         <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
           <h3>Membres des cabinets</h3>
-          <label style="font-size:13px;display:flex;align-items:center;gap:8px">
-            Filtrer
-            <select class="ops-input" style="width:auto" value=${memberFilterCabinet}
+          <label class="cabinet-member-filter">
+            <span>Filtrer</span>
+            <select class="ops-input" value=${memberFilterCabinet}
               onChange=${(e) => setMemberFilterCabinet(e.target.value)}>
               <option value="">Tous les cabinets</option>
               ${cabinets.map((c) => html`
